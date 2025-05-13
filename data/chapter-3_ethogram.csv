@@ -1,0 +1,7 @@
+Behavior code,Behavior type,Description,Key,Color,Behavioral category,Excluded behaviors,Modifiers,Modifiers (JSON)
+Bite,Point event,Pecking or biting at substrate,z,#aa007f,Foraging,Vigilant,,
+Vigilant,State event,"Head up, not feeding, focused or scanning",j,#00557f,Vigilance,"Moving,Foraging",,
+Moving,State event,Displacement at a moderate pace,k,#00aa7f,Movement,"Vigilant,Foraging",,
+Escape,Point event,"Rapid displacement, finning",c,#aaaa7f,,"Vigilant,Foraging","Type of escape:Aggression (A),Predator (P)","{""0"": {""name"": ""Type of escape"", ""description"": ""Escape can be in response to a predator or aggression"", ""type"": 0, ""ask at stop"": false, ""values"": [""Aggression (A)"", ""Predator (P)""]}}"
+Agression,Point event,Rapid displacement towards a target,b,#ffffff,Aggression,Foraging,"Type of aggression:Conspecific (Q),Heterospecific (W),Anti-predator (E)","{""0"": {""name"": ""Type of aggression"", ""description"": ""Target of agression"", ""type"": 0, ""ask at stop"": false, ""values"": [""Conspecific (Q)"", ""Heterospecific (W)"", ""Anti-predator (E)""]}}"
+Foraging,State event,State of foraging: consective bites less than 5 seconds apart,l,#aa0000,Foraging,"Vigilant,Moving",,

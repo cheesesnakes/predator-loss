@@ -1,0 +1,14 @@
+date,deployment-id,location,protection,site,weather,visibility,depth,lat,lon,n-plot,Deploy,Retrieve,boat,boat-crew,divers,remarks
+01-02-2023,FBWT-P,Wandoor,Unprotected,Tarmugli-West,clear,5 - 10m,7 - 15m,11.59789,92.51752,3,09:30,11:00,Khlee,"jeevan, uncle momo","shawn, bharat, rahul",protocol testing
+08-02-2023,FBWT,Wandoor,Unprotected,Tarmugli-West,clear,5 - 10m,7 - 15m,11.59974,92.51748,5,10:00,11:30,Khlee,"babu, rahul, bharat, chaitanya, shawn","shawn, bharat, rahul",
+17-03-2023,FBHP,Havelock,Unprotected,Pilot,clear,10 - 12m,10 - 13m,12.02612,93.04176,4,10:30,11:45,Khlee,"babu, jeevan, bharat, akshta, titus, shawn","shawn, bharat",point marked on boat gps; lost videos for plot 3
+20-03-2023,FBHS,Havelock,Unprotected,Slope,overcast,0 - 5m,10 - 15m,12.06187,92.95732,5,10:30,11:30,Khlee,"babu, jeevan, bharat, akshta, titus, shawn","shawn, bharat","degraded reef overgrown with seagrass, two boats spotted fishing close by"
+24-03-2023,FBHA,Havelock,Unprotected,Aquarium,clear,5 - 10m,11 - 13m,12.00898,92.93869,5,11:00,12:45,Khlee,"babu, jeevan, bharat, akshta, titus, shawn","shawn, bharat, akshta","dived at turtle rock, transect at aquarium"
+30-03-2023,FBRJ,RJMNP,Protected,Juvi,clear/overcast,0 - 5m,7 - 10m,12.06017,93.0268,4,10:00,12:15,Khlee,"babu, jeevan, bharat, akshta, titus, shawn","shawn, bharat, akshta",many lemon damsel teritories; lots of live soft coral; plot 5 set up as timelapse; photo quad on go pro 6
+31-03-2023,FBRB,RJMNP,Protected,Babu's Bar,clear/overcast,5 - 10m,6 - 8m,12.0293,93.00022,5,11:00,12:30,Khlee,"babu, jeevan, bharat, akshta, titus, shawn","shawn, bharat, akshta",lost rugisity data card; surge
+03-04-2023,FBRD,RJMNP,Protected,Deep Deception,clear,0 - 5m,8 - 10m,12.08736,93.09132,5,11:00,14:15,Khlee,"babu, jeevan, bharat, akshta, titus, shawn","shawn, bharat, akshta",
+10-04-2023,FBWP,Wandoor,Unprotected,Playground,clear,5-10m,6 -7m,11.62318,92.5587,5,09:45,10:50,Khlee,"babu, ledu, bharat, akshta, titus, shawn","shawn, bharat, akshta",nurse shark spotted near plot 5; 6 boats fishing <2km
+17-04-2023,FBWO,Wandoor,Unprotected,Oshark,overcast,0-5m,6-7m,11.63161,92.59003,5,09:50,11:10,Khlee,"babu, ledu, bharat, akshta, titus, shawn","babu, jeevan, bharat, akshta, titus, shawn",plot-2 done out of order
+22-04-2023,FBMT,MGMNP,Protected,Twins,clear,0-5m,6-9m,11.39806,92.55169,5,10:00,11:00,Khlee,"babu, ledu, bharat, akshta, titus, shawn","babu, jeevan, bharat, akshta, titus, shawn",plot 5 recorded half way
+25-04-2023,FBMTM,MGMNP,Protected,Tarmugli,clear,5-10m,10-13m,11.61032,92.53389,3,10:00,11:05,Thesopa,"tesoro,sushil, bharat, kartik, titus, shawn","shawn, bharat, kartik, titus","plot-2 fell down after 15min, plot 4 battery failed"
+27-04-2023,FBMB,MGMNP,Protected,Boat,clear/overcast,5-10m,10-13m,11.53154,92.54935,4,11:30,12:30,Khlee,"babu, bharat, titus, akshta, shawn","bharat, akshta, shawn",plot-2 battery failed
