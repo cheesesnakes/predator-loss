@@ -1,3 +1,5 @@
 outputs/
 figures/
 renv/
+*.csv
+*.png

@@ -1,4 +1,4 @@
-pacman::p_load(here)
+pacman::p_load(dplyr, tidyr)
 
 # Generative model for simulation
 
@@ -61,8 +61,8 @@ size_outside_PA <- sample(size, size = N, replace = TRUE, prob = prob_size[,2]) 
 
 # Create data frames for local communities
 
-fish_inside_PA <- data.frame(species = paste("Fish", 1:N, sep = "_"), size = size_inside_PA)
-fish_outside_PA <- data.frame(species = paste("Fish", 1:N, sep = "_"), size = size_outside_PA)
+fish_inside_PA <- data.frame(species = community_inside_PA, size = size_inside_PA)
+fish_outside_PA <- data.frame(species = community_outside_PA, size = size_outside_PA)
 
 # Add feeding guilds to the data frames
 fish_inside_PA$feeding_guild <- regional_pool_fg[community_inside_PA]
@@ -73,3 +73,10 @@ fish_outside_PA$protection <- rep("1", N)
 fish <- rbind(fish_inside_PA, fish_outside_PA)
 
 head(fish)
+
+fish <- fish%>%
+  group_by(protection, species, feeding_guild, size) %>%
+  summarise(abundance = n()) %>%
+  ungroup()
+
+write.csv(fish, "simulation/generated_data_fish.csv", row.names = F) # write fish data to CSV file
