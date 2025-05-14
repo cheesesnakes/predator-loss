@@ -1,7 +1,24 @@
-pacman::p_load(dplyr, tidyr, ggplot2, patchwork)
+pacman::p_load(dplyr, tidyr, ggplot2, patchwork, here)
 
+# set save directories
+
+data_dir <- "outputs/simulated_data"
+plot_dir <- "figures/simulated_data"
+
+if (!dir.exists(here(data_dir))) {
+    dir.create(here(data_dir), recursive = TRUE)
+}
+if (!dir.exists(here(plot_dir))) {
+    dir.create(here(plot_dir), recursive = TRUE)
+}
+
+# set plotting theme
 theme_set(theme_bw()+ theme(text = element_text(size = 20), legend.position = "top")) # set theme for ggplot2
 
+# set seed for reproducibility
+set.seed(123) # set seed for random number generation
+
+# set parameters
 P <- 2 # number of protection levels
 M <- 60 # number of plots
 N <- 500 # number of individuals
@@ -59,7 +76,7 @@ mean_rugosity <- apply(plot_rugosity, 1, mean) # calculate mean rugosity for eac
 plot_rugosity <- data.frame(plot_rugosity)
 colnames(plot_rugosity) <- c("sample_1", "sample_2", "sample_3") # rename columns
 plot_rugosity$plot_id <- plot_id # add plot IDs to the data frame
-write.csv(plot_rugosity, "simulation/generated_data_rugosity.csv", row.names = F) # write rugosity to CSV file
+write.csv(plot_rugosity, here(data_dir, "rugosity.csv"), row.names = F) # write rugosity to CSV file
 
 ## simulate resource availability
 
@@ -83,7 +100,7 @@ plot_biomass <- sapply(protected, biomass) # generate resource availability for 
 
 predictors <- data.frame(plot_id, protected, predator, mean_rugosity, plot_biomass) # create data frame of predictors
 colnames(predictors) <- c("plot_id", "protected", "predator", "mean_rugosity", "biomass") # rename columns
-write.csv(predictors, "simulation/generated_data_predictors.csv", row.names = F) # write predictors to CSV file
+write.csv(predictors, here(data_dir, "predictors.csv"), row.names = F) # write predictors to CSV file
 
 # invidiual level predictors
 
@@ -137,7 +154,7 @@ for (i in 1:N) {
 # create data frame of individual level predictors
 individuals <- data.frame(individual_id, individual_plot, size_individual, foraging_individual) # create data frame of individual level predictors
 colnames(individuals) <- c("ind_id", "plot_id", "size_class", "guild") # rename columns
-write.csv(individuals, "simulation/generated_data_individuals.csv", row.names = F) # write individual level predictors to CSV file
+write.csv(individuals, here(data_dir, "individuals.csv"), row.names = F) # write individual level predictors to CSV file
 
 # Calculate risk per individual
 # baseline risk by protection level
@@ -206,7 +223,7 @@ p4 <- ggplot(individuals, aes(x = individual_risk)) + # create histogram of risk
 
 (p1 + p2 + p3 )/ p4# combine plots
 
-ggsave("simulation/plots_risk.png", width = 12, height = 9) # save plots to file
+ggsave(here(plot_dir, "plots_risk.png"), width = 12, height = 9) # save plots to file
 
 # calculate total duration for foraging, vigilance and movement
 
@@ -310,9 +327,9 @@ p12 <- ggplot(response, aes(x = as.factor(foraging_individual), y = bites)) +
 
 # Combine plots grouped by predictor
 p1 + p2 + p3 + p4 + p5 + p6 + p7 + p8  + p9 + p10 + p11 + p12 + plot_layout(ncol = 4, nrow = 3, byrow = TRUE) 
-ggsave("simulation/plots_behaviour.png", width = 24, height = 18) # save plots to file
+ggsave(here(plot_dir, "plots_behaviour.png"), width = 24, height = 18) # save plots to file
 
 # create data frame of individual level behaviours
 response <- data.frame(individual_id, foraging, vigilance, movement, bites) # create data frame of individual level behaviours
 colnames(response) <- c("ind_id", "foraging", "vigilance", "movement", "bites") # rename columns
-write.csv(response, "simulation/generated_data_behaviour.csv", row.names = F) # write individual level behaviours to CSV file
+write.csv(response, here(data_dir, "behaviour.csv"), row.names = F) # write individual level behaviours to CSV file
