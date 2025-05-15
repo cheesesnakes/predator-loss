@@ -12,6 +12,13 @@ data {
   array[S, 3] real<lower=0, upper=1> rugosity_raw; // rugosity (continuous variable)
   array[S] int<lower=1, upper=2> protection; // protection level (0 or 1)
   array[S] real<lower=0, upper=1> biomass; // biomass availability (continuous variable)
+  
+  // Individual-level covariates
+  int<lower=0> C; // number of size classes
+  int<lower=0> G; // number of guilds
+  array[N] int<lower=1> individual; // individual number
+  array[N] int<lower=1> size; // size class of the individual
+  array[N] int<lower=1> guild; // foraging guild of the individual
 }
 parameters {
   // Rugosity
@@ -34,6 +41,8 @@ parameters {
   real beta_rug; // effect of rugosity on risk
   real<lower=0> sigma_risk; // standard deviation of risk
   real beta_res; // effect of biomass availability on energy
+  ordered[C] beta_size; // effect of size on risk
+  ordered[G] beta_guild; // effect of guild on risk
   
   // Observation model
   vector<lower=0>[B] sigma_D; // standard deviation of duration, non-zero
@@ -57,7 +66,8 @@ transformed parameters {
   for (s in 1 : S) {
     mu_risk[s] = alpha_risk_protection[protection[s]]
                  + beta_predator[predator[s]] + beta_rug * rugosity[s]
-                 + beta_res * biomass[s];
+                 + beta_res * biomass[s] + beta_size[size[s]]
+                 + beta_guild[guild[s]];
   }
   
   for (n in 1 : N) {
@@ -107,6 +117,14 @@ model {
   }
   for (r in 1 : 2) {
     alpha_risk_protection[r] ~ normal(0, 1);
+  }
+  
+  // priors for size and guild
+  for (c in 1 : C) {
+    beta_size[c] ~ normal(0, 1);
+  }
+  for (g in 1 : G) {
+    beta_guild[g] ~ normal(0, 1);
   }
   
   z_risk ~ normal(0, 1); // risk latent variable
@@ -184,7 +202,8 @@ generated quantities {
       real mu_risk_cf = alpha_risk_protection[p]
                         + beta_predator[predator[plot[n]]]
                         + beta_rug * rugosity[plot[n]]
-                        + beta_res * biomass[plot[n]];
+                        + beta_res * biomass[plot[n]] + beta_size[size[n]]
+                        + beta_guild[guild[n]];
       // calculate risk
       real risk_cf = mu_risk_cf + sigma_risk * z_risk[n];
       
