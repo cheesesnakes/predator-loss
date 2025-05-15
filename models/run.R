@@ -22,3 +22,4 @@ colnames(rugosity)
 stan_data <- prep_stan(response, individuals, predictors, rugosity)
 
 fit_result <- fit_model(stan_data, here("models", "model.stan"), run = run)
+

@@ -274,6 +274,11 @@ bites <- function(foraging){
 
 bites <- sapply(foraging, function(x) bites(x)) # generate number of bites for each individual
 
+# create data frame of individual level behaviours
+response <- data.frame(individual_id, foraging, vigilance, movement, bites) # create data frame of individual level behaviours
+colnames(response) <- c("ind_id", "foraging", "vigilance", "movement", "bites") # rename columns
+write.csv(response, here(data_dir, "behaviour.csv"), row.names = F) # write individual level behaviours to CSV file
+
 # box plot behaviours by protection level
 p1 <- ggplot(response, aes(x = as.factor(individual_protected), y = foraging)) +
     geom_boxplot() +
@@ -329,7 +334,3 @@ p12 <- ggplot(response, aes(x = as.factor(foraging_individual), y = bites)) +
 p1 + p2 + p3 + p4 + p5 + p6 + p7 + p8  + p9 + p10 + p11 + p12 + plot_layout(ncol = 4, nrow = 3, byrow = TRUE) 
 ggsave(here(plot_dir, "plots_behaviour.png"), width = 24, height = 18) # save plots to file
 
-# create data frame of individual level behaviours
-response <- data.frame(individual_id, foraging, vigilance, movement, bites) # create data frame of individual level behaviours
-colnames(response) <- c("ind_id", "foraging", "vigilance", "movement", "bites") # rename columns
-write.csv(response, here(data_dir, "behaviour.csv"), row.names = F) # write individual level behaviours to CSV file
