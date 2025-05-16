@@ -25,9 +25,7 @@ fit_result <- fit_model(stan_data, here("models", "model.stan"), run = run)
 
 # summary of the model fit
 # Retrieve all variable names from the fitted model
-vars <- c("beta_risk_foraging", "beta_risk_vigilance", "beta_risk_movement",
-          "beta_risk_bites", "beta_res", "beta_rug", "beta_predator")
-
+vars <- c("beta_risk", "beta_risk_bites", "beta_res", "beta_rug", "beta_predator") 
 # Use grep to filter variable names matching the regex pattern
 print(fit_result$summary(variables = vars))
 

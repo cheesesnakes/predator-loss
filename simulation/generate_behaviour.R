@@ -1,4 +1,4 @@
-pacman::p_load(dplyr, tidyr, ggplot2, patchwork, here)
+pacman::p_load(dplyr, tidyr, ggplot2, patchwork, here, purrr)
 
 # set save directories
 
@@ -13,7 +13,7 @@ if (!dir.exists(here(plot_dir))) {
 }
 
 # set plotting theme
-theme_set(theme_bw()+ theme(text = element_text(size = 20), legend.position = "top")) # set theme for ggplot2
+theme_set(theme_bw() + theme(text = element_text(size = 20), legend.position = "top")) # set theme for ggplot2
 
 # load parameters and functions
 source(here("simulation", "params.R")) # load parameters
@@ -26,7 +26,7 @@ set.seed(123) # set seed for random number generation
 # Generate plot level predictors
 
 plot_id <- 1:M # plot IDs
-protected <- rep(c(1, 2), each = M/2) # protected or unprotected
+protected <- rep(c(1, 2), each = M / 2) # protected or unprotected
 
 ## simulate predator presence
 
@@ -123,18 +123,15 @@ plot_risk()
 
 ggsave(here(plot_dir, "plots_risk.png"), width = 12, height = 9) # save plots to file
 
-# calculate total duration for foraging, vigilance and movement
-
-foraging <- sapply(1:N, function(x) total_time(1)) # generate foraging time for each individual
-vigilance <- sapply(1:N, function(x) total_time(2)) # generate vigilance time for each individual
-movement <- sapply(1:N, function(x) total_time(3)) # generate movement time for each individual
-
-# calculate number of bites
-
-bites <- sapply(foraging, function(x) bites(x)) # generate number of bites for each individual
-
 # create data frame of individual level behaviours
-response <- data.frame(individual_id, foraging, vigilance, movement, bites) # create data frame of individual level behaviours
+response <- data.frame(individual_id) %>%
+    mutate(
+        foraging = map_dbl(individual_id, ~ total_time(1, .x)), # foraging time
+        vigilance = map_dbl(individual_id, ~ total_time(2, .x)), # vigilance time
+        movement = map_dbl(individual_id, ~ total_time(3, .x)), # movement time
+        bites = map2_dbl(foraging, individual_id, ~ bites(.x, .y))
+    )
+
 colnames(response) <- c("ind_id", "foraging", "vigilance", "movement", "bites") # rename columns
 write.csv(response, here(data_dir, "behaviour.csv"), row.names = F) # write individual level behaviours to CSV file
 

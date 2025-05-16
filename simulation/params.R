@@ -33,16 +33,15 @@ alpha_risk_protected <- c(0, 1) # effect of protection on risk
 # effect of rugosity on risk
 beta_rugosity <- -0.5
 
+# effect of biomass on risk
+beta_biomass <- -0.5
+
 # effect of predator presence on risk
 beta_predator <- c(0, 0.5)
 
-beta_risk <- c(-0.5, 1, -0.1) # effect of risk on foraging, vigilance and movement
-beta_biomass <- c(0.5, 0, 0.01) # effect of resource availability on foraging, vigilance and movement
+beta_risk <- c(-0.1, 0.1, -0.01) # effect of risk on foraging, vigilance and movement
 
 beta_pi_risk <- c(0.5, -0.5, 0.5) # zero inflation effect
-beta_pi_biomass <- c(-0.5, 0, 0) # zero inflation effect
 
 
-beta_risk_bites <- 0.1 # effect of risk on bites
-beta_biomass_bites <- 0.5 # effect of resource availability on bites
-
+beta_risk_bites <- 0.25 # effect of risk on bites

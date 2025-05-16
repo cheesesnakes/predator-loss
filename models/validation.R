@@ -21,8 +21,8 @@ if (model == "behaviour") {
 }
 
 # summary of the model fit
-vars <- c("beta_risk_foraging", "beta_risk_vigilance", "beta_risk_movement",
-          "beta_risk_bites", "beta_res", "beta_rug", "beta_predator")
+vars <- c("beta_risk",
+          "beta_risk_bites", "beta_rug", "beta_res", "beta_predator")
 print(fit$summary(variables = vars))
 
 # Extract draws for specific parameters
@@ -52,7 +52,7 @@ draws_mle$value <- draws_mle$mean
 # True values
 true_values <- data.frame(
     parameter = unique(draws$parameter),
-    value = c(beta_risk, beta_risk_bites, beta_biomass, beta_rugosity, beta_predator)
+    value = c(beta_risk, beta_risk_bites, beta_rugosity, beta_biomass, beta_predator)
 )
 
 # Plot the draws
