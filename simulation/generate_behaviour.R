@@ -69,8 +69,6 @@ for (i in 1:N) {
 
 # size class
 
-size_classes <- c(1, 2, 3, 4, 5, 6) # size classes
-
 # calculate size class probabilities
 
 prob_size <- matrix(0, nrow = length(size_classes), ncol = P) # initialize probability matrix for size classes
@@ -89,8 +87,6 @@ for (i in 1:N) {
 }
 
 # foraging guilds
-
-foraging_guilds <- c(1, 2, 3, 4) # foraging guilds
 
 # calculate foraging guild probabilities
 

@@ -51,14 +51,18 @@ risk <- function(ind) {
     # calculate mean risk
 
     ## plot - level predictors
-    mu = alpha_risk_protected[individual_protected[ind]] 
+    mu = exp(alpha_risk_protected[individual_protected[ind]] 
     + beta_rugosity * mean_rugosity[individual_plot[ind]] 
-    + beta_biomass * plot_biomass[individual_plot[ind]] 
-    + beta_predator[predator[individual_plot[ind]]]
+    + beta_predator[predator[individual_plot[ind]]])
 
     sigma = 1
 
-    return(rnorm(1, mu, sigma)) # generate random values from normal distribution
+    # calculate gamma parameters
+
+    a = mu^2 / sigma^2 # shape parameter
+    b = sigma^2 / mu # scale parameter
+
+    return(rgamma(n = 1, shape = a, scale = b)) # generate random values from gamma distribution
 }
 
 # simulate behaviour duration
@@ -67,17 +71,17 @@ expit <- function(x) {
     return(1 / (1 + exp(-x))) # calculate inverse logit
 }
 
-total_time <- function(behaviour) {
+total_time <- function(behaviour, ind) {
 
     # calculate zero inflation probability
 
-    pi_0 <- expit(-5 + beta_pi_risk[behaviour] * individual_risk) # calculate zero inflation probability
+    pi_0 <- expit(-5 + beta_pi_risk[behaviour] * individual_risk[ind] + beta_pi_biomass[behaviour] * plot_biomass[individual_plot[ind]]) # calculate zero inflation probability
 
     if(rbinom(1, 1, pi_0) == 1) { # if zero inflation occurs
         return(0) # return zero
     } else {
         # calculate total time for foraging, vigilance and movement
-        mu = beta_risk[behaviour] * individual_risk # calculate mean time
+        mu = beta_risk[behaviour] * individual_risk[ind] + beta_biomass[behaviour] * plot_biomass[individual_plot[ind]] # calculate mean time
         sigma = 1 # standard deviation
         return(rlnorm(1, mu, sigma)) # generate random values from normal distribution
     }
@@ -87,11 +91,11 @@ total_time <- function(behaviour) {
 
 # simulate number of bites
 
-bites <- function(foraging){
+bites <- function(foraging, ind){
 
     if(foraging > 0){
 
-        mu = beta_risk_bites * individual_risk # calculate mean bites
+        mu = beta_risk_bites * individual_risk[ind] + beta_biomass_bites * plot_biomass[individual_plot[ind]]  # calculate mean bites
 
         lambda = exp(mu) # calculate lambda for Poisson distribution
         return(rpois(1, lambda)) # generate random values from Poisson distribution
