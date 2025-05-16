@@ -28,7 +28,7 @@ prep_stan <- function(response, individuals, predictors, rugosity) {
     P = length(unique(predictors$protected)),
     B = 3,
     S = nrow(predictors),
-    D = matrix(c(response$foraging, response$vigilance, response$movement), ncol = 3),
+    D = matrix(c(response$foraging, response$movement, response$vigilance), ncol = 3),
     individual = individuals$ind_id,
     C = length(unique(individuals$size_class)),
     size = individuals$size_class,
@@ -68,12 +68,19 @@ fit_model <- function(stan_data, model_file, run = "validation") {
     iter_warmup = 1000,
     iter_sampling = 1000,
     refresh = 100,
-    # adapt_delta = 0.95,
-    # max_treedepth = 15
+    adapt_delta = 0.95,
+    max_treedepth = 15
   )
 
+  ## optimize the model
+  #fit_mle <- fit$optimize(
+  #  data = stan_data,
+  #  seed = 123,
+  #  iter = 1000
+  #)
   # Save the fit result
   fit_result$save_object(file = here(output_dir, paste0(run, "_fit.rds")))
 
+  #fit_mle$save_object(file = here(output_dir, paste0(run, "_fit_mle.rds")))
   return(fit_result)
 }

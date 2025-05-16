@@ -1,4 +1,4 @@
-pacman::p_load(here, ggplot2, dplyr, tidyr, flextable)
+pacman::p_load(here, ggplot2, dplyr, tidyr, flextable, bayesplot)
 
 theme_set(theme_bw() + theme(text = element_text(size = 20), legend.position = "top"))
 
@@ -21,9 +21,9 @@ if (model == "behaviour") {
 }
 
 # summary of the model fit
-vars <- c("beta_risk", "beta_risk_bites", "beta_res", "beta_rug", "beta_predator")
-
-fit$summary(variables = vars)
+vars <- c("beta_risk_foraging", "beta_risk_vigilance", "beta_risk_movement",
+          "beta_risk_bites", "beta_res", "beta_rug", "beta_predator")
+print(fit$summary(variables = vars))
 
 # Extract draws for specific parameters
 draws <- fit$draws(vars, format = "df")
@@ -66,7 +66,7 @@ draws %>%
 ggsave(here("figures/model_validation.png"), width = 12, height = 8)
 # Difference table
 
-true_values %>%
+diff <- true_values %>%
     left_join(draws_mle, by = "parameter") %>%
     mutate(
         diff = value.x - value.y,
@@ -74,18 +74,19 @@ true_values %>%
         rel_diff = (abs_diff * 100 /( value.x)) %>% round(2), 
     ) %>%
     select(parameter, value.x, value.y, diff, abs_diff, rel_diff)%>%
-    flextable() %>%
+    flextable()%>%
     set_header_labels(
         parameter = "Parameter",
         value.x = "True Value",
-        value.y = "MLE Value",
+        value.y = "MLE",
         diff = "Difference",
         abs_diff = "Absolute Difference",
         rel_diff = "Relative Difference (%)"
     ) %>%
-    set_table_properties(width = 0.5, layout = "autofit") %>%
-    set_caption("Difference between true values and MLE estimates") %>%
-    set_table_properties(
-        width = 0.5,
-        layout = "autofit"
-    )
+    set_table_properties(layout = "autofit") %>%
+    set_caption("Model validation results") 
+
+print(diff)
+save_as_docx(diff, path = here("outputs/model_validation.docx"))
+
+

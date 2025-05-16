@@ -12,137 +12,109 @@ data {
   array[S, 3] real<lower=0, upper=1> rugosity_raw; // rugosity (continuous variable)
   array[S] int<lower=1, upper=2> protection; // protection level (0 or 1)
   array[S] real<lower=0, upper=1> biomass; // biomass availability (continuous variable)
-  
-  // Individual-level covariates
-  int<lower=0> C; // number of size classes
-  int<lower=0> G; // number of guilds
-  array[N] int<lower=1> individual; // individual number
-  array[N] int<lower=1> size; // size class of the individual
-  array[N] int<lower=1> guild; // foraging guild of the individual
 }
 parameters {
   // Rugosity
-  
-  array[S] real<lower=1e-6, upper=(1 - 1e-6)> rugosity; // accounting for multiple rugosity measurements
-  array[S] real<lower=1e-6> phi_rug; // standard deviation of rugosity in each plot
+  array[S] real<lower=1e-6, upper=(1 - 1e-6)> rugosity;
+  array[S] real<lower=1e-6> phi_rug;
   
   // Top-level coefficients for duration
-  ordered[B] beta_risk; // effect of risk on duration
+  real beta_risk_foraging;
+  real beta_risk_movement;
+  real beta_risk_vigilance;
   
-  ordered[B] alpha_pi; // baseline zero-inflation
-  ordered[B] beta_pi_risk; // effect of risk on zero-inflation
+  real alpha_pi_foraging;
+  real alpha_pi_movement;
+  real alpha_pi_vigilance;
+  
+  real beta_pi_risk_foraging;
+  real beta_pi_risk_movement;
+  real beta_pi_risk_vigilance;
   
   // Top-level coefficients for bites
-  real beta_risk_bites; // effect of risk on bites
+  real beta_risk_bites;
   
   // Risk model coefficients
-  ordered[2] alpha_risk_protection; // random risk per individual
-  ordered[2] beta_predator; // effect of predator presence on risk
-  real beta_rug; // effect of rugosity on risk
-  real<lower=0> sigma_risk; // standard deviation of risk
-  real beta_res; // effect of biomass availability on energy
-  ordered[C] beta_size; // effect of size on risk
-  ordered[G] beta_guild; // effect of guild on risk
+  ordered[2] alpha_risk_protection;
+  ordered[2] beta_predator;
+  real beta_rug;
+  real<lower=0> sigma_risk;
+  real beta_res;
   
   // Observation model
-  vector<lower=0>[B] sigma_D; // standard deviation of duration, non-zero
+  real<lower=0> sigma_D_foraging;
+  real<lower=0> sigma_D_movement;
+  real<lower=0> sigma_D_vigilance;
   
-  // Latent variables non-centred
-  array[N] real z_risk; // latent risk variable
+  // Latent variables non-centered
+  array[N] real z_risk;
 }
 transformed parameters {
-  array[S] real mu_risk; // mean risk
+  array[S] real mu_risk;
+  array[N] real risk;
+  array[N] real lambda_risk;
+  array[N, B] real mu_D;
+  array[N, B] real<lower=0, upper=1> pi;
   
-  array[N, B] real mu_D; // mean duration
-  
-  array[N] real lamba_risk; // mean bites
-  
-  array[N, B] real<lower=0, upper=1> pi; // zero-inflation probability
-  
-  // Latent variables per observation
-  array[N] real risk; // latent risk variable
-  
-  // mean risk per plot
+  // Compute mean risk per plot
   for (s in 1 : S) {
     mu_risk[s] = alpha_risk_protection[protection[s]]
                  + beta_predator[predator[s]] + beta_rug * rugosity[s]
-                 + beta_res * biomass[s] + beta_size[size[s]]
-                 + beta_guild[guild[s]];
+                 + beta_res * biomass[s];
   }
   
+  // Compute risk and other parameters per observation
   for (n in 1 : N) {
-    // Latent variables
     risk[n] = mu_risk[plot[n]] + sigma_risk * z_risk[n];
+    lambda_risk[n] = exp(beta_risk_bites * risk[n]);
     
-    for (b in 1 : B) {
-      // zero-inflation probability
-      pi[n, b] = inv_logit(alpha_pi[b] + beta_pi_risk[b] * risk[n]);
-      
-      // Mean duration
-      mu_D[n, b] = beta_risk[b] * risk[n];
-    }
+    // Foraging
+    pi[n, 1] = inv_logit(alpha_pi_foraging + beta_pi_risk_foraging * risk[n]);
+    mu_D[n, 1] = beta_risk_foraging * risk[n];
     
-    // Mean bites
+    // Movement
+    pi[n, 2] = inv_logit(alpha_pi_movement + beta_pi_risk_movement * risk[n]);
+    mu_D[n, 2] = beta_risk_movement * risk[n];
     
-    lamba_risk[n] = exp(beta_risk_bites * risk[n]);
+    // Vigilance
+    pi[n, 3] = inv_logit(alpha_pi_vigilance
+                         + beta_pi_risk_vigilance * risk[n]);
+    mu_D[n, 3] = beta_risk_vigilance * risk[n];
   }
 }
 model {
   // Priors
-  
-  // Top-level priors
   beta_risk_bites ~ normal(0, 1);
   
-  // priors for foraging
-  beta_risk[1] ~ normal(-1, 1);
-  beta_pi_risk[1] ~ normal(1, 1);
-  alpha_pi[1] ~ normal(-1, 2);
+  beta_risk_foraging ~ normal(-1, 0.5);
+  beta_pi_risk_foraging ~ normal(1, 0.5);
+  alpha_pi_foraging ~ normal(-1, 2);
   
-  // priors for vigilance
-  beta_risk[2] ~ normal(1, 1);
-  beta_pi_risk[2] ~ normal(-1, 1);
-  alpha_pi[2] ~ normal(-1, 2);
+  beta_risk_movement ~ normal(-1, 0.5);
+  beta_pi_risk_movement ~ normal(0, 0.5);
+  alpha_pi_movement ~ normal(-1, 2);
   
-  // priors for movement
-  beta_risk[3] ~ normal(-1, 1);
-  beta_pi_risk[3] ~ normal(0, 1);
-  alpha_pi[3] ~ normal(-1, 2);
+  beta_risk_vigilance ~ normal(1, 0.5);
+  beta_pi_risk_vigilance ~ normal(-1, 0.5);
+  alpha_pi_vigilance ~ normal(-1, 2);
   
-  // Risk model priors
   beta_rug ~ normal(-1, 1);
   beta_res ~ normal(0, 1);
   
-  for (p in 1 : 2) {
-    beta_predator[p] ~ normal(0, 1);
-  }
-  for (r in 1 : 2) {
-    alpha_risk_protection[r] ~ normal(0, 1);
-  }
+  beta_predator ~ normal(0, 1);
+  alpha_risk_protection ~ normal(0, 1);
   
-  // priors for size and guild
-  for (c in 1 : C) {
-    beta_size[c] ~ normal(0, 1);
-  }
-  for (g in 1 : G) {
-    beta_guild[g] ~ normal(0, 1);
-  }
+  z_risk ~ normal(0, 0.5);
+  sigma_risk ~ normal(0, 1) T[1e-6, ];
   
-  z_risk ~ normal(0, 1); // risk latent variable
+  rugosity ~ beta(1, 1);
+  phi_rug ~ gamma(2, 2);
   
-  sigma_risk ~ normal(0, 1) T[1e-6, ]; // standard deviation of risk
+  sigma_D_foraging ~ normal(0, 1) T[1e-6, ];
+  sigma_D_movement ~ normal(0, 1) T[1e-6, ];
+  sigma_D_vigilance ~ normal(0, 1) T[1e-6, ];
   
-  // rugosity priors
-  rugosity ~ beta(1, 1); // beta distribution for rugosity
-  phi_rug ~ gamma(2, 2); // precision of rugosity
-  
-  // Latent variables priors
-  
-  for (b in 1 : B) {
-    sigma_D[b] ~ normal(0, 1) T[1e-6, ]; // standard deviation of duration
-    pi[ : , b] ~ beta(1, 1); // zero-inflation probability
-  }
-  
-  // rugosity
+  // Rugosity observations
   for (s in 1 : S) {
     for (i in 1 : 3) {
       rugosity_raw[s, i] ~ beta(rugosity[s] * phi_rug[s],
@@ -151,79 +123,64 @@ model {
   }
   
   // Observation model
-  
   for (n in 1 : N) {
     for (b in 1 : B) {
       if (D[n, b] == 0) {
-        target += bernoulli_lpmf(1 | pi[n, b]); // zero-inflation
+        target += bernoulli_lpmf(1 | pi[n, b]);
       } else {
-        target += bernoulli_lpmf(0 | pi[n, b]); // non-zero inflation
-        target += lognormal_lpdf(D[n, b] | mu_D[n, b], sigma_D[b]); // duration model
-        if (b == 1 && D[n, b] > 0) {
-          target += poisson_lpmf(bites[n] | lamba_risk[n]); // bites model
+        target += bernoulli_lpmf(0 | pi[n, b]);
+        if (b == 1) {
+          target += lognormal_lpdf(D[n, b] | mu_D[n, b], sigma_D_foraging);
+          if (D[n, b] > 0) {
+            target += poisson_lpmf(bites[n] | lambda_risk[n]);
+          }
+        } else if (b == 2) {
+          target += lognormal_lpdf(D[n, b] | mu_D[n, b], sigma_D_movement);
+        } else if (b == 3) {
+          target += lognormal_lpdf(D[n, b] | mu_D[n, b], sigma_D_vigilance);
         }
       }
     }
   }
 }
 generated quantities {
-  // posterior predictive checks
-  array[N, B] real D_pred; // predicted durations
-  array[N] real bites_pred; // predicted bites
+  array[N, B] real D_pred;
+  array[N] int bites_pred;
   
   for (n in 1 : N) {
-    real risk_draw = risk[n]; // risk from current posterior draw
+    real risk_draw = risk[n];
     real lambda = exp(beta_risk_bites * risk_draw);
     
-    for (b in 1 : B) {
-      real mu = beta_risk[b] * risk_draw;
-      real pi_draw = inv_logit(alpha_pi[b] + beta_pi_risk[b] * risk_draw);
-      
-      if (bernoulli_rng(pi_draw)) {
-        D_pred[n, b] = 0;
-      } else {
-        D_pred[n, b] = lognormal_rng(mu, sigma_D[b]);
-      }
-      
-      if (b == 1 && D_pred[n, b] > 0) {
-        bites_pred[n] = poisson_rng(lambda);
-      } else if (b == 1) {
-        bites_pred[n] = 0;
-      }
+    // Foraging
+    real mu_foraging = beta_risk_foraging * risk_draw;
+    real pi_foraging = inv_logit(alpha_pi_foraging
+                                 + beta_pi_risk_foraging * risk_draw);
+    if (bernoulli_rng(pi_foraging)) {
+      D_pred[n, 1] = 0;
+      bites_pred[n] = 0;
+    } else {
+      D_pred[n, 1] = lognormal_rng(mu_foraging, sigma_D_foraging);
+      bites_pred[n] = poisson_rng(lambda);
     }
-  }
-  // calculate counterfactuals for each protection level
-  array[P, B, N] real D_cf_prot; // counterfactual duration
-  array[P, N] real bites_cf_prot; // counterfactual bites
-  
-  for (p in 1 : P) {
-    for (n in 1 : N) {
-      // calculate mean risk
-      real mu_risk_cf = alpha_risk_protection[p]
-                        + beta_predator[predator[plot[n]]]
-                        + beta_rug * rugosity[plot[n]]
-                        + beta_res * biomass[plot[n]] + beta_size[size[n]]
-                        + beta_guild[guild[n]];
-      // calculate risk
-      real risk_cf = mu_risk_cf + sigma_risk * z_risk[n];
-      
-      // calculate counterfactual bite rate
-      bites_cf_prot[p, n] = exp(beta_risk_bites * risk_cf);
-      // other behavioral types
-      for (b in 1 : B) {
-        // calculate mean duration
-        real mu_D_cf = beta_risk[b] * risk_cf;
-        
-        // calculate zero-inflation probability
-        real pi_cf = inv_logit(alpha_pi[b] + beta_pi_risk[b] * risk_cf);
-        
-        // calculate counterfactual duration
-        if (bernoulli_rng(pi_cf)) {
-          D_cf_prot[p, b, n] = 0; // zero-inflation
-        } else {
-          D_cf_prot[p, b, n] = lognormal_rng(mu_D_cf, sigma_D[b]);
-        }
-      }
+    
+    // Movement
+    real mu_movement = beta_risk_movement * risk_draw;
+    real pi_movement = inv_logit(alpha_pi_movement
+                                 + beta_pi_risk_movement * risk_draw);
+    if (bernoulli_rng(pi_movement)) {
+      D_pred[n, 2] = 0;
+    } else {
+      D_pred[n, 2] = lognormal_rng(mu_movement, sigma_D_movement);
+    }
+    
+    // Vigilance
+    real mu_vigilance = beta_risk_vigilance * risk_draw;
+    real pi_vigilance = inv_logit(alpha_pi_vigilance
+                                  + beta_pi_risk_vigilance * risk_draw);
+    if (bernoulli_rng(pi_vigilance)) {
+      D_pred[n, 3] = 0;
+    } else {
+      D_pred[n, 3] = lognormal_rng(mu_vigilance, sigma_D_vigilance);
     }
   }
 }
