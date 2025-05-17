@@ -71,13 +71,25 @@ total_time <- function(behaviour, ind) {
 
     # calculate zero inflation probability
 
-    pi_0 <- expit(-5 + beta_pi_risk[behaviour] * individual_risk[ind]) # calculate zero inflation probability
+    size = size_individual[ind] # get size class
+    guild = foraging_individual[ind] # get foraging guild
+
+    pi_0 <- expit(-5 + beta_pi_risk[behaviour] * individual_risk[ind] 
+    + beta_size_pi[behaviour, size] 
+    + beta_guild_pi[behaviour, guild]
+    + beta_size_risk_pi[behaviour, size] * individual_risk[ind]
+    + beta_guild_risk_pi[behaviour, guild] * individual_risk[ind]) # calculate zero inflation probability
 
     if(rbinom(n = 1, size= 1, prob = pi_0) == 1) { # if zero inflation occurs
         return(0) # return zero
     } else {
         # calculate total time for foraging, vigilance and movement
-        mu = beta_risk[behaviour] * individual_risk[ind] # calculate mean time
+        mu = beta_risk[behaviour] * individual_risk[ind] 
+        + beta_size[behaviour, size] 
+        + beta_guild[behaviour, guild] 
+        + beta_size_risk[behaviour, size] * individual_risk[ind]
+        + beta_guild_risk[behaviour, guild] * individual_risk[ind] # calculate mean time
+
         sigma = 1 # standard deviation
         return(rlnorm(n = 1, meanlog =  mu, sdlog = sigma)) # generate random values from normal distribution
     }
@@ -91,9 +103,17 @@ bites <- function(foraging, ind){
 
     if(foraging > 0){
 
-        mu = beta_risk_bites * individual_risk[ind]  # calculate mean bites
+        size = size_individual[ind] # get size class
+        guild = foraging_individual[ind] # get foraging guild
+
+        mu = beta_risk_bites * individual_risk[ind] 
+        + beta_size_bites[size] 
+        + beta_guild_bites[guild]
+        + beta_size_risk_bites[size] * individual_risk[ind]
+        + beta_guild_risk_bites[guild] * individual_risk[ind] # calculate mean bites
 
         lambda = exp(mu) # calculate lambda for Poisson distribution
+        
         return(rpois(n = 1, lambda = lambda)) # generate random values from Poisson distribution
     }
     else {

@@ -3,6 +3,8 @@ data {
   int<lower=0> P; // number of protection levels
   int<lower=0> B; // number of behavioral types
   int<lower=0> S; // number of plots
+  int<lower=0> C; // number of size classes
+  int<lower=0> G; // number of guilds
   array[N, B] real<lower=0> D; // observed durations
   array[N] int<lower=0> bites; // number of bites observed
   
@@ -12,6 +14,8 @@ data {
   array[S, 3] real<lower=0, upper=1> rugosity_raw; // rugosity (continuous variable)
   array[S] int<lower=1, upper=2> protection; // protection level (0 or 1)
   array[S] real<lower=0, upper=1> biomass; // biomass availability (continuous variable)
+  array[N] int<lower=1, upper=C> size; // size class of each observation
+  array[N] int<lower=1, upper=G> guild; // guild of each observation
 }
 parameters {
   // Rugosity
@@ -21,12 +25,25 @@ parameters {
   
   // Top-level coefficients for duration
   vector[B] beta_risk; // effect of risk on duration
+  array[B, C] real beta_size; // effect of size on duration
+  array[B, G] real beta_guild; // effect of guild on duration
+  array[B, C] real beta_size_risk; // interaction between size and risk on duration
+  array[B, G] real beta_guild_risk; // interaction between guild and risk on duration
   
   vector[B] alpha_pi; // baseline zero-inflation
   vector[B] beta_pi_risk; // effect of risk on zero-inflation
+  array[B, C] real beta_size_pi; // effect of size on zero-inflation
+  array[B, G] real beta_guild_pi; // effect of guild on zero-inflation
+  
+  array[B, C] real beta_size_risk_pi; // interaction between size and risk on zero-inflation
+  array[B, G] real beta_guild_risk_pi; // interaction between guild and risk on zero-inflation
   
   // Top-level coefficients for bites
   real beta_risk_bites; // effect of risk on bites
+  array[C] real beta_size_bites; // effect of size on bites
+  array[G] real beta_guild_bites; // effect of guild on bites
+  array[C] real beta_size_risk_bites; // interaction between size and risk on bites
+  array[G] real beta_guild_risk_bites; // interaction between guild and risk on bites
   
   // Risk model coefficients
   ordered[2] alpha_risk_protection; // random risk per individual
@@ -43,21 +60,36 @@ parameters {
 }
 transformed parameters {
   array[S] real mu_risk; // mean risk
-  
   array[N, B] real mu_D; // mean duration
-  
   array[N] real lambda_risk; // mean bites
-  
   array[N, B] real<lower=0, upper=1> pi; // zero-inflation probability
+  
+  // standarisation of rugosity
+  array[S] real rugosity_std; // standardised rugosity
+  real mean_rugosity = mean(rugosity);
+  real sd_rugosity = sd(rugosity);
+  
+  // standardised biomass
+  array[S] real biomass_std; // standardised biomass
+  real mean_biomass = mean(biomass);
+  real sd_biomass = sd(biomass);
   
   // Latent variables per observation
   array[N] real risk; // latent risk variable
   
   // mean risk per plot
   for (s in 1 : S) {
+    // standardisation of rugosity
+    rugosity_std[s] = (rugosity[s] - mean_rugosity) / sd_rugosity;
+    
+    // standardisation of biomass
+    biomass_std[s] = (biomass[s] - mean_biomass) / sd_biomass;
+    
+    // mean risk per plot
+    
     mu_risk[s] = alpha_risk_protection[protection[s]]
-                 + beta_predator[predator[s]] + beta_rug * rugosity[s]
-                 + beta_res * biomass[s];
+                 + beta_predator[predator[s]] + beta_rug * rugosity_std[s]
+                 + beta_res * biomass_std[s];
   }
   
   for (n in 1 : N) {
@@ -66,49 +98,73 @@ transformed parameters {
     
     for (b in 1 : B) {
       // zero-inflation probability
-      real logit_input = alpha_pi[b] + beta_pi_risk[b] * risk[n];
+      real logit_input = alpha_pi[b] + beta_pi_risk[b] * risk[n]
+                         + beta_size_pi[b, size[n]]
+                         + beta_guild_pi[b, guild[n]]
+                         + beta_size_risk_pi[b, size[n]] * risk[n]
+                         + beta_guild_risk_pi[b, guild[n]] * risk[n];
+      
       // zero-inflation probability
       pi[n, b] = inv_logit(logit_input);
       
       // Mean duration
-      mu_D[n, b] = beta_risk[b] * risk[n];
+      mu_D[n, b] = beta_risk[b] * risk[n] + beta_size[b, size[n]]
+                   + beta_guild[b, guild[n]]
+                   + beta_size_risk[b, size[n]] * risk[n]
+                   + beta_guild_risk[b, guild[n]] * risk[n];
     }
     
     // Mean bites
     
-    lambda_risk[n] = exp(beta_risk_bites * risk[n]);
+    lambda_risk[n] = exp(beta_risk_bites * risk[n] + beta_size_bites[size[n]]
+                         + beta_guild_bites[guild[n]]
+                         + beta_size_risk_bites[size[n]] * risk[n]
+                         + beta_guild_risk_bites[guild[n]] * risk[n]);
   }
 }
 model {
   // Priors
   
   // Top-level priors
-  beta_risk_bites ~ normal(0, 1);
+  beta_risk_bites ~ normal(0, 0.5);
+  beta_size_bites ~ normal(0, 0.5);
+  beta_guild_bites ~ normal(0, 0.5);
   
   // priors for foraging
-  beta_risk[1] ~ normal(-1, 1);
-  beta_pi_risk[1] ~ normal(1, 1);
+  beta_risk[1] ~ normal(-1, 0.5);
+  beta_pi_risk[1] ~ normal(1, 0.5);
   alpha_pi[1] ~ normal(-1, 2);
   
   // priors for vigilance
-  beta_risk[2] ~ normal(1, 1);
-  beta_pi_risk[2] ~ normal(-1, 1);
+  beta_risk[2] ~ normal(1, 0.5);
+  beta_pi_risk[2] ~ normal(-1, 0.5);
   alpha_pi[2] ~ normal(-1, 2);
   
   // priors for movement
-  beta_risk[3] ~ normal(-1, 1);
-  beta_pi_risk[3] ~ normal(0, 1);
+  beta_risk[3] ~ normal(-1, 0.5);
+  beta_pi_risk[3] ~ normal(0, 0.5);
   alpha_pi[3] ~ normal(-1, 2);
   
+  for (b in 1 : B) {
+    for (c in 1 : C) {
+      beta_size[b, c] ~ normal(0, 0.5);
+      beta_size_pi[b, c] ~ normal(0, 0.5);
+    }
+    for (g in 1 : G) {
+      beta_guild[b, g] ~ normal(0, 0.5);
+      beta_guild_pi[b, g] ~ normal(0, 0.5);
+    }
+  }
+  
   // Risk model priors
-  beta_rug ~ normal(-1, 1);
-  beta_res ~ normal(0, 1);
+  beta_rug ~ normal(-1, 0.5);
+  beta_res ~ normal(0, 0.5);
   
   for (p in 1 : 2) {
-    beta_predator[p] ~ normal(0, 1);
+    beta_predator[p] ~ normal(0, 0.5);
   }
   for (r in 1 : 2) {
-    alpha_risk_protection[r] ~ normal(0, 1);
+    alpha_risk_protection[r] ~ normal(0, 0.5);
   }
   
   sigma_risk ~ normal(0, 1) T[1e-6, ]; // standard deviation of risk
@@ -156,11 +212,22 @@ generated quantities {
   
   for (n in 1 : N) {
     real risk_draw = risk[n]; // risk from current posterior draw
-    real lambda = exp(beta_risk_bites * risk_draw);
+    real lambda = exp(beta_risk_bites * risk_draw + beta_size_bites[size[n]]
+                      + beta_guild_bites[guild[n]]
+                      + beta_size_risk_bites[size[n]] * risk_draw
+                      + beta_guild_risk_bites[guild[n]] * risk_draw);
     
     for (b in 1 : B) {
-      real mu = beta_risk[b] * risk_draw;
-      real pi_draw = inv_logit(alpha_pi[b] + beta_pi_risk[b] * risk_draw);
+      real mu = beta_risk[b] * risk_draw + beta_size[b, size[n]]
+                + beta_guild[b, guild[n]]
+                + beta_size_risk[b, size[n]] * risk_draw
+                + beta_guild_risk[b, guild[n]] * risk_draw;
+      
+      real pi_draw = inv_logit(alpha_pi[b] + beta_pi_risk[b] * risk_draw
+                               + beta_size_pi[b, size[n]]
+                               + beta_guild_pi[b, guild[n]]
+                               + beta_size_risk_pi[b, size[n]] * risk_draw
+                               + beta_guild_risk_pi[b, guild[n]] * risk_draw);
       
       if (bernoulli_rng(pi_draw)) {
         D_pred[n, b] = 0;

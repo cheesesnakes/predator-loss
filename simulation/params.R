@@ -39,9 +39,32 @@ beta_biomass <- -0.5
 # effect of predator presence on risk
 beta_predator <- c(0, 0.5)
 
-beta_risk <- c(-0.1, 0.1, -0.01) # effect of risk on foraging, vigilance and movement
+# outcome model parameters
 
 beta_pi_risk <- c(0.5, -0.5, 0.5) # zero inflation effect
+beta_size_pi <- rep(0.1, length(size_classes)) # size class effect on zero inflation
+beta_size_pi <- matrix(rep(beta_size_pi, each = 3), nrow = length(size_classes), ncol = 6) # make matrix for size class effect on zero inflation
+beta_guild_pi <- rep(0.1, length(foraging_guilds)) # foraging guild effect on zero inflation
+beta_guild_pi <- matrix(rep(beta_guild_pi, each = 3), nrow = length(foraging_guilds), ncol = 6) # make matrix for foraging guild effect on zero inflation
 
+beta_size_risk_pi <- c(0.01, 0.05, 0.1, 0.1, 0, 0)
+beta_size_risk_pi <- matrix(rep(beta_size_risk_pi, each = 3), nrow = length(size_classes), ncol = 6) # make matrix for size class effect on zero inflation
+
+beta_guild_risk_pi <- c(0.1, 0.1, 0.1, 0) # foraging guild effect on zero inflation
+beta_guild_risk_pi <- matrix(rep(beta_guild_risk_pi, each = 3), nrow = length(foraging_guilds), ncol = 6) # make matrix for foraging guild effect on zero inflation
+
+beta_risk <- c(-0.1, 0.1, -0.01) # effect of risk on foraging, vigilance and movement
+beta_size <- c(0.1, 0.1, 0.1, 0.1, 0.1, 0.1) # effect of size class on foraging, vigilance and movement
+beta_size <- matrix(rep(beta_size, each = 3), nrow = length(size_classes), ncol = 6) # make matrix for size class effect on foraging, vigilance and movement
+beta_guild <- c(0.1, 0.1, 0.1, 0.1) # effect of foraging guild on foraging, vigilance and movement
+beta_guild <- matrix(rep(beta_guild, each = 3), nrow = length(foraging_guilds), ncol = 6) # make matrix for foraging guild effect on foraging, vigilance and movement
+beta_size_risk <- c(0.1, 0.1, 0.1, 0.1, 0.1, 0.1) # effect of size class on risk
+beta_size_risk <- matrix(rep(beta_size_risk, each = 3), nrow = length(size_classes), ncol = 6) # make matrix for size class effect on risk
+beta_guild_risk <- c(0.1, 0.1, 0.1, 0.1) # effect of foraging guild on risk
+beta_guild_risk <- matrix(rep(beta_guild_risk, each = 3), nrow = length(foraging_guilds), ncol = 6) # make matrix for foraging guild effect on risk
 
 beta_risk_bites <- 0.25 # effect of risk on bites
+beta_size_bites <- c(0.1, 0.1, 0.1, 0.1, 0.1, 0.1) # effect of size class on bites
+beta_guild_bites <- c(0.1, 0.1, 0.1, 0.1) # effect of foraging guild on bites
+beta_size_risk_bites <- c(0.1, 0.1, 0.1, 0.1, 0.1, 0.1) # effect of size class on risk
+beta_guild_risk_bites <- c(0.1, 0.1, 0.1, 0.1) # effect of foraging guild on risk

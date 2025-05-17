@@ -60,19 +60,30 @@ data_D <- as.matrix(data.frame(
 random_predictions <- sample(1:nrow(ppc_D), 100)
 
 # Posterior predictive check for foraging durations
-ppc_dens_overlay(y = data_D[,1], yrep = ppc_D[random_predictions,1:500])
+ppc_dens_overlay(y = data_D[,1], yrep = ppc_D[random_predictions,1:500])+
+scale_x_continuous(limits = c(0, 120))+
+  labs(x = "Foraging duration (s)", y = "Density")
 
 ggsave(here(figure_dir, "ppc_foraging.png"), width = 10, height = 8)
 
-ppc_dens_overlay(y = data_D[,2], yrep = ppc_D[random_predictions,501:1000])
+ppc_dens_overlay(y = data_D[,2], yrep = ppc_D[random_predictions,501:1000]) +
+  scale_x_continuous(limits = c(0, 120))+
+  labs(x = "Vigilance duration (s)", y = "Density")
+
 ggsave(here(figure_dir, "ppc_vigilance.png"), width = 10, height = 8)
 
-ppc_dens_overlay(y = data_D[,3], yrep = ppc_D[random_predictions,1001:1500])
+ppc_dens_overlay(y = data_D[,3], yrep = ppc_D[random_predictions,1001:1500])+
+  scale_x_continuous(limits = c(0, 120))+
+  labs(x = "Movement duration (s)", y = "Density")
+
 ggsave(here(figure_dir, "ppc_movement.png"), width = 10, height = 8)
 
 # Extract posterior predictive draws for bites
 ppc_bites <- fit_result$draws("bites_pred", format = "draws_matrix")
 
 # Posterior predictive check for bites
-ppc_dens_overlay(yrep = ppc_bites[random_predictions,], y = response$bites)
+ppc_dens_overlay(yrep = ppc_bites[random_predictions,], y = response$bites)+
+  scale_x_continuous(limits = c(0, 20))+
+  labs(x = "Bites", y = "Density")
+
 ggsave(here(figure_dir, "ppc_bites.png"), width = 10, height = 8)
