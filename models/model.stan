@@ -242,4 +242,198 @@ generated quantities {
       }
     }
   }
+  
+  // counterfactual protection 
+  
+  array[P, N, B] real D_pred_protection; // predicted durations with protection
+  array[P, N] real bites_pred_protection; // predicted bites with protection
+  
+  for (p in 1 : P) {
+    for (n in 1 : N) {
+      real mean_rug = mean(rugosity_std);
+      real mean_res = mean(biomass_std);
+      
+      real mu_risk_protection = alpha_risk_protection[p] + beta_predator[1]
+                                + beta_rug * mean_rug + beta_res * mean_res;
+      
+      real risk_draw = exp(mu_risk_protection + sigma_risk * z_risk[n]);
+      
+      real lambda = exp(beta_risk_bites * risk_draw
+                        + beta_size_bites[size[n]]
+                        + beta_guild_bites[guild[n]]
+                        + beta_size_risk_bites[size[n]] * risk_draw
+                        + beta_guild_risk_bites[guild[n]] * risk_draw);
+      
+      for (b in 1 : B) {
+        real mu = beta_risk[b] * risk_draw + beta_size[b, size[n]]
+                  + beta_guild[b, guild[n]]
+                  + beta_size_risk[b, size[n]] * risk_draw
+                  + beta_guild_risk[b, guild[n]] * risk_draw;
+        
+        real pi_draw = inv_logit(alpha_pi[b] + beta_pi_risk[b] * risk_draw
+                                 + beta_size_pi[b, size[n]]
+                                 + beta_guild_pi[b, guild[n]]
+                                 + beta_size_risk_pi[b, size[n]] * risk_draw
+                                 + beta_guild_risk_pi[b, guild[n]]
+                                   * risk_draw);
+        
+        if (bernoulli_rng(pi_draw)) {
+          D_pred_protection[p, n, b] = 0;
+        } else {
+          D_pred_protection[p, n, b] = lognormal_rng(mu, sigma_D[b]);
+        }
+        
+        if (b == 1 && D_pred_protection[p, n, b] > 0) {
+          bites_pred_protection[p, n] = poisson_rng(lambda);
+        } else if (b == 1) {
+          bites_pred_protection[p, n] = 0;
+        }
+      }
+    }
+  }
+  
+  // counterfactual protection varying rugosity
+  array[P, N, B] real D_pred_protection_rugosity; // predicted durations with protection
+  array[P, N] real bites_pred_protection_rugosity; // predicted bites with protection
+  
+  for (p in 1 : P) {
+    for (n in 1 : N) {
+      real mean_res = mean(biomass_std);
+      
+      real mu_risk_protection = alpha_risk_protection[p] + beta_predator[1]
+                                + beta_rug * rugosity_std[plot[n]]
+                                + beta_res * mean_res;
+      
+      real risk_draw = exp(mu_risk_protection + sigma_risk * z_risk[n]);
+      
+      real lambda = exp(beta_risk_bites * risk_draw
+                        + beta_size_bites[size[n]]
+                        + beta_guild_bites[guild[n]]
+                        + beta_size_risk_bites[size[n]] * risk_draw
+                        + beta_guild_risk_bites[guild[n]] * risk_draw);
+      
+      for (b in 1 : B) {
+        real mu = beta_risk[b] * risk_draw + beta_size[b, size[n]]
+                  + beta_guild[b, guild[n]]
+                  + beta_size_risk[b, size[n]] * risk_draw
+                  + beta_guild_risk[b, guild[n]] * risk_draw;
+        
+        real pi_draw = inv_logit(alpha_pi[b] + beta_pi_risk[b] * risk_draw
+                                 + beta_size_pi[b, size[n]]
+                                 + beta_guild_pi[b, guild[n]]
+                                 + beta_size_risk_pi[b, size[n]] * risk_draw
+                                 + beta_guild_risk_pi[b, guild[n]]
+                                   * risk_draw);
+        
+        if (bernoulli_rng(pi_draw)) {
+          D_pred_protection_rugosity[p, n, b] = 0;
+        } else {
+          D_pred_protection_rugosity[p, n, b] = lognormal_rng(mu, sigma_D[b]);
+        }
+        
+        if (b == 1 && D_pred_protection_rugosity[p, n, b] > 0) {
+          bites_pred_protection_rugosity[p, n] = poisson_rng(lambda);
+        } else if (b == 1) {
+          bites_pred_protection_rugosity[p, n] = 0;
+        }
+      }
+    }
+  }
+  
+  // counterfactual protection varying biomass
+  array[P, N, B] real D_pred_protection_biomass; // predicted durations with protection
+  array[P, N] real bites_pred_protection_biomass; // predicted bites with protection
+  
+  for (p in 1 : P) {
+    for (n in 1 : N) {
+      real mean_rug = mean(rugosity_std);
+      
+      real mu_risk_protection = alpha_risk_protection[p] + beta_predator[1]
+                                + beta_rug * mean_rug
+                                + beta_res * biomass_std[plot[n]];
+      
+      real risk_draw = exp(mu_risk_protection + sigma_risk * z_risk[n]);
+      
+      real lambda = exp(beta_risk_bites * risk_draw
+                        + beta_size_bites[size[n]]
+                        + beta_guild_bites[guild[n]]
+                        + beta_size_risk_bites[size[n]] * risk_draw
+                        + beta_guild_risk_bites[guild[n]] * risk_draw);
+      
+      for (b in 1 : B) {
+        real mu = beta_risk[b] * risk_draw + beta_size[b, size[n]]
+                  + beta_guild[b, guild[n]]
+                  + beta_size_risk[b, size[n]] * risk_draw
+                  + beta_guild_risk[b, guild[n]] * risk_draw;
+        
+        real pi_draw = inv_logit(alpha_pi[b] + beta_pi_risk[b] * risk_draw
+                                 + beta_size_pi[b, size[n]]
+                                 + beta_guild_pi[b, guild[n]]
+                                 + beta_size_risk_pi[b, size[n]] * risk_draw
+                                 + beta_guild_risk_pi[b, guild[n]]
+                                   * risk_draw);
+        
+        if (bernoulli_rng(pi_draw)) {
+          D_pred_protection_biomass[p, n, b] = 0;
+        } else {
+          D_pred_protection_biomass[p, n, b] = lognormal_rng(mu, sigma_D[b]);
+        }
+        
+        if (b == 1 && D_pred_protection_biomass[p, n, b] > 0) {
+          bites_pred_protection_biomass[p, n] = poisson_rng(lambda);
+        } else if (b == 1) {
+          bites_pred_protection_biomass[p, n] = 0;
+        }
+      }
+    }
+  }
+  
+  // counterfactual protection at differing predator levels
+  array[P, N, B] real D_pred_protection_predator; // predicted durations with protection
+  array[P, N] real bites_pred_protection_predator; // predicted bites with protection
+  
+  for (p in 1 : P) {
+    for (n in 1 : N) {
+      real mean_rug = mean(rugosity_std);
+      real mean_res = mean(biomass_std);
+      
+      real mu_risk_protection = alpha_risk_protection[p]
+                                + beta_predator[predator[plot[n]]]
+                                + beta_rug * mean_rug + beta_res * mean_res;
+      
+      real risk_draw = exp(mu_risk_protection + sigma_risk * z_risk[n]);
+      
+      real lambda = exp(beta_risk_bites * risk_draw
+                        + beta_size_bites[size[n]]
+                        + beta_guild_bites[guild[n]]
+                        + beta_size_risk_bites[size[n]] * risk_draw
+                        + beta_guild_risk_bites[guild[n]] * risk_draw);
+      
+      for (b in 1 : B) {
+        real mu = beta_risk[b] * risk_draw + beta_size[b, size[n]]
+                  + beta_guild[b, guild[n]]
+                  + beta_size_risk[b, size[n]] * risk_draw
+                  + beta_guild_risk[b, guild[n]] * risk_draw;
+        
+        real pi_draw = inv_logit(alpha_pi[b] + beta_pi_risk[b] * risk_draw
+                                 + beta_size_pi[b, size[n]]
+                                 + beta_guild_pi[b, guild[n]]
+                                 + beta_size_risk_pi[b, size[n]] * risk_draw
+                                 + beta_guild_risk_pi[b, guild[n]]
+                                   * risk_draw);
+        
+        if (bernoulli_rng(pi_draw)) {
+          D_pred_protection_predator[p, n, b] = 0;
+        } else {
+          D_pred_protection_predator[p, n, b] = lognormal_rng(mu, sigma_D[b]);
+        }
+        
+        if (b == 1 && D_pred_protection_predator[p, n, b] > 0) {
+          bites_pred_protection_predator[p, n] = poisson_rng(lambda);
+        } else if (b == 1) {
+          bites_pred_protection_predator[p, n] = 0;
+        }
+      }
+    }
+  }
 }
