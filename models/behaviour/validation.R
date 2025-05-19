@@ -15,14 +15,16 @@ if (model == "behaviour") {
 # Load the model data
 
 if (model == "behaviour") {
-    fit <- readRDS(here("outputs/validation_fit.rds"))
+    fit <- readRDS(here("outputs/validation_behaviour_fit.rds"))
 } else {
     fit <- readRDS(here("outputs/validation_fit.rds"))
 }
 
 # summary of the model fit
-vars <- c("beta_risk",
-          "beta_risk_bites", "beta_rug", "beta_res", "beta_predator")
+vars <- c(
+    "beta_risk",
+    "beta_risk_bites", "beta_rug", "beta_res", "beta_predator"
+)
 print(fit$summary(variables = vars))
 
 # Extract draws for specific parameters
@@ -42,9 +44,11 @@ dist_mode <- function(x) {
 
 draws_mle <- draws %>%
     group_by(parameter) %>%
-    summarise(mean = mean(value),
-              median = median(value),
-              mode = dist_mode(value)) %>%
+    summarise(
+        mean = mean(value),
+        median = median(value),
+        mode = dist_mode(value)
+    ) %>%
     ungroup()
 
 draws_mle$value <- draws_mle$mean
@@ -71,10 +75,10 @@ diff <- true_values %>%
     mutate(
         diff = value.x - value.y,
         abs_diff = abs(diff),
-        rel_diff = (abs_diff * 100 /( value.x)) %>% round(2), 
+        rel_diff = (abs_diff * 100 / (value.x)) %>% round(2),
     ) %>%
-    select(parameter, value.x, value.y, diff, abs_diff, rel_diff)%>%
-    flextable()%>%
+    select(parameter, value.x, value.y, diff, abs_diff, rel_diff) %>%
+    flextable() %>%
     set_header_labels(
         parameter = "Parameter",
         value.x = "True Value",
@@ -84,9 +88,7 @@ diff <- true_values %>%
         rel_diff = "Relative Difference (%)"
     ) %>%
     set_table_properties(layout = "autofit") %>%
-    set_caption("Model validation results") 
+    set_caption("Model validation results")
 
 print(diff)
 save_as_docx(diff, path = here("outputs/model_validation.docx"))
-
-

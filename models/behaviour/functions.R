@@ -79,7 +79,7 @@ fit_model <- function(stan_data, model_file, run = "validation") {
   #  iter = 1000
   # )
   # Save the fit result
-  fit_result$save_object(file = here(output_dir, paste0(run, "_fit.rds")))
+  fit_result$save_object(file = here(output_dir, paste0(run, "_behaviour_fit.rds")))
 
   # fit_mle$save_object(file = here(output_dir, paste0(run, "_fit_mle.rds")))
   return(fit_result)
