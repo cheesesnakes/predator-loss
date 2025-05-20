@@ -1124,131 +1124,131 @@ FBWP5,RUBBLE (RB),Rubble (Not Coral) (RB),0
 FBWP5,DEAD CORAL (DC),Dead Coral Rock (DCR),0
 FBWP5,DEAD CORAL (DC),Dead Coral Rubble (DCRB),0
 FBWP5,TAPE (TP),Tape (TP),0
-FBMTW1,CORAL (CO),Branching (BR),0
-FBMTW1,CORAL (CO),Corymbose (CORY),0
-FBMTW1,CORAL (CO),Digitate (DIG),0
-FBMTW1,CORAL (CO),Encrusting (ENCR),3
-FBMTW1,CORAL (CO),Laminar/Foliose (LAM),4
-FBMTW1,CORAL (CO),Massive (MAS),65
-FBMTW1,CORAL (CO),Solitary (SOL),0
-FBMTW1,CORAL (CO),Submassive (SUB),0
-FBMTW1,CORAL (CO),Tabulate (TAB),0
-FBMTW1,TURF ALGAE (TA),Rubble with Turf Algae (RBTA),55
-FBMTW1,TURF ALGAE (TA),Turf Algae (TA),57
-FBMTW1,CRUSTOSE CORALLINE ALGAE (CCA),Crustose Coraline Algae (CCA),0
-FBMTW1,CRUSTOSE CORALLINE ALGAE (CCA),Rubble with CCA (RBCCA),12
-FBMTW1,MACROALGAE (ALG),Macroalgae (ALG),0
-FBMTW1,BENTHIC CYANOBACTERIAL MAT (BCM),Benthic Cyanobacterial Mat (BCM),0
-FBMTW1,SPONGE (SP),Sponge Encrusting (SPE),0
-FBMTW1,SPONGE (SP),Sponge Massive (SPM),0
-FBMTW1,OTHERS (OTS),Gorgonian (GOR),0
-FBMTW1,OTHERS (OTS),Others (OTS),0
-FBMTW1,OTHERS (OTS),Soft Coral (SC),0
-FBMTW1,SAND (SA),Sand (SA),4
-FBMTW1,RUBBLE (RB),Rubble (Not Coral) (RB),0
-FBMTW1,DEAD CORAL (DC),Dead Coral Rock (DCR),0
-FBMTW1,DEAD CORAL (DC),Dead Coral Rubble (DCRB),0
-FBMTW1,TAPE (TP),Tape (TP),0
-FBMTW2,CORAL (CO),Branching (BR),0
-FBMTW2,CORAL (CO),Corymbose (CORY),0
-FBMTW2,CORAL (CO),Digitate (DIG),0
-FBMTW2,CORAL (CO),Encrusting (ENCR),0
-FBMTW2,CORAL (CO),Laminar/Foliose (LAM),0
-FBMTW2,CORAL (CO),Massive (MAS),29
-FBMTW2,CORAL (CO),Solitary (SOL),0
-FBMTW2,CORAL (CO),Submassive (SUB),38
-FBMTW2,CORAL (CO),Tabulate (TAB),0
-FBMTW2,TURF ALGAE (TA),Rubble with Turf Algae (RBTA),53
-FBMTW2,TURF ALGAE (TA),Turf Algae (TA),57
-FBMTW2,CRUSTOSE CORALLINE ALGAE (CCA),Crustose Coraline Algae (CCA),14
-FBMTW2,CRUSTOSE CORALLINE ALGAE (CCA),Rubble with CCA (RBCCA),7
-FBMTW2,MACROALGAE (ALG),Macroalgae (ALG),0
-FBMTW2,BENTHIC CYANOBACTERIAL MAT (BCM),Benthic Cyanobacterial Mat (BCM),0
-FBMTW2,SPONGE (SP),Sponge Encrusting (SPE),0
-FBMTW2,SPONGE (SP),Sponge Massive (SPM),0
-FBMTW2,OTHERS (OTS),Gorgonian (GOR),0
-FBMTW2,OTHERS (OTS),Others (OTS),0
-FBMTW2,OTHERS (OTS),Soft Coral (SC),0
-FBMTW2,SAND (SA),Sand (SA),0
-FBMTW2,RUBBLE (RB),Rubble (Not Coral) (RB),0
-FBMTW2,DEAD CORAL (DC),Dead Coral Rock (DCR),2
-FBMTW2,DEAD CORAL (DC),Dead Coral Rubble (DCRB),0
-FBMTW2,TAPE (TP),Tape (TP),0
-FBMTW3,CORAL (CO),Branching (BR),0
-FBMTW3,CORAL (CO),Corymbose (CORY),0
-FBMTW3,CORAL (CO),Digitate (DIG),0
-FBMTW3,CORAL (CO),Encrusting (ENCR),2
-FBMTW3,CORAL (CO),Laminar/Foliose (LAM),0
-FBMTW3,CORAL (CO),Massive (MAS),5
-FBMTW3,CORAL (CO),Solitary (SOL),0
-FBMTW3,CORAL (CO),Submassive (SUB),0
-FBMTW3,CORAL (CO),Tabulate (TAB),0
-FBMTW3,TURF ALGAE (TA),Rubble with Turf Algae (RBTA),2
-FBMTW3,TURF ALGAE (TA),Turf Algae (TA),165
-FBMTW3,CRUSTOSE CORALLINE ALGAE (CCA),Crustose Coraline Algae (CCA),12
-FBMTW3,CRUSTOSE CORALLINE ALGAE (CCA),Rubble with CCA (RBCCA),0
-FBMTW3,MACROALGAE (ALG),Macroalgae (ALG),0
-FBMTW3,BENTHIC CYANOBACTERIAL MAT (BCM),Benthic Cyanobacterial Mat (BCM),0
-FBMTW3,SPONGE (SP),Sponge Encrusting (SPE),0
-FBMTW3,SPONGE (SP),Sponge Massive (SPM),0
-FBMTW3,OTHERS (OTS),Gorgonian (GOR),0
-FBMTW3,OTHERS (OTS),Others (OTS),0
-FBMTW3,OTHERS (OTS),Soft Coral (SC),0
-FBMTW3,SAND (SA),Sand (SA),14
-FBMTW3,RUBBLE (RB),Rubble (Not Coral) (RB),0
-FBMTW3,DEAD CORAL (DC),Dead Coral Rock (DCR),0
-FBMTW3,DEAD CORAL (DC),Dead Coral Rubble (DCRB),0
-FBMTW3,TAPE (TP),Tape (TP),0
-FBMTW4,CORAL (CO),Branching (BR),0
-FBMTW4,CORAL (CO),Corymbose (CORY),1
-FBMTW4,CORAL (CO),Digitate (DIG),0
-FBMTW4,CORAL (CO),Encrusting (ENCR),0
-FBMTW4,CORAL (CO),Laminar/Foliose (LAM),0
-FBMTW4,CORAL (CO),Massive (MAS),6
-FBMTW4,CORAL (CO),Solitary (SOL),0
-FBMTW4,CORAL (CO),Submassive (SUB),0
-FBMTW4,CORAL (CO),Tabulate (TAB),0
-FBMTW4,TURF ALGAE (TA),Rubble with Turf Algae (RBTA),7
-FBMTW4,TURF ALGAE (TA),Turf Algae (TA),130
-FBMTW4,CRUSTOSE CORALLINE ALGAE (CCA),Crustose Coraline Algae (CCA),6
-FBMTW4,CRUSTOSE CORALLINE ALGAE (CCA),Rubble with CCA (RBCCA),2
-FBMTW4,MACROALGAE (ALG),Macroalgae (ALG),0
-FBMTW4,BENTHIC CYANOBACTERIAL MAT (BCM),Benthic Cyanobacterial Mat (BCM),0
-FBMTW4,SPONGE (SP),Sponge Encrusting (SPE),0
-FBMTW4,SPONGE (SP),Sponge Massive (SPM),3
-FBMTW4,OTHERS (OTS),Gorgonian (GOR),0
-FBMTW4,OTHERS (OTS),Others (OTS),0
-FBMTW4,OTHERS (OTS),Soft Coral (SC),0
-FBMTW4,SAND (SA),Sand (SA),39
-FBMTW4,RUBBLE (RB),Rubble (Not Coral) (RB),0
-FBMTW4,DEAD CORAL (DC),Dead Coral Rock (DCR),0
-FBMTW4,DEAD CORAL (DC),Dead Coral Rubble (DCRB),6
-FBMTW4,TAPE (TP),Tape (TP),0
-FBMTW5,CORAL (CO),Branching (BR),0
-FBMTW6,CORAL (CO),Corymbose (CORY),0
-FBMTW7,CORAL (CO),Digitate (DIG),0
-FBMTW8,CORAL (CO),Encrusting (ENCR),0
-FBMTW9,CORAL (CO),Laminar/Foliose (LAM),0
-FBMTW10,CORAL (CO),Massive (MAS),0
-FBMTW11,CORAL (CO),Solitary (SOL),0
-FBMTW12,CORAL (CO),Submassive (SUB),0
-FBMTW13,CORAL (CO),Tabulate (TAB),0
-FBMTW14,TURF ALGAE (TA),Rubble with Turf Algae (RBTA),54
-FBMTW15,TURF ALGAE (TA),Turf Algae (TA),2
-FBMTW16,CRUSTOSE CORALLINE ALGAE (CCA),Crustose Coraline Algae (CCA),0
-FBMTW17,CRUSTOSE CORALLINE ALGAE (CCA),Rubble with CCA (RBCCA),6
-FBMTW18,MACROALGAE (ALG),Macroalgae (ALG),0
-FBMTW19,BENTHIC CYANOBACTERIAL MAT (BCM),Benthic Cyanobacterial Mat (BCM),5
-FBMTW20,SPONGE (SP),Sponge Encrusting (SPE),0
-FBMTW21,SPONGE (SP),Sponge Massive (SPM),0
-FBMTW22,OTHERS (OTS),Gorgonian (GOR),0
-FBMTW23,OTHERS (OTS),Others (OTS),0
-FBMTW24,OTHERS (OTS),Soft Coral (SC),0
-FBMTW25,SAND (SA),Sand (SA),37
-FBMTW26,RUBBLE (RB),Rubble (Not Coral) (RB),1
-FBMTW27,DEAD CORAL (DC),Dead Coral Rock (DCR),0
-FBMTW28,DEAD CORAL (DC),Dead Coral Rubble (DCRB),95
-FBMTW29,TAPE (TP),Tape (TP),0
+FBWT1,CORAL (CO),Branching (BR),0
+FBWT1,CORAL (CO),Corymbose (CORY),0
+FBWT1,CORAL (CO),Digitate (DIG),0
+FBWT1,CORAL (CO),Encrusting (ENCR),3
+FBWT1,CORAL (CO),Laminar/Foliose (LAM),4
+FBWT1,CORAL (CO),Massive (MAS),65
+FBWT1,CORAL (CO),Solitary (SOL),0
+FBWT1,CORAL (CO),Submassive (SUB),0
+FBWT1,CORAL (CO),Tabulate (TAB),0
+FBWT1,TURF ALGAE (TA),Rubble with Turf Algae (RBTA),55
+FBWT1,TURF ALGAE (TA),Turf Algae (TA),57
+FBWT1,CRUSTOSE CORALLINE ALGAE (CCA),Crustose Coraline Algae (CCA),0
+FBWT1,CRUSTOSE CORALLINE ALGAE (CCA),Rubble with CCA (RBCCA),12
+FBWT1,MACROALGAE (ALG),Macroalgae (ALG),0
+FBWT1,BENTHIC CYANOBACTERIAL MAT (BCM),Benthic Cyanobacterial Mat (BCM),0
+FBWT1,SPONGE (SP),Sponge Encrusting (SPE),0
+FBWT1,SPONGE (SP),Sponge Massive (SPM),0
+FBWT1,OTHERS (OTS),Gorgonian (GOR),0
+FBWT1,OTHERS (OTS),Others (OTS),0
+FBWT1,OTHERS (OTS),Soft Coral (SC),0
+FBWT1,SAND (SA),Sand (SA),4
+FBWT1,RUBBLE (RB),Rubble (Not Coral) (RB),0
+FBWT1,DEAD CORAL (DC),Dead Coral Rock (DCR),0
+FBWT1,DEAD CORAL (DC),Dead Coral Rubble (DCRB),0
+FBWT1,TAPE (TP),Tape (TP),0
+FBWT2,CORAL (CO),Branching (BR),0
+FBWT2,CORAL (CO),Corymbose (CORY),0
+FBWT2,CORAL (CO),Digitate (DIG),0
+FBWT2,CORAL (CO),Encrusting (ENCR),0
+FBWT2,CORAL (CO),Laminar/Foliose (LAM),0
+FBWT2,CORAL (CO),Massive (MAS),29
+FBWT2,CORAL (CO),Solitary (SOL),0
+FBWT2,CORAL (CO),Submassive (SUB),38
+FBWT2,CORAL (CO),Tabulate (TAB),0
+FBWT2,TURF ALGAE (TA),Rubble with Turf Algae (RBTA),53
+FBWT2,TURF ALGAE (TA),Turf Algae (TA),57
+FBWT2,CRUSTOSE CORALLINE ALGAE (CCA),Crustose Coraline Algae (CCA),14
+FBWT2,CRUSTOSE CORALLINE ALGAE (CCA),Rubble with CCA (RBCCA),7
+FBWT2,MACROALGAE (ALG),Macroalgae (ALG),0
+FBWT2,BENTHIC CYANOBACTERIAL MAT (BCM),Benthic Cyanobacterial Mat (BCM),0
+FBWT2,SPONGE (SP),Sponge Encrusting (SPE),0
+FBWT2,SPONGE (SP),Sponge Massive (SPM),0
+FBWT2,OTHERS (OTS),Gorgonian (GOR),0
+FBWT2,OTHERS (OTS),Others (OTS),0
+FBWT2,OTHERS (OTS),Soft Coral (SC),0
+FBWT2,SAND (SA),Sand (SA),0
+FBWT2,RUBBLE (RB),Rubble (Not Coral) (RB),0
+FBWT2,DEAD CORAL (DC),Dead Coral Rock (DCR),2
+FBWT2,DEAD CORAL (DC),Dead Coral Rubble (DCRB),0
+FBWT2,TAPE (TP),Tape (TP),0
+FBWT3,CORAL (CO),Branching (BR),0
+FBWT3,CORAL (CO),Corymbose (CORY),0
+FBWT3,CORAL (CO),Digitate (DIG),0
+FBWT3,CORAL (CO),Encrusting (ENCR),2
+FBWT3,CORAL (CO),Laminar/Foliose (LAM),0
+FBWT3,CORAL (CO),Massive (MAS),5
+FBWT3,CORAL (CO),Solitary (SOL),0
+FBWT3,CORAL (CO),Submassive (SUB),0
+FBWT3,CORAL (CO),Tabulate (TAB),0
+FBWT3,TURF ALGAE (TA),Rubble with Turf Algae (RBTA),2
+FBWT3,TURF ALGAE (TA),Turf Algae (TA),165
+FBWT3,CRUSTOSE CORALLINE ALGAE (CCA),Crustose Coraline Algae (CCA),12
+FBWT3,CRUSTOSE CORALLINE ALGAE (CCA),Rubble with CCA (RBCCA),0
+FBWT3,MACROALGAE (ALG),Macroalgae (ALG),0
+FBWT3,BENTHIC CYANOBACTERIAL MAT (BCM),Benthic Cyanobacterial Mat (BCM),0
+FBWT3,SPONGE (SP),Sponge Encrusting (SPE),0
+FBWT3,SPONGE (SP),Sponge Massive (SPM),0
+FBWT3,OTHERS (OTS),Gorgonian (GOR),0
+FBWT3,OTHERS (OTS),Others (OTS),0
+FBWT3,OTHERS (OTS),Soft Coral (SC),0
+FBWT3,SAND (SA),Sand (SA),14
+FBWT3,RUBBLE (RB),Rubble (Not Coral) (RB),0
+FBWT3,DEAD CORAL (DC),Dead Coral Rock (DCR),0
+FBWT3,DEAD CORAL (DC),Dead Coral Rubble (DCRB),0
+FBWT3,TAPE (TP),Tape (TP),0
+FBWT4,CORAL (CO),Branching (BR),0
+FBWT4,CORAL (CO),Corymbose (CORY),1
+FBWT4,CORAL (CO),Digitate (DIG),0
+FBWT4,CORAL (CO),Encrusting (ENCR),0
+FBWT4,CORAL (CO),Laminar/Foliose (LAM),0
+FBWT4,CORAL (CO),Massive (MAS),6
+FBWT4,CORAL (CO),Solitary (SOL),0
+FBWT4,CORAL (CO),Submassive (SUB),0
+FBWT4,CORAL (CO),Tabulate (TAB),0
+FBWT4,TURF ALGAE (TA),Rubble with Turf Algae (RBTA),7
+FBWT4,TURF ALGAE (TA),Turf Algae (TA),130
+FBWT4,CRUSTOSE CORALLINE ALGAE (CCA),Crustose Coraline Algae (CCA),6
+FBWT4,CRUSTOSE CORALLINE ALGAE (CCA),Rubble with CCA (RBCCA),2
+FBWT4,MACROALGAE (ALG),Macroalgae (ALG),0
+FBWT4,BENTHIC CYANOBACTERIAL MAT (BCM),Benthic Cyanobacterial Mat (BCM),0
+FBWT4,SPONGE (SP),Sponge Encrusting (SPE),0
+FBWT4,SPONGE (SP),Sponge Massive (SPM),3
+FBWT4,OTHERS (OTS),Gorgonian (GOR),0
+FBWT4,OTHERS (OTS),Others (OTS),0
+FBWT4,OTHERS (OTS),Soft Coral (SC),0
+FBWT4,SAND (SA),Sand (SA),39
+FBWT4,RUBBLE (RB),Rubble (Not Coral) (RB),0
+FBWT4,DEAD CORAL (DC),Dead Coral Rock (DCR),0
+FBWT4,DEAD CORAL (DC),Dead Coral Rubble (DCRB),6
+FBWT4,TAPE (TP),Tape (TP),0
+FBWT5,CORAL (CO),Branching (BR),0
+FBWT5,CORAL (CO),Corymbose (CORY),0
+FBWT5,CORAL (CO),Digitate (DIG),0
+FBWT5,CORAL (CO),Encrusting (ENCR),0
+FBWT5,CORAL (CO),Laminar/Foliose (LAM),0
+FBWT5,CORAL (CO),Massive (MAS),0
+FBWT5,CORAL (CO),Solitary (SOL),0
+FBWT5,CORAL (CO),Submassive (SUB),0
+FBWT5,CORAL (CO),Tabulate (TAB),0
+FBWT5,TURF ALGAE (TA),Rubble with Turf Algae (RBTA),54
+FBWT5,TURF ALGAE (TA),Turf Algae (TA),2
+FBWT5,CRUSTOSE CORALLINE ALGAE (CCA),Crustose Coraline Algae (CCA),0
+FBWT5,CRUSTOSE CORALLINE ALGAE (CCA),Rubble with CCA (RBCCA),6
+FBWT5,MACROALGAE (ALG),Macroalgae (ALG),0
+FBWT5,BENTHIC CYANOBACTERIAL MAT (BCM),Benthic Cyanobacterial Mat (BCM),5
+FBWT5,SPONGE (SP),Sponge Encrusting (SPE),0
+FBWT5,SPONGE (SP),Sponge Massive (SPM),0
+FBWT5,OTHERS (OTS),Gorgonian (GOR),0
+FBWT5,OTHERS (OTS),Others (OTS),0
+FBWT5,OTHERS (OTS),Soft Coral (SC),0
+FBWT5,SAND (SA),Sand (SA),37
+FBWT5,RUBBLE (RB),Rubble (Not Coral) (RB),1
+FBWT5,DEAD CORAL (DC),Dead Coral Rock (DCR),0
+FBWT5,DEAD CORAL (DC),Dead Coral Rubble (DCRB),95
+FBWT5,TAPE (TP),Tape (TP),0
 FBWO2,CORAL (CO),Branching (BR),0
 FBWO2,CORAL (CO),Corymbose (CORY),0
 FBWO2,CORAL (CO),Digitate (DIG),0
@@ -1349,128 +1349,128 @@ FBWO5,RUBBLE (RB),Rubble (Not Coral) (RB),0
 FBWO5,DEAD CORAL (DC),Dead Coral Rock (DCR),0
 FBWO5,DEAD CORAL (DC),Dead Coral Rubble (DCRB),0
 FBWO5,TAPE (TP),Tape (TP),0
-FBWB1,CORAL (CO),Branching (BR),45
-FBWB1,CORAL (CO),Corymbose (CORY),20
-FBWB1,CORAL (CO),Digitate (DIG),0
-FBWB1,CORAL (CO),Encrusting (ENCR),16
-FBWB1,CORAL (CO),Laminar/Foliose (LAM),0
-FBWB1,CORAL (CO),Massive (MAS),16
-FBWB1,CORAL (CO),Solitary (SOL),0
-FBWB1,CORAL (CO),Submassive (SUB),0
-FBWB1,CORAL (CO),Tabulate (TAB),0
-FBWB1,TURF ALGAE (TA),Rubble with Turf Algae (RBTA),5
-FBWB1,TURF ALGAE (TA),Turf Algae (TA),89
-FBWB1,CRUSTOSE CORALLINE ALGAE (CCA),Crustose Coraline Algae (CCA),9
-FBWB1,CRUSTOSE CORALLINE ALGAE (CCA),Rubble with CCA (RBCCA),0
-FBWB1,MACROALGAE (ALG),Macroalgae (ALG),0
-FBWB1,BENTHIC CYANOBACTERIAL MAT (BCM),Benthic Cyanobacterial Mat (BCM),0
-FBWB1,SPONGE (SP),Sponge Encrusting (SPE),0
-FBWB1,SPONGE (SP),Sponge Massive (SPM),0
-FBWB1,OTHERS (OTS),Gorgonian (GOR),0
-FBWB1,OTHERS (OTS),Others (OTS),0
-FBWB1,OTHERS (OTS),Soft Coral (SC),0
-FBWB1,SAND (SA),Sand (SA),0
-FBWB1,RUBBLE (RB),Rubble (Not Coral) (RB),0
-FBWB1,DEAD CORAL (DC),Dead Coral Rock (DCR),0
-FBWB1,DEAD CORAL (DC),Dead Coral Rubble (DCRB),0
-FBWB1,TAPE (TP),Tape (TP),0
-FBWB2,CORAL (CO),Branching (BR),0
-FBWB2,CORAL (CO),Corymbose (CORY),0
-FBWB2,CORAL (CO),Digitate (DIG),0
-FBWB2,CORAL (CO),Encrusting (ENCR),10
-FBWB2,CORAL (CO),Laminar/Foliose (LAM),0
-FBWB2,CORAL (CO),Massive (MAS),49
-FBWB2,CORAL (CO),Solitary (SOL),0
-FBWB2,CORAL (CO),Submassive (SUB),9
-FBWB2,CORAL (CO),Tabulate (TAB),0
-FBWB2,TURF ALGAE (TA),Rubble with Turf Algae (RBTA),22
-FBWB2,TURF ALGAE (TA),Turf Algae (TA),63
-FBWB2,CRUSTOSE CORALLINE ALGAE (CCA),Crustose Coraline Algae (CCA),15
-FBWB2,CRUSTOSE CORALLINE ALGAE (CCA),Rubble with CCA (RBCCA),2
-FBWB2,MACROALGAE (ALG),Macroalgae (ALG),0
-FBWB2,BENTHIC CYANOBACTERIAL MAT (BCM),Benthic Cyanobacterial Mat (BCM),0
-FBWB2,SPONGE (SP),Sponge Encrusting (SPE),0
-FBWB2,SPONGE (SP),Sponge Massive (SPM),0
-FBWB2,OTHERS (OTS),Gorgonian (GOR),0
-FBWB2,OTHERS (OTS),Others (OTS),0
-FBWB2,OTHERS (OTS),Soft Coral (SC),0
-FBWB2,SAND (SA),Sand (SA),29
-FBWB2,RUBBLE (RB),Rubble (Not Coral) (RB),1
-FBWB2,DEAD CORAL (DC),Dead Coral Rock (DCR),0
-FBWB2,DEAD CORAL (DC),Dead Coral Rubble (DCRB),0
-FBWB2,TAPE (TP),Tape (TP),0
-FBWB3,CORAL (CO),Branching (BR),10
-FBWB3,CORAL (CO),Corymbose (CORY),15
-FBWB3,CORAL (CO),Digitate (DIG),0
-FBWB3,CORAL (CO),Encrusting (ENCR),14
-FBWB3,CORAL (CO),Laminar/Foliose (LAM),0
-FBWB3,CORAL (CO),Massive (MAS),41
-FBWB3,CORAL (CO),Solitary (SOL),0
-FBWB3,CORAL (CO),Submassive (SUB),0
-FBWB3,CORAL (CO),Tabulate (TAB),0
-FBWB3,TURF ALGAE (TA),Rubble with Turf Algae (RBTA),19
-FBWB3,TURF ALGAE (TA),Turf Algae (TA),66
-FBWB3,CRUSTOSE CORALLINE ALGAE (CCA),Crustose Coraline Algae (CCA),7
-FBWB3,CRUSTOSE CORALLINE ALGAE (CCA),Rubble with CCA (RBCCA),1
-FBWB3,MACROALGAE (ALG),Macroalgae (ALG),0
-FBWB3,BENTHIC CYANOBACTERIAL MAT (BCM),Benthic Cyanobacterial Mat (BCM),0
-FBWB3,SPONGE (SP),Sponge Encrusting (SPE),0
-FBWB3,SPONGE (SP),Sponge Massive (SPM),0
-FBWB3,OTHERS (OTS),Gorgonian (GOR),0
-FBWB3,OTHERS (OTS),Others (OTS),0
-FBWB3,OTHERS (OTS),Soft Coral (SC),0
-FBWB3,SAND (SA),Sand (SA),24
-FBWB3,RUBBLE (RB),Rubble (Not Coral) (RB),3
-FBWB3,DEAD CORAL (DC),Dead Coral Rock (DCR),0
-FBWB3,DEAD CORAL (DC),Dead Coral Rubble (DCRB),0
-FBWB3,TAPE (TP),Tape (TP),0
-FBWB4,CORAL (CO),Branching (BR),0
-FBWB4,CORAL (CO),Corymbose (CORY),2
-FBWB4,CORAL (CO),Digitate (DIG),0
-FBWB4,CORAL (CO),Encrusting (ENCR),15
-FBWB4,CORAL (CO),Laminar/Foliose (LAM),3
-FBWB4,CORAL (CO),Massive (MAS),70
-FBWB4,CORAL (CO),Solitary (SOL),0
-FBWB4,CORAL (CO),Submassive (SUB),0
-FBWB4,CORAL (CO),Tabulate (TAB),0
-FBWB4,TURF ALGAE (TA),Rubble with Turf Algae (RBTA),5
-FBWB4,TURF ALGAE (TA),Turf Algae (TA),68
-FBWB4,CRUSTOSE CORALLINE ALGAE (CCA),Crustose Coraline Algae (CCA),20
-FBWB4,CRUSTOSE CORALLINE ALGAE (CCA),Rubble with CCA (RBCCA),2
-FBWB4,MACROALGAE (ALG),Macroalgae (ALG),0
-FBWB4,BENTHIC CYANOBACTERIAL MAT (BCM),Benthic Cyanobacterial Mat (BCM),0
-FBWB4,SPONGE (SP),Sponge Encrusting (SPE),0
-FBWB4,SPONGE (SP),Sponge Massive (SPM),0
-FBWB4,OTHERS (OTS),Gorgonian (GOR),0
-FBWB4,OTHERS (OTS),Others (OTS),0
-FBWB4,OTHERS (OTS),Soft Coral (SC),0
-FBWB4,SAND (SA),Sand (SA),14
-FBWB4,RUBBLE (RB),Rubble (Not Coral) (RB),1
-FBWB4,DEAD CORAL (DC),Dead Coral Rock (DCR),0
-FBWB4,DEAD CORAL (DC),Dead Coral Rubble (DCRB),0
-FBWB4,TAPE (TP),Tape (TP),0
-FBWB5,CORAL (CO),Branching (BR),13
-FBWB5,CORAL (CO),Corymbose (CORY),4
-FBWB5,CORAL (CO),Digitate (DIG),0
-FBWB5,CORAL (CO),Encrusting (ENCR),3
-FBWB5,CORAL (CO),Laminar/Foliose (LAM),6
-FBWB5,CORAL (CO),Massive (MAS),72
-FBWB5,CORAL (CO),Solitary (SOL),0
-FBWB5,CORAL (CO),Submassive (SUB),3
-FBWB5,CORAL (CO),Tabulate (TAB),0
-FBWB5,TURF ALGAE (TA),Rubble with Turf Algae (RBTA),0
-FBWB5,TURF ALGAE (TA),Turf Algae (TA),79
-FBWB5,CRUSTOSE CORALLINE ALGAE (CCA),Crustose Coraline Algae (CCA),18
-FBWB5,CRUSTOSE CORALLINE ALGAE (CCA),Rubble with CCA (RBCCA),1
-FBWB5,MACROALGAE (ALG),Macroalgae (ALG),0
-FBWB5,BENTHIC CYANOBACTERIAL MAT (BCM),Benthic Cyanobacterial Mat (BCM),0
-FBWB5,SPONGE (SP),Sponge Encrusting (SPE),0
-FBWB5,SPONGE (SP),Sponge Massive (SPM),0
-FBWB5,OTHERS (OTS),Gorgonian (GOR),0
-FBWB5,OTHERS (OTS),Others (OTS),0
-FBWB5,OTHERS (OTS),Soft Coral (SC),1
-FBWB5,SAND (SA),Sand (SA),0
-FBWB5,RUBBLE (RB),Rubble (Not Coral) (RB),0
-FBWB5,DEAD CORAL (DC),Dead Coral Rock (DCR),0
-FBWB5,DEAD CORAL (DC),Dead Coral Rubble (DCRB),0
-FBWB5,TAPE (TP),Tape (TP),0
+FBMB1,CORAL (CO),Branching (BR),45
+FBMB1,CORAL (CO),Corymbose (CORY),20
+FBMB1,CORAL (CO),Digitate (DIG),0
+FBMB1,CORAL (CO),Encrusting (ENCR),16
+FBMB1,CORAL (CO),Laminar/Foliose (LAM),0
+FBMB1,CORAL (CO),Massive (MAS),16
+FBMB1,CORAL (CO),Solitary (SOL),0
+FBMB1,CORAL (CO),Submassive (SUB),0
+FBMB1,CORAL (CO),Tabulate (TAB),0
+FBMB1,TURF ALGAE (TA),Rubble with Turf Algae (RBTA),5
+FBMB1,TURF ALGAE (TA),Turf Algae (TA),89
+FBMB1,CRUSTOSE CORALLINE ALGAE (CCA),Crustose Coraline Algae (CCA),9
+FBMB1,CRUSTOSE CORALLINE ALGAE (CCA),Rubble with CCA (RBCCA),0
+FBMB1,MACROALGAE (ALG),Macroalgae (ALG),0
+FBMB1,BENTHIC CYANOBACTERIAL MAT (BCM),Benthic Cyanobacterial Mat (BCM),0
+FBMB1,SPONGE (SP),Sponge Encrusting (SPE),0
+FBMB1,SPONGE (SP),Sponge Massive (SPM),0
+FBMB1,OTHERS (OTS),Gorgonian (GOR),0
+FBMB1,OTHERS (OTS),Others (OTS),0
+FBMB1,OTHERS (OTS),Soft Coral (SC),0
+FBMB1,SAND (SA),Sand (SA),0
+FBMB1,RUBBLE (RB),Rubble (Not Coral) (RB),0
+FBMB1,DEAD CORAL (DC),Dead Coral Rock (DCR),0
+FBMB1,DEAD CORAL (DC),Dead Coral Rubble (DCRB),0
+FBMB1,TAPE (TP),Tape (TP),0
+FBMB2,CORAL (CO),Branching (BR),0
+FBMB2,CORAL (CO),Corymbose (CORY),0
+FBMB2,CORAL (CO),Digitate (DIG),0
+FBMB2,CORAL (CO),Encrusting (ENCR),10
+FBMB2,CORAL (CO),Laminar/Foliose (LAM),0
+FBMB2,CORAL (CO),Massive (MAS),49
+FBMB2,CORAL (CO),Solitary (SOL),0
+FBMB2,CORAL (CO),Submassive (SUB),9
+FBMB2,CORAL (CO),Tabulate (TAB),0
+FBMB2,TURF ALGAE (TA),Rubble with Turf Algae (RBTA),22
+FBMB2,TURF ALGAE (TA),Turf Algae (TA),63
+FBMB2,CRUSTOSE CORALLINE ALGAE (CCA),Crustose Coraline Algae (CCA),15
+FBMB2,CRUSTOSE CORALLINE ALGAE (CCA),Rubble with CCA (RBCCA),2
+FBMB2,MACROALGAE (ALG),Macroalgae (ALG),0
+FBMB2,BENTHIC CYANOBACTERIAL MAT (BCM),Benthic Cyanobacterial Mat (BCM),0
+FBMB2,SPONGE (SP),Sponge Encrusting (SPE),0
+FBMB2,SPONGE (SP),Sponge Massive (SPM),0
+FBMB2,OTHERS (OTS),Gorgonian (GOR),0
+FBMB2,OTHERS (OTS),Others (OTS),0
+FBMB2,OTHERS (OTS),Soft Coral (SC),0
+FBMB2,SAND (SA),Sand (SA),29
+FBMB2,RUBBLE (RB),Rubble (Not Coral) (RB),1
+FBMB2,DEAD CORAL (DC),Dead Coral Rock (DCR),0
+FBMB2,DEAD CORAL (DC),Dead Coral Rubble (DCRB),0
+FBMB2,TAPE (TP),Tape (TP),0
+FBMB3,CORAL (CO),Branching (BR),10
+FBMB3,CORAL (CO),Corymbose (CORY),15
+FBMB3,CORAL (CO),Digitate (DIG),0
+FBMB3,CORAL (CO),Encrusting (ENCR),14
+FBMB3,CORAL (CO),Laminar/Foliose (LAM),0
+FBMB3,CORAL (CO),Massive (MAS),41
+FBMB3,CORAL (CO),Solitary (SOL),0
+FBMB3,CORAL (CO),Submassive (SUB),0
+FBMB3,CORAL (CO),Tabulate (TAB),0
+FBMB3,TURF ALGAE (TA),Rubble with Turf Algae (RBTA),19
+FBMB3,TURF ALGAE (TA),Turf Algae (TA),66
+FBMB3,CRUSTOSE CORALLINE ALGAE (CCA),Crustose Coraline Algae (CCA),7
+FBMB3,CRUSTOSE CORALLINE ALGAE (CCA),Rubble with CCA (RBCCA),1
+FBMB3,MACROALGAE (ALG),Macroalgae (ALG),0
+FBMB3,BENTHIC CYANOBACTERIAL MAT (BCM),Benthic Cyanobacterial Mat (BCM),0
+FBMB3,SPONGE (SP),Sponge Encrusting (SPE),0
+FBMB3,SPONGE (SP),Sponge Massive (SPM),0
+FBMB3,OTHERS (OTS),Gorgonian (GOR),0
+FBMB3,OTHERS (OTS),Others (OTS),0
+FBMB3,OTHERS (OTS),Soft Coral (SC),0
+FBMB3,SAND (SA),Sand (SA),24
+FBMB3,RUBBLE (RB),Rubble (Not Coral) (RB),3
+FBMB3,DEAD CORAL (DC),Dead Coral Rock (DCR),0
+FBMB3,DEAD CORAL (DC),Dead Coral Rubble (DCRB),0
+FBMB3,TAPE (TP),Tape (TP),0
+FBMB4,CORAL (CO),Branching (BR),0
+FBMB4,CORAL (CO),Corymbose (CORY),2
+FBMB4,CORAL (CO),Digitate (DIG),0
+FBMB4,CORAL (CO),Encrusting (ENCR),15
+FBMB4,CORAL (CO),Laminar/Foliose (LAM),3
+FBMB4,CORAL (CO),Massive (MAS),70
+FBMB4,CORAL (CO),Solitary (SOL),0
+FBMB4,CORAL (CO),Submassive (SUB),0
+FBMB4,CORAL (CO),Tabulate (TAB),0
+FBMB4,TURF ALGAE (TA),Rubble with Turf Algae (RBTA),5
+FBMB4,TURF ALGAE (TA),Turf Algae (TA),68
+FBMB4,CRUSTOSE CORALLINE ALGAE (CCA),Crustose Coraline Algae (CCA),20
+FBMB4,CRUSTOSE CORALLINE ALGAE (CCA),Rubble with CCA (RBCCA),2
+FBMB4,MACROALGAE (ALG),Macroalgae (ALG),0
+FBMB4,BENTHIC CYANOBACTERIAL MAT (BCM),Benthic Cyanobacterial Mat (BCM),0
+FBMB4,SPONGE (SP),Sponge Encrusting (SPE),0
+FBMB4,SPONGE (SP),Sponge Massive (SPM),0
+FBMB4,OTHERS (OTS),Gorgonian (GOR),0
+FBMB4,OTHERS (OTS),Others (OTS),0
+FBMB4,OTHERS (OTS),Soft Coral (SC),0
+FBMB4,SAND (SA),Sand (SA),14
+FBMB4,RUBBLE (RB),Rubble (Not Coral) (RB),1
+FBMB4,DEAD CORAL (DC),Dead Coral Rock (DCR),0
+FBMB4,DEAD CORAL (DC),Dead Coral Rubble (DCRB),0
+FBMB4,TAPE (TP),Tape (TP),0
+FBMB5,CORAL (CO),Branching (BR),13
+FBMB5,CORAL (CO),Corymbose (CORY),4
+FBMB5,CORAL (CO),Digitate (DIG),0
+FBMB5,CORAL (CO),Encrusting (ENCR),3
+FBMB5,CORAL (CO),Laminar/Foliose (LAM),6
+FBMB5,CORAL (CO),Massive (MAS),72
+FBMB5,CORAL (CO),Solitary (SOL),0
+FBMB5,CORAL (CO),Submassive (SUB),3
+FBMB5,CORAL (CO),Tabulate (TAB),0
+FBMB5,TURF ALGAE (TA),Rubble with Turf Algae (RBTA),0
+FBMB5,TURF ALGAE (TA),Turf Algae (TA),79
+FBMB5,CRUSTOSE CORALLINE ALGAE (CCA),Crustose Coraline Algae (CCA),18
+FBMB5,CRUSTOSE CORALLINE ALGAE (CCA),Rubble with CCA (RBCCA),1
+FBMB5,MACROALGAE (ALG),Macroalgae (ALG),0
+FBMB5,BENTHIC CYANOBACTERIAL MAT (BCM),Benthic Cyanobacterial Mat (BCM),0
+FBMB5,SPONGE (SP),Sponge Encrusting (SPE),0
+FBMB5,SPONGE (SP),Sponge Massive (SPM),0
+FBMB5,OTHERS (OTS),Gorgonian (GOR),0
+FBMB5,OTHERS (OTS),Others (OTS),0
+FBMB5,OTHERS (OTS),Soft Coral (SC),1
+FBMB5,SAND (SA),Sand (SA),0
+FBMB5,RUBBLE (RB),Rubble (Not Coral) (RB),0
+FBMB5,DEAD CORAL (DC),Dead Coral Rock (DCR),0
+FBMB5,DEAD CORAL (DC),Dead Coral Rubble (DCRB),0
+FBMB5,TAPE (TP),Tape (TP),0

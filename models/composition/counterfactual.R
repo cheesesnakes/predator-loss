@@ -21,7 +21,7 @@ fit <- readRDS(here("outputs/standardised_community_fit.rds"))
 
 # Load covariates
 
-source(here("analysis/cleaning.R"))
+source(here("analysis/cleaning_fish.R"))
 
 # Extract predicted counts (lambda)
 predicted_counts_raw <- fit$draws("abundance", format = "matrix")
