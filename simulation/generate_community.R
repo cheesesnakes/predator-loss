@@ -1,4 +1,4 @@
-pacman::p_load(dplyr, tidyr, purrr, here)
+pacman::p_load(dplyr, tidyr, purrr, here, stringr)
 
 # Generative model for simulation
 
@@ -88,6 +88,10 @@ fish <- fish %>%
 transects <- data.frame(Transect = 1:Tr, Location = rep(1:10, each = Tr / 10), Protection = rep(1:P, length.out = Tr)) # create a data frame for transects
 
 species <- data.frame(Species = regional_pool, Feeding_guild = regional_pool_fg) # create a data frame for species
+
+colnames(transect) <- str_to_lower(colnames(transect))
+colnames(fish) <- str_to_lower(colnames(fish))
+colnames(species) <- str_to_lower(colnames(species))
 
 write.csv(fish, here("outputs/simulated_data/fish.csv"), row.names = F) # write fish data to CSV file
 write.csv(transects, here("outputs/simulated_data/transects.csv"), row.names = F) # write transects data to CSV file

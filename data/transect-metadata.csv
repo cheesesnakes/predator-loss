@@ -1,4 +1,4 @@
-﻿date,transect-id,location,aspect,status,site,transect-no,min-depth,max-depth,visibility,start-time,end-time,boat,divers,crew,remarks
+﻿date,transect_id,location,aspect,status,site,transect-no,min-depth,max-depth,visibility,start-time,end-time,boat,divers,crew,remarks
 18-03-2023,THP01,Havelock,East,unprotected,pilot,1,,,,,,khlee,"bharat, titus, shawn, akshta","babu, jeevan",
 18-03-2023,THP02,Havelock,East,unprotected,pilot,2,,,,,,khlee,"bharat, titus, shawn, akshta","babu, jeevan",
 21-03-2023,THS01,Havelock,East,unprotected,slope,1,,,,,,khlee,"bharat, titus, shawn","babu, jeevan",
