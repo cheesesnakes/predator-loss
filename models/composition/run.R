@@ -47,7 +47,7 @@ mcmc_trace(draws, regex_pars = vars, facet_args = list(ncol = 2)) +
 ggsave(here(figure_dir, "traceplot.png"), width = 10, height = 8)
 
 # Extract posterior draws for pred_count and convert to matrix
-ppc <- fit_result$draws("pred_count", format = "draws_matrix")
+ppc <- fit_result$draws("abundance", format = "draws_matrix")
 
 sample <- sample(1:nrow(ppc), 100)
 
@@ -59,7 +59,7 @@ counts <- response$count
 
 # Posterior predictive check for foraging durations
 ppc_dens_overlay(y = counts, yrep = ppc) +
-  scale_x_log10() +
+  scale_x_log10()+
   labs(x = "Abundance", y = "Density")
 
 ggsave(here(figure_dir, "ppc_abundance.png"), width = 10, height = 8)

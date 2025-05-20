@@ -26,6 +26,8 @@ source(here("analysis/cleaning.R"))
 # Extract predicted counts (lambda)
 predicted_counts_raw <- fit$draws("abundance", format = "matrix")
 
+rm(fit)
+
 # Set dimensions
 n_draws <- 4000
 n_transects <- nrow(transects)
@@ -52,18 +54,20 @@ predicted_counts_df <- as.data.frame.table(predicted_counts, responseName = "cou
   mutate(across(c(Transect, Species, Size), as.integer)) %>%
   mutate(Draw = as.integer(str_remove(Draw, "draw_")))
 
+rm(predicted_counts)
+
 # Join metadata
 predicted_counts_df <- predicted_counts_df %>%
   left_join(transects, by = c("Transect" = "transect")) %>%
   left_join(species_df, by = c("Species" = "species")) %>%
-  mutate(
-    guild = factor(guild,
-      levels = length(guild_levels),
-      labels = guild_levels
-    ),
-    protection = factor(protection, levels = c(1, 2), labels = c("Unprotected", "Protected")),
-    size = factor(size, levels = length(size_levels), labels = size_levels),
-  )
+   mutate(
+     guild = factor(guild,
+       levels = length(guild_levels),
+       labels = guild_levels
+     ),
+     protection = factor(protection, levels = c(1, 2), labels = c("Unprotected", "Protected")),
+     size = factor(size, levels = length(size_levels), labels = size_levels),
+   )
 
 # Summarize posterior distribution
 summary_df <- predicted_counts_df %>%
