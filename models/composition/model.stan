@@ -17,9 +17,9 @@ data {
 }
 parameters {
   array[L] real alpha; // intercepts for locations
-  array[S] real beta; // random effects for species 
   array[G] real gamma; // effect of feeding guilds
   array[P] real delta; // effect of protection levels
+  array[P, G] real beta; // interaction between protection and guild
 }
 transformed parameters {
   array[T, S, C] real lambda; // expected counts
@@ -27,8 +27,9 @@ transformed parameters {
   for (t in 1 : T) {
     for (s in 1 : S) {
       for (c in 1 : C) {
-        lambda[t, s, c] = exp(alpha[location[t]] + beta[s] + gamma[guild[s]]
-                              + delta[protection[t]]);
+        lambda[t, s, c] = exp(alpha[location[t]] + gamma[guild[s]]
+                              + delta[protection[t]]
+                              + beta[protection[t], guild[s]]);
       }
     }
   }
@@ -36,9 +37,14 @@ transformed parameters {
 model {
   // Priors
   alpha ~ normal(0, 1);
-  beta ~ normal(0, 1);
   gamma ~ normal(0, 1);
   delta ~ normal(0, 1);
+  
+  for (p in 1 : P) {
+    for (g in 1 : G) {
+      beta[p, g] ~ normal(0, 1);
+    }
+  }
   
   // Likelihood
   for (n in 1 : N) {
@@ -48,9 +54,18 @@ model {
 generated quantities {
   array[N] real log_lik;
   array[N] real pred_count;
+  array[T, S, C] real abundance; // predicted abundance
   
   for (n in 1 : N) {
     log_lik[n] = poisson_lpmf(count[n] | lambda[transect[n], species[n], size[n]]);
     pred_count[n] = lambda[transect[n], species[n], size[n]];
+  }
+  
+  for (t in 1 : T) {
+    for (s in 1 : S) {
+      for (c in 1 : C) {
+        abundance[t, s, c] = poisson_rng(lambda[t, s, c]);
+      }
+    }
   }
 }
