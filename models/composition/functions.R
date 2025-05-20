@@ -25,18 +25,18 @@ prep_stan <- function(fish, transects, species) {
   stan_data <- list(
     N = nrow(fish), # number of fish
     T = nrow(transects), # number of transects
-    S = nrow(species), # number of species
-    P = length(unique(transects$Protection)), # number of protection levels
-    L = length(unique(transects$Location)), # number of locations
-    G = length(unique(species$Feeding_guild)), # number of feeding guilds
-    C = length(unique(fish$Size)), # number of size classes
-    transect = as.integer(fish$Transect), # transect IDs
-    species = as.integer(fish$Species), # species IDs
-    size = as.integer(fish$Size), # size class IDs
-    guild = as.integer(species$Feeding_guild), # feeding guild IDs
-    count = fish$abundance, # abundance data
-    protection = as.integer(transects$Protection), # protection level IDs
-    location = as.integer(transects$Location) # location IDs
+    S = length(unique(species$species)), # number of species
+    P = length(unique(transects$protection)), # number of protection levels
+    L = length(unique(transects$location)), # number of locations
+    G = length(unique(species$guild)), # number of feeding guilds
+    C = length(unique(fish$size)), # number of size classes
+    transect = as.integer(fish$transect), # transect IDs
+    species = as.integer(fish$species), # species IDs
+    size = as.integer(fish$size), # size class IDs
+    guild = as.integer(species$guild), # feeding guild IDs
+    count = fish$count, # abundance data
+    protection = as.integer(transects$protection), # protection level IDs
+    location = as.integer(transects$location) # location IDs
   )
 
   return(stan_data)

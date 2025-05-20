@@ -11,7 +11,7 @@ theme_set(
 )
 # import data
 
-run <- "validation"
+run <- "standardised" # "validation" or "standardised"
 
 figure_dir <- switch(run,
   validation = here("figures", "simulated_data/composition"),
@@ -49,14 +49,17 @@ ggsave(here(figure_dir, "traceplot.png"), width = 10, height = 8)
 # Extract posterior draws for pred_count and convert to matrix
 ppc <- fit_result$draws("pred_count", format = "draws_matrix")
 
-ppc
+sample <- sample(1:nrow(ppc), 100)
+
+ppc <- ppc[sample, ]
+
 # Create matrix of observed durations
 response <- data$fish
-counts <- response$abundance
+counts <- response$count
 
 # Posterior predictive check for foraging durations
 ppc_dens_overlay(y = counts, yrep = ppc) +
-  scale_x_continuous(limits = c(0, 120)) +
-  labs(x = "Abunddance", y = "Density")
+  scale_x_log10() +
+  labs(x = "Abundance", y = "Density")
 
 ggsave(here(figure_dir, "ppc_abundance.png"), width = 10, height = 8)
