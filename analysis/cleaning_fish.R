@@ -50,9 +50,19 @@ fish <- fish %>%
        mutate_if(~is.character(.), ~str_trim(.))
 
 
+fish <- fish%>%
+  mutate(size = str_replace(size, "X", ""),
+         size = str_replace(size, "cm", ""),
+         size = str_replace(size, "\\.", "-"))
+
 # species data
 
 traits <- read.csv(here("data", "transect-fish-traits.csv"))
+
+phylo <- traits %>%
+  select(c(Order, Family, Genus)) %>%
+  filter(Family != "") %>%
+  distinct()
 
 traits <- traits %>%
        select(c(Family, Genus, Species, Length..cm., Height, Feeding.Guild, Habitat, Water.Column)) %>%
@@ -63,11 +73,9 @@ traits <- traits %>%
        ) %>%
        select(-c(Species)) %>%
        mutate_if(~is.character(.), ~str_trim(.))%>%
-       mutate(Genus = ifelse(is.na(Genus), str_split(species, " ", simplify = TRUE)[, 1], Genus))
+       mutate(Genus = ifelse(is.na(Genus), str_split(species, " ", simplify = TRUE)[, 1], Genus))%>%
+      mutate(guild = str_to_sentence(guild))
 
-phylo <- traits %>%
-       select(c(Family, Genus)) %>%
-       distinct()
 
 # Helper function to get mode
 get_mode <- function(x) {
@@ -128,6 +136,10 @@ write.csv(species_noinfo, here("outputs/standardised_data/species_noinfo.csv"), 
 
 species_df <- species_df %>%
        filter(!is.na(guild)) %>%
-       distinct(species, .keep_all = TRUE)
+       distinct(species, .keep_all = TRUE)%>%
+  mutate(guild = str_to_sentence(guild))
 
 species_list <- unique(species_df$species)
+
+fish <- fish %>%
+       filter(species %in% species_list) 

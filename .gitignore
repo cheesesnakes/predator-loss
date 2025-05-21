@@ -4,3 +4,5 @@ renv/
 *.csv
 *.png
 models/model
+.Rproj.user
+alt_analysis.Rproj
