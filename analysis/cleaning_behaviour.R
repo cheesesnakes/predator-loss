@@ -95,7 +95,7 @@ mutate_at(c("resource", "substrate", "coral", "sponge"), ~ ifelse(is.na(.), mean
 ungroup()%>%
 left_join(damsels, by = "plot_id")%>%
 replace(is.na(.), 0)%>%
-select(-deployment.id)%>%
+select(-deployment.id)
 
 # Sampled Individuals -------------------------------------------------------------
 
@@ -130,7 +130,17 @@ mutate(spp = str_trim(spp))
 
 
 fish <- fish%>%
-select(c(ind_id, spp, group, size))
+select(c(ind_id, sample_id, spp, group, size))
+
+samples <- samples%>%
+select(c(sample_id, plot_id, deployment_id))%>%
+mutate(plot_id = paste0(deployment_id, "", plot_id),
+sample_id = paste0(plot_id, "", sample_id))%>%
+select(-deployment_id)
+
+fish <- fish%>%
+left_join(samples, by = "sample_id")%>%
+select(-c(sample_id))
 
 colnames(fish) <- str_to_lower(colnames(fish))
 
@@ -273,6 +283,12 @@ select(-foraging_time.y, -foraging_time.x)%>%
 mutate(foraging_time = ifelse(bites == 1 & is.na(foraging_time), 1, foraging_time))%>%
 mutate_if(~is.numeric(.), ~replace_na(., 0))
 
+responses <- responses%>%
+select(-c(obs_id, modifier))%>%
+  group_by(ind_id)%>%
+  summarise(across(everything(), sum, na.rm = TRUE))%>%
+  ungroup()
+
 # final data
 
 head(responses)
@@ -280,7 +296,3 @@ head(predictors)
 head(fish)
 head(traits)
 
-write.csv(responses, here("outputs/standardised_data/behaviour.csv"), row.names = FALSE)
-write.csv(predictors, here("outputs/standardised_data/predictors.csv"), row.names = FALSE)
-write.csv(fish, here("outputs/standardised_data/individuals.csv"), row.names = FALSE)
-write.csv(traits, here("outputs/standardised_data/guild.csv"), row.names = FALSE)
