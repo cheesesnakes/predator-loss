@@ -28,7 +28,9 @@ print(paste0("Number of orders: ", n_distinct(species_df$Order)))
 print(paste0("Number of families: ", n_distinct(species_df$Family)))
 print(paste0("Number of individual sampled: ", sum(fish$Count)))
 
-print(paste0("Feeding guilds: ", paste(unique(species_df$guild[!grepl(", ", species_df$guild)]), collapse = ", ")))
+print("Feeding guilds: ")
+table(str_to_sentence(unlist(str_split(species_df$guild, ", "))))
+
 print(paste0("Species with more than 1 feeding guild", ": ", sum(grepl(", ", species_df$guild))))
 print(paste("Species with no feeding guild", ": ", sum(species_df$guild == "")))
 
