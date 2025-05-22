@@ -72,7 +72,7 @@ total_time <- function(behaviour, ind) {
     # calculate zero inflation probability
 
     size = size_individual[ind] # get size class
-    guild = foraging_individual[ind] # get foraging guild
+    guild = guild_species[individual_spp[ind]] # get foraging guild
 
     pi_0 <- expit(-5 + beta_pi_risk[behaviour] * individual_risk[ind] 
     + beta_size_pi[behaviour, size] 
@@ -104,7 +104,7 @@ bites <- function(foraging, ind){
     if(foraging > 0){
 
         size = size_individual[ind] # get size class
-        guild = foraging_individual[ind] # get foraging guild
+        guild = guild_species[individual_spp[ind]] # get foraging guild
 
         mu = beta_risk_bites * individual_risk[ind] 
         + beta_size_bites[size] 

@@ -66,6 +66,7 @@ individual_protected <- rep(0, N) # initialize vector for protected status of in
 for (i in 1:N) {
     individual_protected[i] <- predictors$protected[predictors$plot_id == individual_plot[i]] # assign protected status to individuals based on their plot
 }
+individual_spp <- sample(1:R, size = N, replace = TRUE) # assign individuals to species
 
 # size class
 
@@ -88,28 +89,20 @@ for (i in 1:N) {
 
 # foraging guilds
 
-# calculate foraging guild probabilities
+guild_species <- sample(foraging_guilds, size = R, replace = TRUE) # sample species for each guild
 
-prob_foraging <- matrix(0, nrow = length(foraging_guilds), ncol = P) # initialize probability matrix for foraging guilds
+guild <- data.frame(species = 1:R, 
+                    guild = guild_species, # create data frame of species and guilds
+                    value = 1 ) %>%
+    pivot_wider(names_from = guild, values_from = value, values_fill = 0)
 
-for (f in 1:length(foraging_guilds)) {
-    prob_foraging[f, 1] <- alpha_foraging[f] * beta_protection_foraging[f, 1] # calculate probability for inside PA
-    prob_foraging[f, 2] <- alpha_foraging[f] * beta_protection_foraging[f, 2] # calculate probability for outside PA
-}
 
-# generate foraging guild for individuals
-
-foraging_individual <- rep(0, N) # sample foraging guilds for inside PA and outside PA
-
-for (i in 1:N) {
-    foraging_individual[i] <- sample(foraging_guilds, size = 1, replace = TRUE, prob = prob_foraging[, individual_protected[i]]) # sample foraging guild for each individual
-}
-
+write.csv(guild, here(data_dir, "guild.csv"), row.names = F) # write guild to CSV file
 # create data frame of individual level predictors
 
-individuals <- data.frame(individual_id, individual_plot, size_individual, foraging_individual) # create data frame of individual level predictors
+individuals <- data.frame(individual_id, individual_spp, individual_plot, size_individual) # create data frame of individual level predictors
 
-colnames(individuals) <- c("ind_id", "plot_id", "size_class", "guild") # rename columns
+colnames(individuals) <- c("ind_id", "species", "plot_id", "size_class") # rename columns
 
 write.csv(individuals, here(data_dir, "individuals.csv"), row.names = F) # write individual level predictors to CSV file
 
@@ -126,6 +119,7 @@ ggsave(here(plot_dir, "plots_risk.png"), width = 12, height = 9) # save plots to
 # create data frame of individual level behaviours
 response <- data.frame(individual_id) %>%
     mutate(
+
         foraging = map_dbl(individual_id, ~ total_time(1, .x)), # foraging time
         vigilance = map_dbl(individual_id, ~ total_time(2, .x)), # vigilance time
         movement = map_dbl(individual_id, ~ total_time(3, .x)), # movement time

@@ -10,10 +10,6 @@ p2 <- ggplot(individuals, aes(x = as.factor(size_individual), y = individual_ris
     geom_boxplot() +
     labs(x = "Size Class", y = "Risk") 
 
-# box plot risk by foraging guild
-p3 <- ggplot(individuals, aes(x = as.factor(foraging_individual), y = individual_risk)) + # create box plot of risk by foraging guild
-    geom_boxplot() +
-    labs(x = "Foraging Guild", y = "Risk") 
 
 # historgram of risk
 
@@ -21,7 +17,7 @@ p4 <- ggplot(individuals, aes(x = individual_risk)) + # create histogram of risk
     geom_density() +
     labs(x = "Risk", y = "Count") 
 
-(p1 + p2 + p3 )/ p4# combine plots
+(p1 + p2  )/ p4# combine plots
 
 }
 
@@ -62,25 +58,8 @@ p8 <- ggplot(response, aes(x = as.factor(size_individual), y = bites)) +
     geom_boxplot() +
     labs(x = "Size Class", y = "Bites")
 
-# box plot behaviours by foraging guild
-p9 <- ggplot(response, aes(x = as.factor(foraging_individual), y = foraging)) +
-    geom_boxplot() +
-    labs(x = "Foraging Guild", y = "Foraging")
-
-p10 <- ggplot(response, aes(x = as.factor(foraging_individual), y = vigilance)) +
-    geom_boxplot() +
-    labs(x = "Foraging Guild", y = "Vigilance")
-
-p11 <- ggplot(response, aes(x = as.factor(foraging_individual), y = movement)) +
-    geom_boxplot() +
-    labs(x = "Foraging Guild", y = "Movement")
-
-p12 <- ggplot(response, aes(x = as.factor(foraging_individual), y = bites)) +
-    geom_boxplot() +
-    labs(x = "Foraging Guild", y = "Bites")
-
 # Combine plots grouped by predictor
-p1 + p2 + p3 + p4 + p5 + p6 + p7 + p8  + p9 + p10 + p11 + p12 + plot_layout(ncol = 4, nrow = 3, byrow = TRUE) 
+p1 + p2 + p3 + p4 + p5 + p6 + p7 + p8 + plot_layout(ncol = 4, nrow = 2, byrow = TRUE)
 
 }
 

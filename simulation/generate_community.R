@@ -11,6 +11,9 @@ regional_pool_fg <- sample(feeding_guild, length(regional_pool), replace = TRUE)
 
 regional_pool_df <- data.frame(species = regional_pool, feeding_guild = regional_pool_fg)
 
+guild <- regional_pool_df%>%
+mutate(value = 1)%>%
+  pivot_wider(names_from = feeding_guild, values_from = value, values_fill = 0) 
 ## determine abundance in the regional pool
 
 beta_abn_fg <- c(5, 3, 3, 2) # effect of feeding guild on abundance
@@ -89,10 +92,11 @@ transects <- data.frame(Transect = 1:Tr, Location = rep(1:10, each = Tr / 10), P
 
 species <- data.frame(Species = regional_pool, Feeding_guild = regional_pool_fg) # create a data frame for species
 
-colnames(transect) <- str_to_lower(colnames(transect))
+colnames(transects) <- str_to_lower(colnames(transects))
 colnames(fish) <- str_to_lower(colnames(fish))
 colnames(species) <- str_to_lower(colnames(species))
 
 write.csv(fish, here("outputs/simulated_data/fish.csv"), row.names = F) # write fish data to CSV file
 write.csv(transects, here("outputs/simulated_data/transects.csv"), row.names = F) # write transects data to CSV file
 write.csv(species, here("outputs/simulated_data/species.csv"), row.names = F) # write species data to CSV file
+write.csv(guild, here("outputs/simulated_data/transect_guild.csv"), row.names = F) # write guild data to CSV file

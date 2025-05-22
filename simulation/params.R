@@ -1,6 +1,7 @@
 P <- 2 # number of protection levels
 M <- 60 # number of plots
 N <- 500 # number of individuals
+R <- 150 # number of species
 
 beta_protection_predator <- c(0.1, 0.7) # effect of protection on predator presence
 
