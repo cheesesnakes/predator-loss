@@ -11,7 +11,7 @@ data {
   array[T] int<lower=1, upper=L> location; // location index
   array[N] int<lower=1, upper=T> transect; // transect index
   array[T] int<lower=1, upper=P> protection; // protection level index
-  array[S] int<lower=1, upper=G> guild; // feeding guild index
+  array[S, G] int<lower=1, upper=G> guild; // feeding guild index
   array[N] int<lower=1, upper=C> size; // size class index
   array[N] int<lower=0> count; // count of individuals
 }
@@ -27,9 +27,9 @@ transformed parameters {
   for (t in 1 : T) {
     for (s in 1 : S) {
       for (c in 1 : C) {
-        lambda[t, s, c] = exp(alpha[location[t]] + gamma[guild[s]]
+        lambda[t, s, c] = exp(alpha[location[t]] + dot_product(gamma, guild[s])
                               + delta[protection[t]]
-                              + beta[protection[t], guild[s]]);
+                              + dot_product(beta[protection[t]], guild[s]));
       }
     }
   }

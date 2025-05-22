@@ -6,3 +6,4 @@ renv/
 models/model
 .Rproj.user
 alt_analysis.Rproj
+.Rhistory

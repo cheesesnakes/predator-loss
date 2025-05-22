@@ -5,6 +5,7 @@ data {
   int<lower=0> S; // number of plots
   int<lower=0> C; // number of size classes
   int<lower=0> G; // number of guilds
+  int<lower=0> K; // number of species
   array[N, B] real<lower=0> D; // observed durations
   array[N] int<lower=0> bites; // number of bites observed
   
@@ -15,7 +16,8 @@ data {
   array[S] int<lower=1, upper=2> protection; // protection level (0 or 1)
   array[S] real<lower=0, upper=1> biomass; // biomass availability (continuous variable)
   array[N] int<lower=1, upper=C> size; // size class of each observation
-  array[N] int<lower=1, upper=G> guild; // guild of each observation
+  array[K, G] int<lower=1, upper=G> guild; // guild of each observation
+  array[N] int<lower=1, upper=K> species; // species list
 }
 parameters {
   // Rugosity
@@ -100,26 +102,26 @@ transformed parameters {
       // zero-inflation probability
       real logit_input = alpha_pi[b] + beta_pi_risk[b] * risk[n]
                          + beta_size_pi[b, size[n]]
-                         + beta_guild_pi[b, guild[n]]
+                         + dot_product(beta_guild_pi[b], guild[species[n]])
                          + beta_size_risk_pi[b, size[n]] * risk[n]
-                         + beta_guild_risk_pi[b, guild[n]] * risk[n];
+                         + dot_product(beta_guild_risk_pi[b], guild[species[n]]) * risk[n];
       
       // zero-inflation probability
       pi[n, b] = inv_logit(logit_input);
       
       // Mean duration
       mu_D[n, b] = beta_risk[b] * risk[n] + beta_size[b, size[n]]
-                   + beta_guild[b, guild[n]]
+                   + dot_product(beta_guild[b], guild[species[n]])
                    + beta_size_risk[b, size[n]] * risk[n]
-                   + beta_guild_risk[b, guild[n]] * risk[n];
+                   + dot_product(beta_guild_risk[b], guild[species[n]]) * risk[n];
     }
     
     // Mean bites
     
     lambda_risk[n] = exp(beta_risk_bites * risk[n] + beta_size_bites[size[n]]
-                         + beta_guild_bites[guild[n]]
+                         + dot_product (beta_guild_bites, guild[species[n]])
                          + beta_size_risk_bites[size[n]] * risk[n]
-                         + beta_guild_risk_bites[guild[n]] * risk[n]);
+                         + dot_product(beta_guild_risk_bites, guild[species[n]]) * risk[n]);
   }
 }
 model {
@@ -213,21 +215,21 @@ generated quantities {
   for (n in 1 : N) {
     real risk_draw = risk[n]; // risk from current posterior draw
     real lambda = exp(beta_risk_bites * risk_draw + beta_size_bites[size[n]]
-                      + beta_guild_bites[guild[n]]
+                      + dot_product(beta_guild_bites, guild[species[n]])
                       + beta_size_risk_bites[size[n]] * risk_draw
-                      + beta_guild_risk_bites[guild[n]] * risk_draw);
+                      + dot_product(beta_guild_risk_bites, guild[species[n]]) * risk_draw);
     
     for (b in 1 : B) {
       real mu = beta_risk[b] * risk_draw + beta_size[b, size[n]]
-                + beta_guild[b, guild[n]]
+                + dot_product(beta_guild[b], guild[species[n]])
                 + beta_size_risk[b, size[n]] * risk_draw
-                + beta_guild_risk[b, guild[n]] * risk_draw;
+                + dot_product(beta_guild_risk[b], guild[species[n]]) * risk_draw;
       
       real pi_draw = inv_logit(alpha_pi[b] + beta_pi_risk[b] * risk_draw
                                + beta_size_pi[b, size[n]]
-                               + beta_guild_pi[b, guild[n]]
+                               + dot_product(beta_guild_pi[b], guild[species[n]])
                                + beta_size_risk_pi[b, size[n]] * risk_draw
-                               + beta_guild_risk_pi[b, guild[n]] * risk_draw);
+                               + dot_product(beta_guild_risk_pi[b], guild[species[n]]) * risk_draw);
       
       if (bernoulli_rng(pi_draw)) {
         D_pred[n, b] = 0;
@@ -260,22 +262,21 @@ generated quantities {
       
       real lambda = exp(beta_risk_bites * risk_draw
                         + beta_size_bites[size[n]]
-                        + beta_guild_bites[guild[n]]
+                        + dot_product(beta_guild_bites, guild[species[n]])
                         + beta_size_risk_bites[size[n]] * risk_draw
-                        + beta_guild_risk_bites[guild[n]] * risk_draw);
+                        + dot_product(beta_guild_risk_bites, guild[species[n]]) * risk_draw);
       
       for (b in 1 : B) {
         real mu = beta_risk[b] * risk_draw + beta_size[b, size[n]]
-                  + beta_guild[b, guild[n]]
+                  + dot_product(beta_guild[b], guild[species[n]])
                   + beta_size_risk[b, size[n]] * risk_draw
-                  + beta_guild_risk[b, guild[n]] * risk_draw;
+                  + dot_product(beta_guild_risk[b], guild[species[n]]) * risk_draw;
         
         real pi_draw = inv_logit(alpha_pi[b] + beta_pi_risk[b] * risk_draw
                                  + beta_size_pi[b, size[n]]
-                                 + beta_guild_pi[b, guild[n]]
+                                 + dot_product(beta_guild_pi[b], guild[species[n]])
                                  + beta_size_risk_pi[b, size[n]] * risk_draw
-                                 + beta_guild_risk_pi[b, guild[n]]
-                                   * risk_draw);
+                                 + dot_product(beta_guild_risk_pi[b], guild[species[n]]) * risk_draw);
         
         if (bernoulli_rng(pi_draw)) {
           D_pred_protection[p, n, b] = 0;
@@ -308,22 +309,21 @@ generated quantities {
       
       real lambda = exp(beta_risk_bites * risk_draw
                         + beta_size_bites[size[n]]
-                        + beta_guild_bites[guild[n]]
+                        + dot_product(beta_guild_bites, guild[species[n]])
                         + beta_size_risk_bites[size[n]] * risk_draw
-                        + beta_guild_risk_bites[guild[n]] * risk_draw);
+                        + dot_product(beta_guild_risk_bites, guild[species[n]]) * risk_draw);
       
       for (b in 1 : B) {
         real mu = beta_risk[b] * risk_draw + beta_size[b, size[n]]
-                  + beta_guild[b, guild[n]]
+                  + dot_product(beta_guild[b], guild[species[n]])
                   + beta_size_risk[b, size[n]] * risk_draw
-                  + beta_guild_risk[b, guild[n]] * risk_draw;
+                  + dot_product(beta_guild_risk[b], guild[species[n]]) * risk_draw;
         
         real pi_draw = inv_logit(alpha_pi[b] + beta_pi_risk[b] * risk_draw
                                  + beta_size_pi[b, size[n]]
-                                 + beta_guild_pi[b, guild[n]]
+                                 + dot_product(beta_guild_pi[b], guild[species[n]])
                                  + beta_size_risk_pi[b, size[n]] * risk_draw
-                                 + beta_guild_risk_pi[b, guild[n]]
-                                   * risk_draw);
+                                 + dot_product(beta_guild_risk_pi[b], guild[species[n]]) * risk_draw);
         
         if (bernoulli_rng(pi_draw)) {
           D_pred_protection_rugosity[p, n, b] = 0;
@@ -356,22 +356,21 @@ generated quantities {
       
       real lambda = exp(beta_risk_bites * risk_draw
                         + beta_size_bites[size[n]]
-                        + beta_guild_bites[guild[n]]
+                        + dot_product(beta_guild_bites, guild[species[n]])
                         + beta_size_risk_bites[size[n]] * risk_draw
-                        + beta_guild_risk_bites[guild[n]] * risk_draw);
+                        + dot_product(beta_guild_risk_bites, guild[species[n]]) * risk_draw);
       
       for (b in 1 : B) {
         real mu = beta_risk[b] * risk_draw + beta_size[b, size[n]]
-                  + beta_guild[b, guild[n]]
+                  + dot_product(beta_guild[b], guild[species[n]])
                   + beta_size_risk[b, size[n]] * risk_draw
-                  + beta_guild_risk[b, guild[n]] * risk_draw;
+                  + dot_product(beta_guild_risk[b], guild[species[n]]) * risk_draw;
         
         real pi_draw = inv_logit(alpha_pi[b] + beta_pi_risk[b] * risk_draw
                                  + beta_size_pi[b, size[n]]
-                                 + beta_guild_pi[b, guild[n]]
+                                 + dot_product(beta_guild_pi[b], guild[species[n]])
                                  + beta_size_risk_pi[b, size[n]] * risk_draw
-                                 + beta_guild_risk_pi[b, guild[n]]
-                                   * risk_draw);
+                                 + dot_product(beta_guild_risk_pi[b], guild[species[n]]) * risk_draw);
         
         if (bernoulli_rng(pi_draw)) {
           D_pred_protection_biomass[p, n, b] = 0;
@@ -405,22 +404,21 @@ generated quantities {
       
       real lambda = exp(beta_risk_bites * risk_draw
                         + beta_size_bites[size[n]]
-                        + beta_guild_bites[guild[n]]
+                        + dot_product(beta_guild_bites, guild[species[n]])
                         + beta_size_risk_bites[size[n]] * risk_draw
-                        + beta_guild_risk_bites[guild[n]] * risk_draw);
+                        + dot_product(beta_guild_risk_bites, guild[species[n]]) * risk_draw);
       
       for (b in 1 : B) {
         real mu = beta_risk[b] * risk_draw + beta_size[b, size[n]]
-                  + beta_guild[b, guild[n]]
+                  + dot_product(beta_guild[b], guild[species[n]])
                   + beta_size_risk[b, size[n]] * risk_draw
-                  + beta_guild_risk[b, guild[n]] * risk_draw;
+                  + dot_product(beta_guild_risk[b], guild[species[n]]) * risk_draw;
         
         real pi_draw = inv_logit(alpha_pi[b] + beta_pi_risk[b] * risk_draw
                                  + beta_size_pi[b, size[n]]
-                                 + beta_guild_pi[b, guild[n]]
+                                 + dot_product(beta_guild_pi[b], guild[species[n]])
                                  + beta_size_risk_pi[b, size[n]] * risk_draw
-                                 + beta_guild_risk_pi[b, guild[n]]
-                                   * risk_draw);
+                                 + dot_product(beta_guild_risk_pi[b], guild[species[n]]) * risk_draw);
         
         if (bernoulli_rng(pi_draw)) {
           D_pred_protection_predator[p, n, b] = 0;
