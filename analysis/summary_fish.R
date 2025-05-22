@@ -2,9 +2,6 @@ pacman::p_load(here, flextable)
 
 source(here("analysis", "cleaning_fish.R"))
 
-init_flextable_defaults()
-set_flextable_defaults(font.size = 12,padding = 6)
-
 colnames(fish) <- str_to_sentence(colnames(fish))
 
 # sampling 
@@ -51,7 +48,8 @@ colnames(assemblage) <- c("Order", "Family", "Species", "Guild", "Column", "Habi
 
 assemblage <- flextable(assemblage, col_keys = colnames(assemblage))%>%
   italic(j = 2)%>%
-  set_table_properties(layout = "autofit", align = "center")
+  set_table_properties(layout = "autofit", align = "center")%>%
+  theme_box()
 
 print(assemblage)
 
