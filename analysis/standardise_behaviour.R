@@ -3,7 +3,6 @@ pacman::p_load(here)
 source(here("analysis", "cleaning_behaviour.R"))
 
 # standardise data
-
 species_levels <- sort(unique(fish$spp))
 size_levels <- sort(unique(fish$size))
 individual_levels <- sort(unique(fish$ind_id))
@@ -47,10 +46,15 @@ filter(spp %in% species_levels)%>%
   mutate_at(vars(-c("spp")), ~as.numeric(.))
 
 
+rugosity <- rugosity%>%
+mutate(plot_id = as.numeric(factor(plot_id, levels = plot_levels)))%>%
+filter(!is.na(plot_id))
+
 head(responses)
 head(predictors)
 head(fish)
 head(traits)
+head(rugosity)
 
 # save standardised data
 
@@ -58,3 +62,4 @@ write.csv(responses, here("outputs/standardised_data/behaviour.csv"), row.names 
 write.csv(predictors, here("outputs/standardised_data/predictors.csv"), row.names = FALSE)
 write.csv(fish, here("outputs/standardised_data/individuals.csv"), row.names = FALSE)
 write.csv(traits, here("outputs/standardised_data/guild.csv"), row.names = FALSE)
+write.csv(rugosity, here("outputs/standardised_data/rugosity.csv"), row.names = FALSE)

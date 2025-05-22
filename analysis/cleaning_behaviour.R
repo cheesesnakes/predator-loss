@@ -292,7 +292,7 @@ select(-c(obs_id, modifier))%>%
 # remove temporary objects
 
 rm(benthic, boris_point, boris, boris_state, category_names, corrected_f_t, damsels, errors_f_t, individuals,
-   mean_rugosity, predator, rugosity, sampling, sites, aggression, behaviors, groups, plots, responses_boris, samples)
+   mean_rugosity, predator, sampling, sites, aggression, behaviors, groups, plots, responses_boris, samples)
 
 # final data
 
