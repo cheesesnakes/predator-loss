@@ -11,7 +11,7 @@ data {
   array[T] int<lower=1, upper=L> location; // location index
   array[N] int<lower=1, upper=T> transect; // transect index
   array[T] int<lower=1, upper=P> protection; // protection level index
-  array[S, G] int<lower=1, upper=G> guild; // feeding guild index
+  array[S, G] int<lower=0, upper=1> guild; // feeding guild index
   array[N] int<lower=1, upper=C> size; // size class index
   array[N] int<lower=0> count; // count of individuals
 }

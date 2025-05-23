@@ -11,13 +11,14 @@ load_data <- function(run) {
   fish <- read.csv(here(data_dir, "fish.csv"))
   transects <- read.csv(here(data_dir, "transects.csv"))
   species <- read.csv(here(data_dir, "species.csv"))
+  guild <- read.csv(here(data_dir, "transect_guild.csv"))
 
-  return(list(fish = fish, transects = transects, species = species))
+  return(list(fish = fish, transects = transects, species = species, guild = guild))
 }
 
 # prepare the data for Stan
 
-prep_stan <- function(fish, transects, species) {
+prep_stan <- function(fish, transects, species, guild) {
   # Prepare the data for Stan
   # fish: data frame with fish data
   # transects: data frame with transect data
@@ -28,13 +29,13 @@ prep_stan <- function(fish, transects, species) {
     S = length(unique(species$species)), # number of species
     P = length(unique(transects$protection)), # number of protection levels
     L = length(unique(transects$location)), # number of locations
-    G = length(unique(species$guild)), # number of feeding guilds
+    G = ncol(guild) - 1, # number of feeding guilds
     C = length(unique(fish$size)), # number of size classes
     transect = as.integer(fish$transect), # transect IDs
     species = as.integer(fish$species), # species IDs
     size = as.integer(fish$size), # size class IDs
-    guild = as.integer(species$guild), # feeding guild IDs
-    count = fish$count, # abundance data
+    guild = as.matrix(guild[-1]), # feeding guild IDs
+    count = fish$abundance, # abundance data
     protection = as.integer(transects$protection), # protection level IDs
     location = as.integer(transects$location) # location IDs
   )

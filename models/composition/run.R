@@ -11,7 +11,7 @@ theme_set(
 )
 # import data
 
-run <- "standardised" # "validation" or "standardised"
+run <- "validation" # "validation" or "standardised"
 
 figure_dir <- switch(run,
   validation = here("figures", "simulated_data/composition"),
@@ -26,7 +26,8 @@ data <- load_data(run)
 stan_data <- prep_stan(
   fish = data$fish,
   transects = data$transects,
-  species = data$species
+  species = data$species,
+  guild = data$guild
 )
 
 fit_result <- fit_model(stan_data, here("models", "composition/model.stan"), run = run)
@@ -47,7 +48,7 @@ mcmc_trace(draws, regex_pars = vars, facet_args = list(ncol = 2)) +
 ggsave(here(figure_dir, "traceplot.png"), width = 10, height = 8)
 
 # Extract posterior draws for pred_count and convert to matrix
-ppc <- fit_result$draws("abundance", format = "draws_matrix")
+ppc <- fit_result$draws("pred_count", format = "draws_matrix")
 
 sample <- sample(1:nrow(ppc), 100)
 
@@ -55,7 +56,7 @@ ppc <- ppc[sample, ]
 
 # Create matrix of observed durations
 response <- data$fish
-counts <- response$count
+counts <- response$abundance
 
 # Posterior predictive check for foraging durations
 ppc_dens_overlay(y = counts, yrep = ppc) +
