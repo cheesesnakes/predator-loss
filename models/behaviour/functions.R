@@ -12,12 +12,13 @@ load_data <- function(run) {
   individuals <- read.csv(here(data_dir, "individuals.csv"))
   predictors <- read.csv(here(data_dir, "predictors.csv"))
   rugosity <- read.csv(here(data_dir, "rugosity.csv"))
-  return(list(response = response, individuals = individuals, predictors = predictors, rugosity = rugosity))
+  guild <- read.csv(here(data_dir, "guild.csv"))
+  return(list(response = response, individuals = individuals, predictors = predictors, rugosity = rugosity, guild = guild))
 }
 
 # prepare the data for Stan
 
-prep_stan <- function(response, individuals, predictors, rugosity) {
+prep_stan <- function(response, individuals, predictors, rugosity, guild) {
   # Prepare the data for Stan
   # response: data frame with response variables
   # individuals: data frame with individual IDs
@@ -29,11 +30,13 @@ prep_stan <- function(response, individuals, predictors, rugosity) {
     B = 3,
     S = nrow(predictors),
     D = matrix(c(response$foraging, response$vigilance, response$movement), ncol = 3),
+    K = length(unique(guild$species)),
     individual = individuals$ind_id,
     C = length(unique(individuals$size_class)),
     size = individuals$size_class,
-    G = length(unique(individuals$guild)),
-    guild = individuals$guild,
+    G = ncol(guild[-1]),
+    guild = as.matrix(guild[-1]),
+    species = individuals$species,
     bites = response$bites,
     predator = predictors$predator,
     plot = individuals$plot_id,

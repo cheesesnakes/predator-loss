@@ -9,6 +9,31 @@
     ]
   },
   "Packages": {
+    "GGally": {
+      "Package": "GGally",
+      "Version": "2.2.1",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "R",
+        "RColorBrewer",
+        "dplyr",
+        "ggplot2",
+        "ggstats",
+        "grDevices",
+        "grid",
+        "gtable",
+        "lifecycle",
+        "magrittr",
+        "plyr",
+        "progress",
+        "rlang",
+        "scales",
+        "tidyr",
+        "utils"
+      ],
+      "Hash": "b11ac45c916608b7d1374ff87da053d5"
+    },
     "MASS": {
       "Package": "MASS",
       "Version": "7.3-65",
@@ -436,6 +461,22 @@
       ],
       "Hash": "fc0f4226379e451057d55419fd31761e"
     },
+    "forcats": {
+      "Package": "forcats",
+      "Version": "1.0.0",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "R",
+        "cli",
+        "glue",
+        "lifecycle",
+        "magrittr",
+        "rlang",
+        "tibble"
+      ],
+      "Hash": "1a0a9a3d5083d0d573c4214576f1e690"
+    },
     "fs": {
       "Package": "fs",
       "Version": "1.6.6",
@@ -511,6 +552,29 @@
         "withr"
       ],
       "Hash": "66488692cb8621bc78df1b9b819497a6"
+    },
+    "ggstats": {
+      "Package": "ggstats",
+      "Version": "0.9.0",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "R",
+        "cli",
+        "dplyr",
+        "forcats",
+        "ggplot2",
+        "lifecycle",
+        "patchwork",
+        "purrr",
+        "rlang",
+        "scales",
+        "stats",
+        "stringr",
+        "tidyr",
+        "utils"
+      ],
+      "Hash": "7970feac45e807dabb5f53add546afcc"
     },
     "glue": {
       "Package": "glue",

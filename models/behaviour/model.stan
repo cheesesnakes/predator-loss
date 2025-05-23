@@ -16,7 +16,7 @@ data {
   array[S] int<lower=1, upper=2> protection; // protection level (0 or 1)
   array[S] real<lower=0, upper=1> biomass; // biomass availability (continuous variable)
   array[N] int<lower=1, upper=C> size; // size class of each observation
-  array[K, G] int<lower=1, upper=G> guild; // guild of each observation
+  array[K, G] int<lower=0, upper=1> guild; // guild of each observation
   array[N] int<lower=1, upper=K> species; // species list
 }
 parameters {

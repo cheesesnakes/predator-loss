@@ -1,6 +1,6 @@
 pacman::p_load(here, bayesplot, ggplot2)
 
-source(here("models", "functions.R"))
+source(here("models/behaviour", "functions.R"))
 
 theme_set(
   theme_bw()+
@@ -16,12 +16,13 @@ figure_dir <- switch(run,
     validation = here("figures", "simulated_data"),
     standardised = here("figures")
 )
+
 # test
 data <- load_data(run)
 
-stan_data <- prep_stan(data$response, data$individuals, data$predictors, data$rugosity)
+stan_data <- prep_stan(data$response, data$individuals, data$predictors, data$rugosity, data$guild)
 
-fit_result <- fit_model(stan_data, here("models", "model.stan"), run = run)
+fit_result <- fit_model(stan_data, here("models/behaviour", "model.stan"), run = run)
 
 # summary of the model fit
 # Retrieve all variable names from the fitted model
@@ -87,3 +88,4 @@ ppc_dens_overlay(yrep = ppc_bites[random_predictions,], y = response$bites)+
   labs(x = "Bites", y = "Density")
 
 ggsave(here(figure_dir, "ppc_bites.png"), width = 10, height = 8)
+
