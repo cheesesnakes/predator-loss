@@ -57,7 +57,7 @@ fish <- fish %>%
        mutate(
               transect = as.numeric(factor(transect, levels = transect_levels)),
               species = as.numeric(factor(species, levels = species_levels)),
-              size = as.numeric(factor(size, levels = size_levels))
+              size = as.numeric(factor(size, levels = size_levels)),
        )
 
 species_df <- species_df %>%
@@ -77,6 +77,8 @@ colnames(transects) <- str_to_lower(colnames(transects))
 colnames(fish) <- str_to_lower(colnames(fish))
 colnames(species_df) <- str_to_lower(colnames(species_df))
 colnames(guild) <- str_to_lower(colnames(guild))
+
+fish <- rename(fish, abundance = count)
 
 summary(transects)
 summary(fish)

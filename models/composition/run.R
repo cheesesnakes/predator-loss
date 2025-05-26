@@ -11,7 +11,7 @@ theme_set(
 )
 # import data
 
-run <- "validation" # "validation" or "standardised"
+run <- "standardised" # "validation" or "standardised"
 
 figure_dir <- switch(run,
   validation = here("figures", "simulated_data/composition"),

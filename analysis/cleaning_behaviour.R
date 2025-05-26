@@ -29,10 +29,10 @@ damsels <- plots%>%
     # damsel presence
     mutate(damsel = ifelse(damsel_n > 0, 1, 0))%>%
     select(-damsel_n)%>%
-    distinct()
-
-   
-# benthic cover 
+    distinct()%>%
+    filter(!is.na(damsel))
+    
+# benthic cover
 
 category_names = read.csv(here("data/benthic_categories.csv"))
 
@@ -289,10 +289,26 @@ select(-c(obs_id, modifier))%>%
   summarise(across(everything(), sum, na.rm = TRUE))%>%
   ungroup()
 
+fish %>%
+  filter(!ind_id %in% responses$ind_id)%>%
+  write.csv(here("outputs/standardised_data/individuals_missing_behaviour.csv"), row.names = FALSE)
+
+responses %>%
+  filter(!ind_id %in% fish$ind_id)%>%
+  write.csv(here("outputs/standardised_data/behaviour_missing_individuals.csv"), row.names = FALSE)
+
+fish <- fish%>%
+  # remove individuals with no responses
+  filter(ind_id %in% responses$ind_id)
+
+responses <- responses%>%
+  # remove individuals with no fish
+  filter(ind_id %in% fish$ind_id)
+
 # remove temporary objects
 
-rm(benthic, boris_point, boris, boris_state, category_names, corrected_f_t, damsels, errors_f_t, individuals,
-   mean_rugosity, predator, sampling, sites, aggression, behaviors, groups, plots, responses_boris, samples)
+rm(benthic, boris_point, boris, boris_state, category_names, corrected_f_t, damsels, errors_f_t,
+   mean_rugosity, predator,sites, aggression, behaviors, groups, plots, responses_boris, samples)
 
 # final data
 

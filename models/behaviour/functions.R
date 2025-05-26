@@ -30,7 +30,7 @@ prep_stan <- function(response, individuals, predictors, rugosity, guild) {
     B = 3,
     S = nrow(predictors),
     D = matrix(c(response$foraging, response$vigilance, response$movement), ncol = 3),
-    K = length(unique(guild$species)),
+    K = max(guild$species),
     individual = individuals$ind_id,
     C = length(unique(individuals$size_class)),
     size = individuals$size_class,
@@ -43,7 +43,7 @@ prep_stan <- function(response, individuals, predictors, rugosity, guild) {
     rugosity_raw = matrix(c(rugosity$sample_1, rugosity$sample_2, rugosity$sample_3), ncol = 3),
     protection = predictors$protected,
     biomass = predictors$biomass,
-    group = individuals$group,
+    group = individuals$group
   )
 
   return(stan_data)
@@ -72,8 +72,8 @@ fit_model <- function(stan_data, model_file, run = "validation") {
     iter_warmup = 1000,
     iter_sampling = 1000,
     refresh = 100,
-    # adapt_delta = 0.95,
-    # max_treedepth = 15
+    adapt_delta = 0.95,
+    max_treedepth = 15
   )
 
   ## optimize the model

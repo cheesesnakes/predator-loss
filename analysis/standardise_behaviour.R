@@ -26,7 +26,7 @@ predictors <- predictors%>%
          site = as.numeric(factor(site, levels = site_levels)),
          protection = as.numeric(factor(protection, levels = protection_levels)),
          damsel = as.numeric(damsel),
-         predator = as.numeric(predator),
+         predator = as.numeric(predator + 1),
          rugosity = as.numeric(rugosity),
          resource = as.numeric(resource),
          substrate = as.numeric(substrate),
@@ -37,13 +37,16 @@ fish <- fish%>%
   mutate(ind_id = as.numeric(factor(ind_id, levels = individual_levels)),
   plot_id = as.numeric(factor(plot_id, levels = plot_levels)),
          spp = as.numeric(factor(spp, levels = species_levels)),
-         group = as.numeric(group),
+         group = as.numeric(group+1),
          size = as.numeric(factor(size, levels = size_levels)))
 
-traits <- traits%>%
-filter(spp %in% species_levels)%>%
-  mutate(spp = as.numeric(factor(spp, levels = species_levels)))%>%
-  mutate_at(vars(-c("spp")), ~as.numeric(.))
+traits <- traits %>%
+  ungroup()%>%
+  filter(spp %in% species_levels) %>%
+  mutate(spp = factor(spp, levels = species_levels)) %>%
+  complete(spp) %>%
+  mutate(across(-spp, ~replace_na(., 0))) %>%  # Fill NAs with 0
+  mutate(spp = as.numeric(spp))                # Convert spp to numeric index
 
 
 rugosity <- rugosity%>%
@@ -72,12 +75,19 @@ predictors <- predictors %>%
     protected = protection
     )
 
+traits <- traits %>%
+  rename(
+    species = spp
+  )
+
 head(responses)
 head(predictors)
 head(fish)
 head(traits)
 head(rugosity)
 
+rugosity%>%
+filter(is.na(plot_id))
 # save standardised data
 
 write.csv(responses, here("outputs/standardised_data/behaviour.csv"), row.names = FALSE)
