@@ -50,6 +50,28 @@ rugosity <- rugosity%>%
 mutate(plot_id = as.numeric(factor(plot_id, levels = plot_levels)))%>%
 filter(!is.na(plot_id))
 
+# rename columns
+
+
+responses <- responses %>%
+  rename(
+    foraging = foraging_time ,
+    vigilance = vigilance_time,
+    movement = move_time,
+    )
+
+fish <- fish%>%
+  rename(
+    species = spp,
+    size_class = size
+  )
+
+predictors <- predictors %>%
+  rename(
+    biomass = resource,
+    protected = protection
+    )
+
 head(responses)
 head(predictors)
 head(fish)

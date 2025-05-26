@@ -98,11 +98,16 @@ guild <- data.frame(species = 1:R,
 
 
 write.csv(guild, here(data_dir, "guild.csv"), row.names = F) # write guild to CSV file
+
+# grouping 
+
+group <- rbinom(N, 1, prob = 0.1) # generate grouping for each individual (0 = solitary, 1 = group)
+
 # create data frame of individual level predictors
 
-individuals <- data.frame(individual_id, individual_spp, individual_plot, size_individual) # create data frame of individual level predictors
+individuals <- data.frame(individual_id, individual_spp, individual_plot, size_individual, group) # create data frame of individual level predictors
 
-colnames(individuals) <- c("ind_id", "species", "plot_id", "size_class") # rename columns
+colnames(individuals) <- c("ind_id", "species", "plot_id", "size_class", "group") # rename columns
 
 write.csv(individuals, here(data_dir, "individuals.csv"), row.names = F) # write individual level predictors to CSV file
 
