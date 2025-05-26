@@ -18,7 +18,7 @@ data {
   array[N] int<lower=1, upper=C> size; // size class of each observation
   array[K, G] int<lower=0, upper=1> guild; // guild of each observation
   array[N] int<lower=1, upper=K> species; // species list
-  array[N] int<lower=0, upper=1> group; // group membership (0 or 1)
+  array[N] int<lower=1, upper=2> group; // group membership (0 or 1)
 }
 parameters {
   // Rugosity
@@ -50,7 +50,7 @@ parameters {
   array[G] real beta_guild_bites; // effect of guild on bites
   array[C] real beta_size_risk_bites; // interaction between size and risk on bites
   array[G] real beta_guild_risk_bites; // interaction between guild and risk on bites
-  array[B, 2] real beta_group_risk_bites; // interaction between group and risk on bites
+  array[2] real beta_group_risk_bites; // interaction between group and risk on bites
 
   // Risk model coefficients
   ordered[2] alpha_risk_protection; // random risk per individual
@@ -128,7 +128,7 @@ transformed parameters {
     lambda_risk[n] = exp(beta_risk_bites * risk[n] + beta_size_bites[size[n]]
                          + dot_product (beta_guild_bites, guild[species[n]])
                          + beta_size_risk_bites[size[n]] * risk[n]
-                          + beta_group_risk_bites[size[n], group[n]]
+                          + beta_group_risk_bites[group[n]]
                          + dot_product(beta_guild_risk_bites, guild[species[n]]) * risk[n]);
   }
 }
@@ -225,7 +225,7 @@ generated quantities {
     real lambda = exp(beta_risk_bites * risk_draw + beta_size_bites[size[n]]
                       + dot_product(beta_guild_bites, guild[species[n]])
                       + beta_size_risk_bites[size[n]] * risk_draw
-                      + beta_group_risk_bites[size[n], group[n]]
+                      + beta_group_risk_bites[group[n]]
                       + dot_product(beta_guild_risk_bites, guild[species[n]]) * risk_draw);
     
     for (b in 1 : B) {
@@ -275,7 +275,7 @@ generated quantities {
                         + beta_size_bites[size[n]]
                         + dot_product(beta_guild_bites, guild[species[n]])
                         + beta_size_risk_bites[size[n]] * risk_draw
-                        + beta_group_risk_bites[size[n], 1]
+                        + beta_group_risk_bites[ 1]
                         + dot_product(beta_guild_risk_bites, guild[species[n]]) * risk_draw);
       
       for (b in 1 : B) {
@@ -325,7 +325,7 @@ generated quantities {
                         + beta_size_bites[size[n]]
                         + dot_product(beta_guild_bites, guild[species[n]])
                         + beta_size_risk_bites[size[n]] * risk_draw
-                        + beta_group_risk_bites[size[n], 1] // no group effect
+                        + beta_group_risk_bites[1] // no group effect
                         + dot_product(beta_guild_risk_bites, guild[species[n]]) * risk_draw);
       
       for (b in 1 : B) {
@@ -375,7 +375,7 @@ generated quantities {
                         + beta_size_bites[size[n]]
                         + dot_product(beta_guild_bites, guild[species[n]])
                         + beta_size_risk_bites[size[n]] * risk_draw
-                        + beta_group_risk_bites[size[n], 1] // no group effect
+                        + beta_group_risk_bites[1] // no group effect
                         + dot_product(beta_guild_risk_bites, guild[species[n]]) * risk_draw);
       
       for (b in 1 : B) {
@@ -426,21 +426,21 @@ generated quantities {
                         + beta_size_bites[size[n]]
                         + dot_product(beta_guild_bites, guild[species[n]])
                         + beta_size_risk_bites[size[n]] * risk_draw
-                        + beta_group_risk_bites[size[n], group[n]]
+                        + beta_group_risk_bites[1]
                         + dot_product(beta_guild_risk_bites, guild[species[n]]) * risk_draw);
       
       for (b in 1 : B) {
         real mu = beta_risk[b] * risk_draw + beta_size[b, size[n]]
                   + dot_product(beta_guild[b], guild[species[n]])
                   + beta_size_risk[b, size[n]] * risk_draw
-                  + beta_group[b, group[n]]
+                  + beta_group[b, 1]
                   + dot_product(beta_guild_risk[b], guild[species[n]]) * risk_draw;
         
         real pi_draw = inv_logit(alpha_pi[b] + beta_pi_risk[b] * risk_draw
                                  + beta_size_pi[b, size[n]]
                                  + dot_product(beta_guild_pi[b], guild[species[n]])
                                  + beta_size_risk_pi[b, size[n]] * risk_draw
-                                  + beta_group_pi[b, group[n]] * risk_draw
+                                  + beta_group_pi[b, 1] * risk_draw
                                  + dot_product(beta_guild_risk_pi[b], guild[species[n]]) * risk_draw);
         
         if (bernoulli_rng(pi_draw)) {
