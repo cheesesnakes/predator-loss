@@ -6,233 +6,183 @@ data {
   int<lower=0> C; // number of size classes
   int<lower=0> G; // number of guilds
   int<lower=0> K; // number of species
+  
+  // response variables
+
   array[N, B] real<lower=0> D; // observed durations
   array[N] int<lower=0> bites; // number of bites observed
   
-  // Predictor variables
-  array[S] int<lower=1, upper=2> predator; // predator presence (0 or 1)
-  array[N] int<lower=1, upper=S> plot; // plot number
-  array[S, 3] real<lower=0, upper=1> rugosity_raw; // rugosity (continuous variable)
+  // index variables
+  array[N] int<lower=1, upper=S> plot; // plot index
+  array[N] int<lower=1, upper=K> species; // species index
+
+  // plot-level predictors
   array[S] int<lower=1, upper=2> protection; // protection level (0 or 1)
+  array[S] int<lower=1, upper=2> predator; // predator presence (0 or 1)
+  array[S, 3] real<lower=0, upper=1> rugosity_raw; // rugosity (continuous variable)
   array[S] real<lower=0, upper=1> biomass; // biomass availability (continuous variable)
+
+  // individual-level predictors
   array[N] int<lower=1, upper=C> size; // size class of each observation
-  array[K, G] int<lower=0, upper=1> guild; // guild of each observation
-  array[N] int<lower=1, upper=K> species; // species list
   array[N] int<lower=1, upper=2> group; // group membership (0 or 1)
+  array[K, G] int<lower=0, upper=1> guild; // guild of each observation
+  
 }
 parameters {
-  // Rugosity
+  // Parameters to estimate rugosity
   
   array[S] real<lower=1e-6, upper=(1 - 1e-6)> rugosity; // accounting for multiple rugosity measurements
   array[S] real<lower=1e-6> phi_rug; // standard deviation of rugosity in each plot
   
-  // Top-level coefficients for duration
-  vector[B] beta_risk; // effect of risk on duration
-  array[B, C] real beta_size; // effect of size on duration
-  array[B, G] real beta_guild; // effect of guild on duration
-  array[B, C] real beta_size_risk; // interaction between size and risk on duration
-  array[B, G] real beta_guild_risk; // interaction between guild and risk on duration
-  array[B, 2] real beta_group; // effect of group membership on duration
 
+  // parameters for zero-inflation
+  array[S, B] real alpha_pi; // random intercepts for zero-inflation
+  array[P, B] real beta_pi; // effect of protection on zero-inflation
+  array[B] real gamma_pi; //effect of rugosity on zero-inflation
+  array[B] real zeta_pi; // effect of biomass on zero-inflation
+  array[2, B] real eta_pi; // effect of predator presence on zero-inflation
+  array[C, B] real omega_pi; // effect of size class on zero-inflation
+  array[G, B] real epsilon_pi; // effect of guild on zero-inflation
+  array[2, B] real delta_pi; // effect of group on zero-inflation
 
-  vector[B] alpha_pi; // baseline zero-inflation
-  vector[B] beta_pi_risk; // effect of risk on zero-inflation
-  array[B, C] real beta_size_pi; // effect of size on zero-inflation
-  array[B, G] real beta_guild_pi; // effect of guild on zero-inflation
-  array[B, 2] real beta_group_pi; // effect of group membership on zero-inflation
+  // parameters for duration model
+  array[S, B] real alpha_D; // random intercepts for duration
+  array[P, B] real beta_D; // effect of protection on duration
+  array[B] real gamma_D; // effect of rugosity on duration
+  array[B] real zeta_D; // effect of biomass on duration
+  array[2, B] real eta_D; // effect of predator presence on duration
+  array[C, B] real omega_D; // effect of size class on duration
+  array[G, B] real epsilon_D; // effect of guild on duration
+  array[2, B] real delta_D; // effect of group on duration
+  array[B] real sigma_D; // standard deviation of duration
 
-  array[B, C] real beta_size_risk_pi; // interaction between size and risk on zero-inflation
-  array[B, G] real beta_guild_risk_pi; // interaction between guild and risk on zero-inflation
-  
-  // Top-level coefficients for bites
-  real beta_risk_bites; // effect of risk on bites
-  array[C] real beta_size_bites; // effect of size on bites
-  array[G] real beta_guild_bites; // effect of guild on bites
-  array[C] real beta_size_risk_bites; // interaction between size and risk on bites
-  array[G] real beta_guild_risk_bites; // interaction between guild and risk on bites
-  array[2] real beta_group_risk_bites; // interaction between group and risk on bites
-
-  // Risk model coefficients
-  ordered[2] alpha_risk_protection; // random risk per individual
-  ordered[2] beta_predator; // effect of predator presence on risk
-  real beta_rug; // effect of rugosity on risk
-  real beta_res; // effect of biomass on risk
-  real<lower=0> sigma_risk; // standard deviation of riskrgy
-  
-  // Observation model
-  vector<lower=0>[B] sigma_D; // standard deviation of duration, non-zero
-  
-  // Latent variables non-centred
-  array[N] real z_risk; // latent risk variable
+  // parameters for bites model
+  array[S] real alpha_bites; // random intercepts for risk of bites
+  array[P] real beta_bites; // effect of protection on bites
+  real gamma_bites; // effect of rugosity on bites
+  real zeta_bites; // effect of biomass on bites
+  array[2] real eta_bites; // effect of predator presence on bites
+  array[C] real omega_bites; // effect of size class on bites
+  array[G] real epsilon_bites; // effect of guild on bites
+  array[2] real delta_bites; // effect of group on bites
 }
 transformed parameters {
-  array[S] real mu_risk; // mean risk
-  array[N, B] real mu_D; // mean duration
-  array[N] real lambda_risk; // mean bites
-  array[N, B] real<lower=0, upper=1> pi; // zero-inflation probability
+  // standardize rugosity and biomass
+  array[S] real rugosity_std; // standardized rugosity
+  array[S] real biomass_std; // standardized biomass
   
-  // standarisation of rugosity
-  array[S] real rugosity_std; // standardised rugosity
-  real mean_rugosity = mean(rugosity);
-  real sd_rugosity = sd(rugosity);
+  array[N] real lambda; // expected number of bites
+  array[N, B] real mu; // expected duration
+  array[N, B] real pi; // probability of non-zero duration
   
-  // standardised biomass
-  array[S] real biomass_std; // standardised biomass
-  real mean_biomass = mean(biomass);
-  real sd_biomass = sd(biomass);
-  
-  // Latent variables per observation
-  array[N] real risk; // latent risk variable
-  
-  // mean risk per plot
   for (s in 1 : S) {
-    // standardisation of rugosity
-    rugosity_std[s] = (rugosity[s] - mean_rugosity) / sd_rugosity;
-    
-    // standardisation of biomass
-    biomass_std[s] = (biomass[s] - mean_biomass) / sd_biomass;
-    
-    // mean risk per plot
-    
-    mu_risk[s] = alpha_risk_protection[protection[s]]
-                 + beta_predator[predator[s]] + beta_rug * rugosity_std[s]
-                 + beta_res * biomass_std[s];
+    rugosity_std[s] = (rugosity[s] - mean(rugosity)) / sd(rugosity);
+    biomass_std[s] = (biomass[s] - mean(biomass)) / sd(biomass);
   }
   
   for (n in 1 : N) {
-    // Latent risk variable
-    risk[n] = exp(mu_risk[plot[n]] + sigma_risk * z_risk[n]); // log-normal non-centred
-    
     for (b in 1 : B) {
-      // zero-inflation probability
-      real logit_input = alpha_pi[b] + beta_pi_risk[b] * risk[n]
-                         + beta_size_pi[b, size[n]]
-                         + dot_product(beta_guild_pi[b], guild[species[n]])
-                         + beta_group_pi[b, group[n]]
-                         + beta_size_risk_pi[b, size[n]] * risk[n]
-                         + dot_product(beta_guild_risk_pi[b], guild[species[n]]) * risk[n];
+      // calculate expected duration
+
+      mu[n, b] = alpha_D[plot[n], b] + beta_D[protection[plot[n]], b] 
+                 + gamma_D[b] * rugosity_std[plot[n]] 
+                 + zeta_D[b] * biomass_std[plot[n]]
+                 + eta_D[predator[plot[n]], b]
+                 + omega_D[size[n], b]
+                 + dot_product(epsilon_D[:, b], guild[species[n]])
+                 + delta_D[group[n], b];
+
+      // calculate probability of non-zero duration
+
+      pi[n, b] = inv_logit(alpha_pi[plot[n], b] + beta_pi[protection[plot[n]], b]
+                           + gamma_pi[b] * rugosity_std[plot[n]]
+                           + zeta_pi[b] * biomass_std[plot[n]]
+                           + eta_pi[predator[plot[n]], b]
+                           + omega_pi[size[n], b]
+                           + dot_product(epsilon_pi[:, b], guild[species[n]])
+                           + delta_pi[group[n], b]);
       
-      // zero-inflation probability
-      pi[n, b] = inv_logit(logit_input);
-      
-      // Mean duration
-      mu_D[n, b] = beta_risk[b] * risk[n] + beta_size[b, size[n]]
-                   + dot_product(beta_guild[b], guild[species[n]])
-                   + beta_size_risk[b, size[n]] * risk[n]
-                   + beta_group[b, group[n]]
-                   + dot_product(beta_guild_risk[b], guild[species[n]]) * risk[n];
-    }
-    
-    // Mean bites
-    
-    lambda_risk[n] = exp(beta_risk_bites * risk[n] + beta_size_bites[size[n]]
-                         + dot_product (beta_guild_bites, guild[species[n]])
-                         + beta_size_risk_bites[size[n]] * risk[n]
-                          + beta_group_risk_bites[group[n]]
-                         + dot_product(beta_guild_risk_bites, guild[species[n]]) * risk[n]);
+      }
+
+    // calculate expected number of bites
+
+    lambda[n] = exp(alpha_bites[plot[n]] + beta_bites[protection[plot[n]]]
+                    + gamma_bites * rugosity_std[plot[n]]
+                    + zeta_bites * biomass_std[plot[n]]
+                    + eta_bites[predator[plot[n]]]
+                    + omega_bites[size[n]]
+                    + dot_product(epsilon_bites, guild[species[n]])
+                    + delta_bites[group[n]]);
   }
 }
+
 model {
+
   // Priors
-  beta_risk_bites ~ normal(0, 0.5);
-  beta_size_bites ~ normal(0, 0.5);
-  beta_guild_bites ~ normal(0, 0.5);
-  beta_size_risk_bites ~ normal(0, 0.5);
-  beta_guild_risk_bites ~ normal(0, 0.5);
-  beta_group_risk_bites ~ normal(0, 0.5);
-  
-  // priors for foraging
-  beta_risk[1] ~ normal(-1, 0.5);
-  beta_pi_risk[1] ~ normal(1, 0.5);
-  alpha_pi[1] ~ normal(-1, 2);
-  beta_size[1] ~ normal(0, 0.5); // size class 1
-  beta_group[1] ~ normal(0, 0.5); // group 1
-  beta_size_risk[1] ~ normal(0, 0.5); // interaction between size and risk for foraging
-  beta_guild[1] ~ normal(0, 0.5); // guild for foraging
-  beta_guild_risk[1] ~ normal(0, 0.5); // interaction between guild and risk for foraging
-  beta_size_pi[1] ~ normal(0, 0.5); // size class 1 for zero-inflation
-  beta_group_pi[1] ~ normal(0, 0.5); // group 1 for zero-inflation
-  beta_size_risk_pi[1] ~ normal(0, 0.5); // interaction between size and risk for zero-inflation
-  beta_guild_pi[1] ~ normal(0, 0.5); // guild for zero-inflation
-  beta_guild_risk_pi[1] ~ normal(0, 0.5); // interaction between guild and risk for zero-inflation
-
-  // priors for vigilance
-  beta_risk[2] ~ normal(1, 0.5);
-  beta_pi_risk[2] ~ normal(-1, 0.5);
-  alpha_pi[2] ~ normal(-1, 2);
-  beta_size_risk[2] ~ normal(0, 0.5);
-  beta_guild_risk[2] ~ normal(0, 0.5);
-  beta_group[2] ~ normal(0, 0.5);
-  beta_size[2] ~ normal(0, 0.5);
-  beta_guild[2] ~ normal(0, 0.5);
-  beta_size_pi[2] ~ normal(0, 0.5);
-  beta_group_pi[2] ~ normal(0, 0.5);
-  beta_guild_pi[2] ~ normal(0, 0.5);
-  beta_size_risk_pi[2] ~ normal(0, 0.5);
-  beta_guild_risk_pi[2] ~ normal(0, 0.5);
-
-  // priors for movement
-  beta_risk[3] ~ normal(-1, 0.5);
-  beta_pi_risk[3] ~ normal(0, 0.5);
-  alpha_pi[3] ~ normal(-1, 2);
-  beta_size_risk[3] ~ normal(0, 0.5);
-  beta_guild_risk[3] ~ normal(0, 0.5);
-  beta_group[3] ~ normal(0, 0.5);
-  beta_size[3] ~ normal(0, 0.5);
-  beta_guild[3] ~ normal(0, 0.5);
-  beta_size_pi[3] ~ normal(0, 0.5);
-  beta_group_pi[3] ~ normal(0, 0.5);
-  beta_guild_pi[3] ~ normal(0, 0.5);
-  beta_size_risk_pi[3] ~ normal(0, 0.5);
-  beta_guild_risk_pi[3] ~ normal(0, 0.5);
- 
-  // Risk model priors
-  beta_rug ~ normal(-1, 0.5);
-  beta_res ~ normal(0, 0.5);
-  
-  for (p in 1 : 2) {
-    beta_predator[p] ~ normal(0, 0.5);
+  for (s in 1 : S) {
+    rugosity[s] ~ beta(1, 1);
+    phi_rug[s] ~ exponential(1);
   }
-  for (r in 1 : 2) {
-    alpha_risk_protection[r] ~ normal(0, 0.5);
+
+  // Zero-inflation parameters
+  for (b in 1 : B) {
+    alpha_pi[:, b] ~ normal(0, 1);
+    beta_pi[:, b] ~ normal(0, 1);
+    gamma_pi[b] ~ normal(0, 1);
+    zeta_pi[b] ~ normal(0, 1);
+    eta_pi[:, b] ~ normal(0, 1);
+    omega_pi[:, b] ~ normal(0, 1);
+    epsilon_pi[, b] ~ normal(0, 1);
+    delta_pi[:, b] ~ normal(0, 1);
   }
-  
-  sigma_risk ~ normal(0, 1) T[1e-6, ]; // standard deviation of risk
-  
-  // rugosity priors
-  rugosity ~ beta(1, 1); // beta distribution for rugosity
-  phi_rug ~ gamma(2, 2); // precision of rugosity
-  
-  // Latent variables priors
+
+  // Duration parameters
   
   for (b in 1 : B) {
-    sigma_D[b] ~ normal(0, 1) T[1e-6, ]; // standard deviation of duration
+    alpha_D[:, b] ~ normal(0, 1);
+    beta_D[:, b] ~ normal(0, 1);
+    gamma_D[b] ~ normal(0, 1);
+    zeta_D[b] ~ normal(0, 1);
+    eta_D[:, b] ~ normal(0, 1);
+    omega_D[:, b] ~ normal(0, 1);
+    epsilon_D[, b] ~ normal(0, 1);
+    delta_D[:, b] ~ normal(0, 1);
+    sigma_D[b] ~ cauchy(0, 1); // using Cauchy prior for scale
   }
-  
-  z_risk ~ normal(0, 0.5); // latent risk variable
-  
-  // rugosity
-  for (s in 1 : S) {
-    for (i in 1 : 3) {
-      rugosity_raw[s, i] ~ beta(rugosity[s] * phi_rug[s],
-                                (1 - rugosity[s]) * phi_rug[s]);
-    }
+
+  // Bites parameters
+  alpha_bites ~ normal(0, 1);
+  beta_bites ~ normal(0, 1);
+  gamma_bites ~ normal(0, 1);
+  zeta_bites ~ normal(0, 1);
+  eta_bites ~ normal(0, 1); 
+  omega_bites ~ normal(0, 1);
+  epsilon_bites ~ normal(0, 1);
+  delta_bites ~ normal(0, 1);
+
+  // rugosity estimation
+
+  for (s in 1:S){
+    rugosity_raw[s, 1] ~ beta(rugosity[s] * phi_rug[s], (1 - rugosity[s]) * phi_rug[s]);
+    rugosity_raw[s, 2] ~ beta(rugosity[s] * phi_rug[s], (1 - rugosity[s]) * phi_rug[s]);
+    rugosity_raw[s, 3] ~ beta(rugosity[s] * phi_rug[s], (1 - rugosity[s]) * phi_rug[s]);
   }
-  
-  // Observation model
-  
+
+  // Likelihood
+
   for (n in 1 : N) {
     for (b in 1 : B) {
-      if (D[n, b] == 0) {
+      
+      if (D[n, b] == 0){
         target += bernoulli_lpmf(1 | pi[n, b]); // zero-inflation
       } else {
-        target += bernoulli_lpmf(0 | pi[n, b]); // non-zero inflation
-        target += lognormal_lpdf(D[n, b] | mu_D[n, b], sigma_D[b]); // duration model
-        if (b == 1 && D[n, b] > 0) {
-          target += poisson_lpmf(bites[n] | lambda_risk[n]); // bites model
+        target += bernoulli_lpmf(0 | pi[n, b]); // non-zero duration
+        target += lognormal_lpdf(D[n, b] | mu[n, b], sigma_D[b]); // duration likelihood
+        if (b == 1) {
+          target += poisson_lpmf(bites[n] | lambda[n]); // bites likelihood
         }
       }
-    }
+  }
   }
 }
 generated quantities {
@@ -241,238 +191,159 @@ generated quantities {
   array[N] real bites_pred; // predicted bites
   
   for (n in 1 : N) {
-    real risk_draw = risk[n]; // risk from current posterior draw
-    real lambda = exp(beta_risk_bites * risk_draw + beta_size_bites[size[n]]
-                      + dot_product(beta_guild_bites, guild[species[n]])
-                      + beta_size_risk_bites[size[n]] * risk_draw
-                      + beta_group_risk_bites[group[n]]
-                      + dot_product(beta_guild_risk_bites, guild[species[n]]) * risk_draw);
-    
     for (b in 1 : B) {
-      real mu = beta_risk[b] * risk_draw + beta_size[b, size[n]]
-                + dot_product(beta_guild[b], guild[species[n]])
-                + beta_size_risk[b, size[n]] * risk_draw
-                + beta_group[b, group[n]]
-                + dot_product(beta_guild_risk[b], guild[species[n]]) * risk_draw;
-      
-      real pi_draw = inv_logit(alpha_pi[b] + beta_pi_risk[b] * risk_draw
-                               + beta_size_pi[b, size[n]]
-                               + dot_product(beta_guild_pi[b], guild[species[n]])
-                               + beta_size_risk_pi[b, size[n]] * risk_draw
-                                + beta_group_pi[b, group[n]] * risk_draw
-                               + dot_product(beta_guild_risk_pi[b], guild[species[n]]) * risk_draw);
-      
-      if (bernoulli_rng(pi_draw)) {
+      real mu_pred = mu[n, b];
+      real pi_pred = pi[n, b];
+      real lambda_pred = lambda[n]; 
+      if (bernoulli_rng(pi_pred)) {
         D_pred[n, b] = 0;
       } else {
-        D_pred[n, b] = lognormal_rng(mu, sigma_D[b]);
+        D_pred[n, b] = lognormal_rng(mu_pred, sigma_D[b]);
       }
       
       if (b == 1 && D_pred[n, b] > 0) {
-        bites_pred[n] = poisson_rng(lambda);
-      } else if (b == 1) {
+        bites_pred[n] = poisson_rng(lambda_pred);
+      } else{
         bites_pred[n] = 0;
       }
     }
   }
-  
   // counterfactual protection 
-  
   array[P, N, B] real D_pred_protection; // predicted durations with protection
   array[P, N] real bites_pred_protection; // predicted bites with protection
-  
-  for (p in 1 : P) {
-    for (n in 1 : N) {
-      real mean_rug = mean(rugosity_std);
-      real mean_res = mean(biomass_std);
-      
-      real mu_risk_protection = alpha_risk_protection[p] + beta_predator[1]
-                                + beta_rug * mean_rug + beta_res * mean_res;
-      
-      real risk_draw = exp(mu_risk_protection + sigma_risk * z_risk[n]);
-      
-      real lambda = exp(beta_risk_bites * risk_draw
-                        + beta_size_bites[size[n]]
-                        + dot_product(beta_guild_bites, guild[species[n]])
-                        + beta_size_risk_bites[size[n]] * risk_draw
-                        + beta_group_risk_bites[ 1]
-                        + dot_product(beta_guild_risk_bites, guild[species[n]]) * risk_draw);
-      
-      for (b in 1 : B) {
-        real mu = beta_risk[b] * risk_draw + beta_size[b, size[n]]
-                  + dot_product(beta_guild[b], guild[species[n]])
-                  + beta_size_risk[b, size[n]] * risk_draw
-                  + beta_group[b, 1]
-                  + dot_product(beta_guild_risk[b], guild[species[n]]) * risk_draw;
-        
-        real pi_draw = inv_logit(alpha_pi[b] + beta_pi_risk[b] * risk_draw
-                                 + beta_size_pi[b, size[n]]
-                                 + dot_product(beta_guild_pi[b], guild[species[n]])
-                                 + beta_size_risk_pi[b, size[n]] * risk_draw
-                                 + beta_group_pi[b, 1] * risk_draw
-                                 + dot_product(beta_guild_risk_pi[b], guild[species[n]]) * risk_draw);
-        
-        if (bernoulli_rng(pi_draw)) {
+
+  for (p in 1:P) {
+    for (n in 1:N) {
+      real rug_std = mean(rugosity_std);
+      real bio_std = mean(biomass_std);
+      for (b in 1:B) {
+        real mu_cf = alpha_D[plot[n], b] + beta_D[p, b] 
+                   + gamma_D[b] * rug_std
+                   + zeta_D[b] * bio_std
+                   + eta_D[1, b]  // assuming predator present
+                   + omega_D[size[n], b]
+                   + dot_product(epsilon_D[:, b], guild[species[n]])
+                   + delta_D[group[n], b];
+
+        real pi_cf = inv_logit(alpha_pi[plot[n], b] + beta_pi[p, b]
+                               + gamma_pi[b] * rug_std
+                               + zeta_pi[b] * bio_std
+                               + eta_pi[1, b]
+                               + omega_pi[size[n], b]
+                               + dot_product(epsilon_pi[:, b], guild[species[n]])
+                               + delta_pi[group[n], b]);
+
+        if (bernoulli_rng(pi_cf)) {
           D_pred_protection[p, n, b] = 0;
         } else {
-          D_pred_protection[p, n, b] = lognormal_rng(mu, sigma_D[b]);
+          D_pred_protection[p, n, b] = lognormal_rng(mu_cf, sigma_D[b]);
         }
-        
+
         if (b == 1 && D_pred_protection[p, n, b] > 0) {
-          bites_pred_protection[p, n] = poisson_rng(lambda);
+          real lambda_cf = exp(alpha_bites[plot[n]] + beta_bites[p]
+                               + gamma_bites * rug_std
+                               + zeta_bites * bio_std
+                               + eta_bites[1]
+                               + omega_bites[size[n]]
+                               + dot_product(epsilon_bites, guild[species[n]])
+                               + delta_bites[group[n]]);
+          bites_pred_protection[p, n] = poisson_rng(lambda_cf);
         } else if (b == 1) {
           bites_pred_protection[p, n] = 0;
         }
       }
     }
   }
-  
+
   // counterfactual protection varying rugosity
-  array[P, N, B] real D_pred_protection_rugosity; // predicted durations with protection
-  array[P, N] real bites_pred_protection_rugosity; // predicted bites with protection
-  
-  for (p in 1 : P) {
-    for (n in 1 : N) {
-      real mean_res = mean(biomass_std);
-      
-      real mu_risk_protection = alpha_risk_protection[p] + beta_predator[1]
-                                + beta_rug * rugosity_std[plot[n]]
-                                + beta_res * mean_res;
-      
-      real risk_draw = exp(mu_risk_protection + sigma_risk * z_risk[n]);
-      
-      real lambda = exp(beta_risk_bites * risk_draw
-                        + beta_size_bites[size[n]]
-                        + dot_product(beta_guild_bites, guild[species[n]])
-                        + beta_size_risk_bites[size[n]] * risk_draw
-                        + beta_group_risk_bites[1] // no group effect
-                        + dot_product(beta_guild_risk_bites, guild[species[n]]) * risk_draw);
-      
-      for (b in 1 : B) {
-        real mu = beta_risk[b] * risk_draw + beta_size[b, size[n]]
-                  + dot_product(beta_guild[b], guild[species[n]])
-                  + beta_size_risk[b, size[n]] * risk_draw
-                  + beta_group[b, 1] // no group effect
-                  + dot_product(beta_guild_risk[b], guild[species[n]]) * risk_draw;
-        
-        real pi_draw = inv_logit(alpha_pi[b] + beta_pi_risk[b] * risk_draw
-                                 + beta_size_pi[b, size[n]]
-                                 + dot_product(beta_guild_pi[b], guild[species[n]])
-                                 + beta_size_risk_pi[b, size[n]] * risk_draw
-                                 + beta_group_pi[b, 1] 
-                                 + dot_product(beta_guild_risk_pi[b], guild[species[n]]) * risk_draw);
-        
-        if (bernoulli_rng(pi_draw)) {
+  array[P, N, B] real D_pred_protection_rugosity;
+  array[P, N] real bites_pred_protection_rugosity;
+
+  for (p in 1:P) {
+    for (n in 1:N) {
+      real bio_std = mean(biomass_std);
+      real rug_std = rugosity_std[plot[n]];
+      for (b in 1:B) {
+        real mu_cf = alpha_D[plot[n], b] + beta_D[p, b] 
+                   + gamma_D[b] * rug_std
+                   + zeta_D[b] * bio_std
+                   + eta_D[1, b]
+                   + omega_D[size[n], b]
+                   + dot_product(epsilon_D[:, b], guild[species[n]])
+                   + delta_D[group[n], b];
+
+        real pi_cf = inv_logit(alpha_pi[plot[n], b] + beta_pi[p, b]
+                               + gamma_pi[b] * rug_std
+                               + zeta_pi[b] * bio_std
+                               + eta_pi[1, b]
+                               + omega_pi[size[n], b]
+                               + dot_product(epsilon_pi[:, b], guild[species[n]])
+                               + delta_pi[group[n], b]);
+
+        if (bernoulli_rng(pi_cf)) {
           D_pred_protection_rugosity[p, n, b] = 0;
         } else {
-          D_pred_protection_rugosity[p, n, b] = lognormal_rng(mu, sigma_D[b]);
+          D_pred_protection_rugosity[p, n, b] = lognormal_rng(mu_cf, sigma_D[b]);
         }
-        
+
         if (b == 1 && D_pred_protection_rugosity[p, n, b] > 0) {
-          bites_pred_protection_rugosity[p, n] = poisson_rng(lambda);
+          real lambda_cf = exp(alpha_bites[plot[n]] + beta_bites[p]
+                               + gamma_bites * rug_std
+                               + zeta_bites * bio_std
+                               + eta_bites[1]
+                               + omega_bites[size[n]]
+                               + dot_product(epsilon_bites, guild[species[n]])
+                               + delta_bites[group[n]]);
+          bites_pred_protection_rugosity[p, n] = poisson_rng(lambda_cf);
         } else if (b == 1) {
           bites_pred_protection_rugosity[p, n] = 0;
         }
       }
     }
   }
-  
+
   // counterfactual protection varying biomass
-  array[P, N, B] real D_pred_protection_biomass; // predicted durations with protection
-  array[P, N] real bites_pred_protection_biomass; // predicted bites with protection
-  
-  for (p in 1 : P) {
-    for (n in 1 : N) {
-      real mean_rug = mean(rugosity_std);
-      
-      real mu_risk_protection = alpha_risk_protection[p] + beta_predator[1]
-                                + beta_rug * mean_rug
-                                + beta_res * biomass_std[plot[n]];
-      
-      real risk_draw = exp(mu_risk_protection + sigma_risk * z_risk[n]);
-      
-      real lambda = exp(beta_risk_bites * risk_draw
-                        + beta_size_bites[size[n]]
-                        + dot_product(beta_guild_bites, guild[species[n]])
-                        + beta_size_risk_bites[size[n]] * risk_draw
-                        + beta_group_risk_bites[1] // no group effect
-                        + dot_product(beta_guild_risk_bites, guild[species[n]]) * risk_draw);
-      
-      for (b in 1 : B) {
-        real mu = beta_risk[b] * risk_draw + beta_size[b, size[n]]
-                  + dot_product(beta_guild[b], guild[species[n]])
-                  + beta_size_risk[b, size[n]] * risk_draw
-                  + beta_group[b, 1] // no group effect
-                  + dot_product(beta_guild_risk[b], guild[species[n]]) * risk_draw;
-        
-        real pi_draw = inv_logit(alpha_pi[b] + beta_pi_risk[b] * risk_draw
-                                 + beta_size_pi[b, size[n]]
-                                 + dot_product(beta_guild_pi[b], guild[species[n]])
-                                 + beta_size_risk_pi[b, size[n]] * risk_draw
-                                  + beta_group_pi[b, 1]
-                                 + dot_product(beta_guild_risk_pi[b], guild[species[n]]) * risk_draw);
-        
-        if (bernoulli_rng(pi_draw)) {
+  array[P, N, B] real D_pred_protection_biomass;
+  array[P, N] real bites_pred_protection_biomass;
+
+  for (p in 1:P) {
+    for (n in 1:N) {
+      real rug_std = mean(rugosity_std);
+      real bio_std = biomass_std[plot[n]];
+      for (b in 1:B) {
+        real mu_cf = alpha_D[plot[n], b] + beta_D[p, b] 
+                   + gamma_D[b] * rug_std
+                   + zeta_D[b] * bio_std
+                   + eta_D[1, b]
+                   + omega_D[size[n], b]
+                   + dot_product(epsilon_D[:, b], guild[species[n]])
+                   + delta_D[group[n], b];
+
+        real pi_cf = inv_logit(alpha_pi[plot[n], b] + beta_pi[p, b]
+                               + gamma_pi[b] * rug_std
+                               + zeta_pi[b] * bio_std
+                               + eta_pi[1, b]
+                               + omega_pi[size[n], b]
+                               + dot_product(epsilon_pi[:, b], guild[species[n]])
+                               + delta_pi[group[n], b]);
+
+        if (bernoulli_rng(pi_cf)) {
           D_pred_protection_biomass[p, n, b] = 0;
         } else {
-          D_pred_protection_biomass[p, n, b] = lognormal_rng(mu, sigma_D[b]);
+          D_pred_protection_biomass[p, n, b] = lognormal_rng(mu_cf, sigma_D[b]);
         }
-        
+
         if (b == 1 && D_pred_protection_biomass[p, n, b] > 0) {
-          bites_pred_protection_biomass[p, n] = poisson_rng(lambda);
+          real lambda_cf = exp(alpha_bites[plot[n]] + beta_bites[p]
+                               + gamma_bites * rug_std
+                               + zeta_bites * bio_std
+                               + eta_bites[1]
+                               + omega_bites[size[n]]
+                               + dot_product(epsilon_bites, guild[species[n]])
+                               + delta_bites[group[n]]);
+          bites_pred_protection_biomass[p, n] = poisson_rng(lambda_cf);
         } else if (b == 1) {
           bites_pred_protection_biomass[p, n] = 0;
-        }
-      }
-    }
-  }
-  
-  // counterfactual protection at differing predator levels
-  array[P, N, B] real D_pred_protection_predator; // predicted durations with protection
-  array[P, N] real bites_pred_protection_predator; // predicted bites with protection
-  
-  for (p in 1 : P) {
-    for (n in 1 : N) {
-      real mean_rug = mean(rugosity_std);
-      real mean_res = mean(biomass_std);
-      
-      real mu_risk_protection = alpha_risk_protection[p]
-                                + beta_predator[predator[plot[n]]]
-                                + beta_rug * mean_rug + beta_res * mean_res;
-      
-      real risk_draw = exp(mu_risk_protection + sigma_risk * z_risk[n]);
-      
-      real lambda = exp(beta_risk_bites * risk_draw
-                        + beta_size_bites[size[n]]
-                        + dot_product(beta_guild_bites, guild[species[n]])
-                        + beta_size_risk_bites[size[n]] * risk_draw
-                        + beta_group_risk_bites[1]
-                        + dot_product(beta_guild_risk_bites, guild[species[n]]) * risk_draw);
-      
-      for (b in 1 : B) {
-        real mu = beta_risk[b] * risk_draw + beta_size[b, size[n]]
-                  + dot_product(beta_guild[b], guild[species[n]])
-                  + beta_size_risk[b, size[n]] * risk_draw
-                  + beta_group[b, 1]
-                  + dot_product(beta_guild_risk[b], guild[species[n]]) * risk_draw;
-        
-        real pi_draw = inv_logit(alpha_pi[b] + beta_pi_risk[b] * risk_draw
-                                 + beta_size_pi[b, size[n]]
-                                 + dot_product(beta_guild_pi[b], guild[species[n]])
-                                 + beta_size_risk_pi[b, size[n]] * risk_draw
-                                  + beta_group_pi[b, 1] * risk_draw
-                                 + dot_product(beta_guild_risk_pi[b], guild[species[n]]) * risk_draw);
-        
-        if (bernoulli_rng(pi_draw)) {
-          D_pred_protection_predator[p, n, b] = 0;
-        } else {
-          D_pred_protection_predator[p, n, b] = lognormal_rng(mu, sigma_D[b]);
-        }
-        
-        if (b == 1 && D_pred_protection_predator[p, n, b] > 0) {
-          bites_pred_protection_predator[p, n] = poisson_rng(lambda);
-        } else if (b == 1) {
-          bites_pred_protection_predator[p, n] = 0;
         }
       }
     }
