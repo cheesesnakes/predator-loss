@@ -71,9 +71,9 @@ fit_model <- function(stan_data, model_file, run = "validation") {
     parallel_chains = 4,
     iter_warmup = 1000,
     iter_sampling = 1000,
-    refresh = 100,
-    adapt_delta = 0.95,
-    max_treedepth = 15
+    refresh = 1,
+    #adapt_delta = 0.95,
+    #max_treedepth = 15
   )
 
   ## optimize the model
