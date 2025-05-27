@@ -177,11 +177,11 @@ model {
         target += bernoulli_lpmf(1 | pi[n, b]); // zero-inflation
       } else {
         target += bernoulli_lpmf(0 | pi[n, b]); // non-zero duration
-        target += lognormal_lpdf(D[n, b] | mu[n, b], sigma_D[b]); // duration likelihood
-        if (b == 1) {
+        target += lognormal_lpdf(D[n, b] | mu[n, b], sigma_D[b]); // duration likelihood      
+      }
+      if (b == 1 && D[n, b] > 0) {
           target += poisson_lpmf(bites[n] | lambda[n]); // bites likelihood
         }
-      }
   }
   }
 }
@@ -247,8 +247,8 @@ generated quantities {
                                + omega_bites[size[n]]
                                + dot_product(epsilon_bites, guild[species[n]])
                                + delta_bites[group[n]]);
-          bites_pred_protection[p, n] = poisson_rng(lambda_cf);
-        } else if (b == 1) {
+          bites_pred_protection[p, n] = poisson_rng(lambda_cf) / D_pred_protection[p, n, b];
+        } else {
           bites_pred_protection[p, n] = 0;
         }
       }
@@ -294,7 +294,7 @@ generated quantities {
                                + omega_bites[size[n]]
                                + dot_product(epsilon_bites, guild[species[n]])
                                + delta_bites[group[n]]);
-          bites_pred_protection_rugosity[p, n] = poisson_rng(lambda_cf);
+          bites_pred_protection_rugosity[p, n] = poisson_rng(lambda_cf) / D_pred_protection_rugosity[p, n, b];
         } else if (b == 1) {
           bites_pred_protection_rugosity[p, n] = 0;
         }
@@ -341,9 +341,56 @@ generated quantities {
                                + omega_bites[size[n]]
                                + dot_product(epsilon_bites, guild[species[n]])
                                + delta_bites[group[n]]);
-          bites_pred_protection_biomass[p, n] = poisson_rng(lambda_cf);
+          bites_pred_protection_biomass[p, n] = poisson_rng(lambda_cf) / D_pred_protection_biomass[p, n, b];
         } else if (b == 1) {
           bites_pred_protection_biomass[p, n] = 0;
+        }
+      }
+    }
+  }
+
+  // counterfactual protection varying predator presence
+  array[P, N, B] real D_pred_protection_predator;
+  array[P, N] real bites_pred_protection_predator;
+
+  for (p in 1:P) {
+    for (n in 1:N) {
+      real rug_std = mean(rugosity_std);
+      real bio_std = mean(biomass_std);
+      for (b in 1:B) {
+        real mu_cf = alpha_D[plot[n], b] + beta_D[p, b] 
+                   + gamma_D[b] * rug_std
+                   + zeta_D[b] * bio_std
+                   + eta_D[2, b] // assuming predator absent
+                   + omega_D[size[n], b]
+                   + dot_product(epsilon_D[:, b], guild[species[n]])
+                   + delta_D[group[n], b];
+
+        real pi_cf = inv_logit(alpha_pi[plot[n], b] + beta_pi[p, b]
+                               + gamma_pi[b] * rug_std
+                               + zeta_pi[b] * bio_std
+                               + eta_pi[2, b]
+                               + omega_pi[size[n], b]
+                               + dot_product(epsilon_pi[:, b], guild[species[n]])
+                               + delta_pi[group[n], b]);
+
+        if (bernoulli_rng(pi_cf)) {
+          D_pred_protection_predator[p, n, b] = 0;
+        } else {
+          D_pred_protection_predator[p, n, b] = lognormal_rng(mu_cf, sigma_D[b]);
+        }
+
+        if (b == 1 && D_pred_protection_predator[p, n, b] > 0) {
+          real lambda_cf = exp(alpha_bites[plot[n]] + beta_bites[p]
+                               + gamma_bites * rug_std
+                               + zeta_bites * bio_std
+                               + eta_bites[2]
+                               + omega_bites[size[n]]
+                               + dot_product(epsilon_bites, guild[species[n]])
+                               + delta_bites[group[n]]);
+          bites_pred_protection_predator[p, n] = poisson_rng(lambda_cf) / D_pred_protection_predator[p, n, b];
+        } else if (b == 1) {
+          bites_pred_protection_predator[p, n] = 0;
         }
       }
     }

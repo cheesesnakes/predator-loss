@@ -109,7 +109,7 @@ bites_pred_df[, variable := str_remove(variable, "\\]")]
 bites_pred_df[, individual := as.integer(variable)]
 bites_pred_df[, variable := NULL]
 
-summary_bites <- bites_pred_df[, .(Mean = mean(value, na.rm = TRUE),
+summary_bites <- bites_pred_df[value > 0, .(Mean = mean(value, na.rm = TRUE),
     Median = median(value, na.rm = TRUE),
     Q025 = quantile(value, 0.025, na.rm = TRUE),
     Q250 = quantile(value, 0.25, na.rm = TRUE),
@@ -237,6 +237,7 @@ protection_bites[, variable := str_remove(variable, "\\]")]
 protection_bites[, c("protection", "individual") := tstrsplit(variable, ",")]
 protection_bites[, protection := factor(protection, levels = 1:2, labels = c("Outside", "Inside"))]
 protection_bites[, variable := NULL]
+protection_bites <- protection_bites[value > 0] # filter out zero bites
 
 dcast(protection_bites, Draw + individual ~ protection, value.var = "value") -> protection_bites
 protection_bites[, Delta := Inside - Outside]
@@ -452,6 +453,7 @@ biomass_bites[, c("protection", "individual") := tstrsplit(variable, ",")]
 biomass_bites[, protection := factor(protection, levels = 1:2, labels = c("Outside", "Inside"))]
 biomass_bites[, variable := NULL]
 biomass_bites[, response := "Bites"]
+biomass_bites <- biomass_bites[value > 0] # filter out zero bites
 
 biomass <- full_join(biomass, biomass_bites)
 
@@ -525,6 +527,7 @@ rugosity_bites[, c("protection", "individual") := tstrsplit(variable, ",")]
 rugosity_bites[, protection := factor(protection, levels = 1:2, labels = c("Outside", "Inside"))]
 rugosity_bites[, variable := NULL]
 rugosity_bites[, response := "Bites"]
+rugosity_bites <- rugosity_bites[value > 0] # filter out zero bites
 
 rugosity <- full_join(rugosity, rugosity_bites)
 
@@ -596,6 +599,7 @@ predator_bites[, c("protection", "individual") := tstrsplit(variable, ",")]
 predator_bites[, protection := factor(protection, levels = 1:2, labels = c("Outside", "Inside"))]
 predator_bites[, variable := NULL]
 predator_bites[, response := "Bites"]
+predator_bites <- predator_bites[value > 0] # filter out zero bites
 
 predator <- full_join(predator, predator_bites)
 
