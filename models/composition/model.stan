@@ -24,14 +24,35 @@ parameters {
   array[C] real theta; // size class effects
   array[P, C] real phi; // interaction between protection and size class
   real<lower=0> phi_nb; // dispersion parameter for NB
+
+  array[L] real alpha_psi; // zero-inflation intercepts for locations
+  array[G] real gamma_psi; // zero-inflation effect of feeding guilds
+  array[P] real delta_psi; // zero-inflation effect of protection levels
+  array[P, G] real beta_psi; // zero-inflation interaction between protection and guild
+  array[C] real theta_psi; // zero-inflation size class effects
+  array[P, C] real phi_psi; // zero-inflation interaction between protection and size class
 }
 
 transformed parameters {
   array[T, S, C] real lambda; // expected counts
+  array[T, S, C] real psi; // zero-inflation proabability
+
 
   for (t in 1 : T) {
     for (s in 1 : S) {
       for (c in 1 : C) {
+
+        // Zero-inflation probability
+        psi[t, s, c] = inv_logit(
+          alpha_psi[location[t]] +
+          dot_product(gamma_psi, guild[s]) +
+          delta_psi[protection[t]] +
+          dot_product(beta_psi[protection[t]], guild[s]) +
+          phi_psi[protection[t], c] +
+          theta_psi[c]
+        );
+
+        // Expected counts
         lambda[t, s, c] = exp(
           alpha[location[t]] +
           dot_product(gamma, guild[s]) +
@@ -62,7 +83,12 @@ model {
 
   // Likelihood
   for (n in 1 : N) {
-    count[n] ~ neg_binomial_2(lambda[transect[n], species[n], size[n]], phi_nb);
+    if (count[n] == 0) {
+      target += bernoulli_lpmf(1 | psi[transect[n], species[n], size[n]]);
+    } else {
+      target += bernoulli_lpmf(0 | psi[transect[n], species[n], size[n]]) +
+                neg_binomial_2_lpmf(count[n] | lambda[transect[n], species[n], size[n]], phi_nb);
+    }
   }
 }
 
@@ -72,14 +98,32 @@ generated quantities {
   array[T, S, C] real abundance;
 
   for (n in 1 : N) {
-    log_lik[n] = neg_binomial_2_lpmf(count[n] | lambda[transect[n], species[n], size[n]], phi_nb);
-    pred_count[n] = neg_binomial_2_rng(lambda[transect[n], species[n], size[n]], phi_nb);
-  }
+    if (count[n] == 0) {
+      log_lik[n] = log(psi[transect[n], species[n], size[n]]);
+    } else {
+      log_lik[n] = log1m(psi[transect[n], species[n], size[n]]) +
+                    neg_binomial_2_lpmf(count[n] | lambda[transect[n], species[n], size[n]], phi_nb);
+    }
+    
+    real mu = lambda[transect[n], species[n], size[n]];
+    real psi_value = psi[transect[n], species[n], size[n]];
+
+    if (bernoulli_rng(psi_value)) {
+      pred_count[n] = 0; // zero-inflated case
+    } else {
+      pred_count[n] = neg_binomial_2_rng(mu, phi_nb); // non-zero case
+    }
+}
 
   for (t in 1 : T) {
     for (s in 1 : S) {
       for (c in 1 : C) {
+        if (bernoulli_rng(psi[t, s, c])) {
+          abundance[t, s, c] = 0; // zero-inflated case
+        } else {
+          // Non-zero case
         abundance[t, s, c] = neg_binomial_2_rng(lambda[t, s, c], phi_nb);
+      }
       }
     }
   }

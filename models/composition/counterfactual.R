@@ -135,7 +135,7 @@ p <- ggplot(summary_df, aes(x = size, y = mean_count, color = protection)) +
   labs(y = "Predicted count (mean ± 50,95% CrI)", x = "Size class")+
   scale_color_brewer(palette = "Set1", name = "Protection") +
   scale_shape(name = "Protection") +
-  facet_wrap(~guild, ncol = 1) +
+  facet_wrap(~guild, ncol = 1, scale = "free_y") +
   theme_bw() +
   theme(
     legend.position = "top",
