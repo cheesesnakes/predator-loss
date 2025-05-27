@@ -134,38 +134,58 @@ transformed parameters {
 }
 model {
   // Priors
-  
-  // Top-level priors
   beta_risk_bites ~ normal(0, 0.5);
   beta_size_bites ~ normal(0, 0.5);
   beta_guild_bites ~ normal(0, 0.5);
+  beta_size_risk_bites ~ normal(0, 0.5);
+  beta_guild_risk_bites ~ normal(0, 0.5);
+  beta_group_risk_bites ~ normal(0, 0.5);
   
   // priors for foraging
   beta_risk[1] ~ normal(-1, 0.5);
   beta_pi_risk[1] ~ normal(1, 0.5);
   alpha_pi[1] ~ normal(-1, 2);
-  
+  beta_size[1] ~ normal(0, 0.5); // size class 1
+  beta_group[1] ~ normal(0, 0.5); // group 1
+  beta_size_risk[1] ~ normal(0, 0.5); // interaction between size and risk for foraging
+  beta_guild[1] ~ normal(0, 0.5); // guild for foraging
+  beta_guild_risk[1] ~ normal(0, 0.5); // interaction between guild and risk for foraging
+  beta_size_pi[1] ~ normal(0, 0.5); // size class 1 for zero-inflation
+  beta_group_pi[1] ~ normal(0, 0.5); // group 1 for zero-inflation
+  beta_size_risk_pi[1] ~ normal(0, 0.5); // interaction between size and risk for zero-inflation
+  beta_guild_pi[1] ~ normal(0, 0.5); // guild for zero-inflation
+  beta_guild_risk_pi[1] ~ normal(0, 0.5); // interaction between guild and risk for zero-inflation
+
   // priors for vigilance
   beta_risk[2] ~ normal(1, 0.5);
   beta_pi_risk[2] ~ normal(-1, 0.5);
   alpha_pi[2] ~ normal(-1, 2);
-  
+  beta_size_risk[2] ~ normal(0, 0.5);
+  beta_guild_risk[2] ~ normal(0, 0.5);
+  beta_group[2] ~ normal(0, 0.5);
+  beta_size[2] ~ normal(0, 0.5);
+  beta_guild[2] ~ normal(0, 0.5);
+  beta_size_pi[2] ~ normal(0, 0.5);
+  beta_group_pi[2] ~ normal(0, 0.5);
+  beta_guild_pi[2] ~ normal(0, 0.5);
+  beta_size_risk_pi[2] ~ normal(0, 0.5);
+  beta_guild_risk_pi[2] ~ normal(0, 0.5);
+
   // priors for movement
   beta_risk[3] ~ normal(-1, 0.5);
   beta_pi_risk[3] ~ normal(0, 0.5);
   alpha_pi[3] ~ normal(-1, 2);
-  
-  for (b in 1 : B) {
-    for (c in 1 : C) {
-      beta_size[b, c] ~ normal(0, 0.5);
-      beta_size_pi[b, c] ~ normal(0, 0.5);
-    }
-    for (g in 1 : G) {
-      beta_guild[b, g] ~ normal(0, 0.5);
-      beta_guild_pi[b, g] ~ normal(0, 0.5);
-    }
-  }
-  
+  beta_size_risk[3] ~ normal(0, 0.5);
+  beta_guild_risk[3] ~ normal(0, 0.5);
+  beta_group[3] ~ normal(0, 0.5);
+  beta_size[3] ~ normal(0, 0.5);
+  beta_guild[3] ~ normal(0, 0.5);
+  beta_size_pi[3] ~ normal(0, 0.5);
+  beta_group_pi[3] ~ normal(0, 0.5);
+  beta_guild_pi[3] ~ normal(0, 0.5);
+  beta_size_risk_pi[3] ~ normal(0, 0.5);
+  beta_guild_risk_pi[3] ~ normal(0, 0.5);
+ 
   // Risk model priors
   beta_rug ~ normal(-1, 0.5);
   beta_res ~ normal(0, 0.5);

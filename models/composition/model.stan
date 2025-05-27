@@ -20,6 +20,8 @@ parameters {
   array[G] real gamma; // effect of feeding guilds
   array[P] real delta; // effect of protection levels
   array[P, G] real beta; // interaction between protection and guild
+  array[C] real theta; // size class effects
+  array[P, C] real phi; // interaction between protection and size class
 }
 transformed parameters {
   array[T, S, C] real lambda; // expected counts
@@ -29,7 +31,9 @@ transformed parameters {
       for (c in 1 : C) {
         lambda[t, s, c] = exp(alpha[location[t]] + dot_product(gamma, guild[s])
                               + delta[protection[t]]
-                              + dot_product(beta[protection[t]], guild[s]));
+                              + dot_product(beta[protection[t]], guild[s])
+                              + phi[protection[t], c]
+                              + theta[c]);
       }
     }
   }
@@ -39,7 +43,12 @@ model {
   alpha ~ normal(0, 1);
   gamma ~ normal(0, 1);
   delta ~ normal(0, 1);
+  theta ~ normal(0, 1);
   
+  for (p in 1 : P) {
+    phi[p] ~ normal(0, 1);
+  }
+
   for (p in 1 : P) {
     for (g in 1 : G) {
       beta[p, g] ~ normal(0, 1);
@@ -58,7 +67,7 @@ generated quantities {
   
   for (n in 1 : N) {
     log_lik[n] = poisson_lpmf(count[n] | lambda[transect[n], species[n], size[n]]);
-    pred_count[n] = lambda[transect[n], species[n], size[n]];
+    pred_count[n] = poisson_rng(lambda[transect[n], species[n], size[n]]);
   }
   
   for (t in 1 : T) {
