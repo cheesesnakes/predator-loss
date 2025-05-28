@@ -48,10 +48,24 @@ model {
     }
   }
   
+  for (c in 1 : C) {
+    theta[c] ~ normal(0, 0.5);
+    for (g in 1 : G) {
+      epsilon[c, g] ~ normal(0, 0.5);
+    }
+  }
+  
   alpha_psi ~ normal(0, 0.5);
   gamma_psi ~ normal(0, 0.5);
   delta_psi ~ normal(0, 0.5);
   theta_psi ~ normal(0, 0.5);
+  
+  for (c in 1 : C) {
+    epsilon_psi[c] ~ normal(0, 0.5);
+    for (g in 1 : G) {
+      epsilon_psi[c, g] ~ normal(0, 0.5);
+    }
+  }
   
   for (p in 1 : P) {
     beta_psi[p] ~ normal(0, 0.5);
