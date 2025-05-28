@@ -22,6 +22,7 @@ parameters {
   array[P, G] real beta; // interaction between protection and guild
   array[C] real theta; // size class effects
   array[P, C] real phi; // interaction between protection and size class
+  array[C, G] real epsilon; // interaction between size class and guild
   real<lower=0> phi_nb; // dispersion parameter for NB
   
   array[L] real alpha_psi; // zero-inflation intercepts for locations
@@ -29,6 +30,7 @@ parameters {
   array[P] real delta_psi; // zero-inflation effect of protection levels
   array[P, G] real beta_psi; // zero-inflation interaction between protection and guild
   array[C] real theta_psi; // zero-inflation size class effects
+  array[C, G] real epsilon_psi; // zero-inflation interaction between size class and guild
   array[P, C] real phi_psi; // zero-inflation interaction between protection and size class
 }
 model {
@@ -65,11 +67,13 @@ model {
     int l = location[t];
     
     real log_lambda = alpha[l] + dot_product(gamma, guild[s]) + delta[p]
-                      + dot_product(beta[p], guild[s]) + phi[p, c] + theta[c];
+                      + dot_product(beta[p], guild[s]) + phi[p, c]
+                      + dot_product(epsilon[c], guild[s]) + theta[c];
     
     real logit_psi = alpha_psi[l] + dot_product(gamma_psi, guild[s])
                      + delta_psi[p] + dot_product(beta_psi[p], guild[s])
-                     + phi_psi[p, c] + theta_psi[c];
+                     + dot_product(epsilon_psi[c], guild[s]) + phi_psi[p, c]
+                     + theta_psi[c];
     
     real lambda_n = exp(log_lambda);
     real psi_n = inv_logit(logit_psi);
@@ -95,11 +99,13 @@ generated quantities {
     int l = location[t];
     
     real log_lambda = alpha[l] + dot_product(gamma, guild[s]) + delta[p]
-                      + dot_product(beta[p], guild[s]) + phi[p, c] + theta[c];
+                      + dot_product(beta[p], guild[s]) + phi[p, c]
+                      + dot_product(epsilon[c], guild[s]) + theta[c];
     
     real logit_psi = alpha_psi[l] + dot_product(gamma_psi, guild[s])
                      + delta_psi[p] + dot_product(beta_psi[p], guild[s])
-                     + phi_psi[p, c] + theta_psi[c];
+                     + phi_psi[p, c] + dot_product(epsilon_psi[c], guild[s])
+                     + theta_psi[c];
     
     real lambda_n = exp(log_lambda);
     real psi_n = inv_logit(logit_psi);
@@ -123,18 +129,20 @@ generated quantities {
         int l = location[t];
         real log_lambda = alpha[l] + dot_product(gamma, guild[s]) + delta[p]
                           + dot_product(beta[p], guild[s]) + phi[p, c]
-                          + theta[c];
+                          + dot_product(epsilon[c], guild[s]) + theta[c];
         real logit_psi = alpha_psi[l] + dot_product(gamma_psi, guild[s])
                          + delta_psi[p] + dot_product(beta_psi[p], guild[s])
-                         + phi_psi[p, c] + theta_psi[c];
+                         + phi_psi[p, c]
+                         + dot_product(epsilon_psi[c], guild[s])
+                         + theta_psi[c];
         real psi_tsc = inv_logit(logit_psi);
-
+        
         if (bernoulli_rng(psi_tsc)) {
           abundance[t, s, c] = 0; // zero-inflated case
         } else {
           // Non-zero expected abundance
-        abundance[t, s, c] = neg_binomial_2_rng(exp(log_lambda), phi_nb); // non-zero case
-      }
+          abundance[t, s, c] = neg_binomial_2_rng(exp(log_lambda), phi_nb); // non-zero case
+        }
       }
     }
   }
