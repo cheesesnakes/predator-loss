@@ -6,7 +6,7 @@ data {
   int P; // number of protection levels
   int G; // number of feeding guilds
   int C; // number of size classes
-
+  
   array[N] int<lower=1, upper=S> species; // species index
   array[T] int<lower=1, upper=L> location; // location index
   array[N] int<lower=1, upper=T> transect; // transect index
@@ -15,7 +15,6 @@ data {
   array[N] int<lower=1, upper=C> size; // size class index
   array[N] int<lower=0> count; // count of individuals
 }
-
 parameters {
   array[L] real alpha; // intercepts for locations
   array[G] real gamma; // effect of feeding guilds
@@ -24,7 +23,7 @@ parameters {
   array[C] real theta; // size class effects
   array[P, C] real phi; // interaction between protection and size class
   real<lower=0> phi_nb; // dispersion parameter for NB
-
+  
   array[L] real alpha_psi; // zero-inflation intercepts for locations
   array[G] real gamma_psi; // zero-inflation effect of feeding guilds
   array[P] real delta_psi; // zero-inflation effect of protection levels
@@ -32,97 +31,134 @@ parameters {
   array[C] real theta_psi; // zero-inflation size class effects
   array[P, C] real phi_psi; // zero-inflation interaction between protection and size class
 }
-
 transformed parameters {
   array[T, S, C] real lambda; // expected counts
   array[T, S, C] real psi; // zero-inflation proabability
-
-
+  
   for (t in 1 : T) {
     for (s in 1 : S) {
       for (c in 1 : C) {
-
         // Zero-inflation probability
-        psi[t, s, c] = inv_logit(
-          alpha_psi[location[t]] +
-          dot_product(gamma_psi, guild[s]) +
-          delta_psi[protection[t]] +
-          dot_product(beta_psi[protection[t]], guild[s]) +
-          phi_psi[protection[t], c] +
-          theta_psi[c]
-        );
-
+        psi[t, s, c] = inv_logit(alpha_psi[location[t]]
+                                 + dot_product(gamma_psi, guild[s])
+                                 + delta_psi[protection[t]]
+                                 + dot_product(beta_psi[protection[t]],
+                                               guild[s])
+                                 + phi_psi[protection[t], c] + theta_psi[c]);
+        
         // Expected counts
-        lambda[t, s, c] = exp(
-          alpha[location[t]] +
-          dot_product(gamma, guild[s]) +
-          delta[protection[t]] +
-          dot_product(beta[protection[t]], guild[s]) +
-          phi[protection[t], c] +
-          theta[c]
-        );
+        lambda[t, s, c] = exp(alpha[location[t]]
+                              + dot_product(gamma, guild[s])
+                              + delta[protection[t]]
+                              + dot_product(beta[protection[t]], guild[s])
+                              + phi[protection[t], c] + theta[c]);
       }
     }
   }
 }
-
 model {
   // Priors
-  alpha ~ normal(0, 1);
-  gamma ~ normal(0, 1);
-  delta ~ normal(0, 1);
-  theta ~ normal(0, 1);
+  alpha ~ normal(0, 0.5);
+  gamma ~ normal(0, 0.5);
+  delta ~ normal(0, 0.5);
+  theta ~ normal(0, 0.5);
   phi_nb ~ exponential(1); // dispersion prior
-
-  for (p in 1 : P)
-    phi[p] ~ normal(0, 1);
-
-  for (p in 1 : P)
-    for (g in 1 : G)
-      beta[p, g] ~ normal(0, 1);
-
+  
+  for (p in 1 : P) {
+    phi[p] ~ normal(0, 0.5);
+    for (g in 1 : G) {
+      beta[p, g] ~ normal(0, 0.5);
+    }
+  }
+  
+  alpha_psi ~ normal(0, 0.5);
+  gamma_psi ~ normal(0, 0.5);
+  delta_psi ~ normal(0, 0.5);
+  theta_psi ~ normal(0, 0.5);
+  
+  for (p in 1 : P) {
+    beta_psi[p] ~ normal(0, 0.5);
+    phi_psi[p] ~ normal(0, 0.5);
+  }
+  
   // Likelihood
   for (n in 1 : N) {
+    int t = transect[n];
+    int s = species[n];
+    int c = size[n];
+    int p = protection[t];
+    int l = location[t];
+    
+    real log_lambda = alpha[l] + dot_product(gamma, guild[s]) + delta[p]
+                      + dot_product(beta[p], guild[s]) + phi[p, c] + theta[c];
+    
+    real logit_psi = alpha_psi[l] + dot_product(gamma_psi, guild[s])
+                     + delta_psi[p] + dot_product(beta_psi[p], guild[s])
+                     + phi_psi[p, c] + theta_psi[c];
+    
+    real lambda_n = exp(log_lambda);
+    real psi_n = inv_logit(logit_psi);
+    
     if (count[n] == 0) {
-      target += bernoulli_lpmf(1 | psi[transect[n], species[n], size[n]]);
+      target += bernoulli_lpmf(1 | psi_n);
     } else {
-      target += bernoulli_lpmf(0 | psi[transect[n], species[n], size[n]]) +
-                neg_binomial_2_lpmf(count[n] | lambda[transect[n], species[n], size[n]], phi_nb);
+      target += bernoulli_lpmf(0 | psi_n)
+                + neg_binomial_2_lpmf(count[n] | lambda_n, phi_nb);
     }
   }
 }
-
 generated quantities {
   array[N] real log_lik;
   array[N] real pred_count;
   array[T, S, C] real abundance;
-
+  
   for (n in 1 : N) {
-    if (count[n] == 0) {
-      log_lik[n] = log(psi[transect[n], species[n], size[n]]);
-    } else {
-      log_lik[n] = log1m(psi[transect[n], species[n], size[n]]) +
-                    neg_binomial_2_lpmf(count[n] | lambda[transect[n], species[n], size[n]], phi_nb);
-    }
+    int t = transect[n];
+    int s = species[n];
+    int c = size[n];
+    int p = protection[t];
+    int l = location[t];
     
-    real mu = lambda[transect[n], species[n], size[n]];
-    real psi_value = psi[transect[n], species[n], size[n]];
-
-    if (bernoulli_rng(psi_value)) {
+    real log_lambda = alpha[l] + dot_product(gamma, guild[s]) + delta[p]
+                      + dot_product(beta[p], guild[s]) + phi[p, c] + theta[c];
+    
+    real logit_psi = alpha_psi[l] + dot_product(gamma_psi, guild[s])
+                     + delta_psi[p] + dot_product(beta_psi[p], guild[s])
+                     + phi_psi[p, c] + theta_psi[c];
+    
+    real lambda_n = exp(log_lambda);
+    real psi_n = inv_logit(logit_psi);
+    
+    log_lik[n] = bernoulli_lpmf(1 | psi_n) * (count[n] == 0)
+                 + bernoulli_lpmf(0 | psi_n) * (count[n] > 0)
+                 + neg_binomial_2_lpmf(count[n] | lambda_n, phi_nb)
+                   * (count[n] > 0);
+    
+    if (count[n] == 0) {
       pred_count[n] = 0; // zero-inflated case
     } else {
-      pred_count[n] = neg_binomial_2_rng(mu, phi_nb); // non-zero case
+      pred_count[n] = neg_binomial_2_rng(lambda_n, phi_nb); // non-zero case
     }
-}
-
+  }
+  
   for (t in 1 : T) {
     for (s in 1 : S) {
       for (c in 1 : C) {
-        if (bernoulli_rng(psi[t, s, c])) {
+        int p = protection[t];
+        int l = location[t];
+        real log_lambda = alpha[l] + dot_product(gamma, guild[s]) + delta[p]
+                          + dot_product(beta[p], guild[s]) + phi[p, c]
+                          + theta[c];
+        real logit_psi = alpha_psi[l] + dot_product(gamma_psi, guild[s])
+                         + delta_psi[p] + dot_product(beta_psi[p], guild[s])
+                         + phi_psi[p, c] + theta_psi[c];
+        real psi_tsc = inv_logit(logit_psi);
+
+        if (bernoulli_rng(psi_tsc)) {
           abundance[t, s, c] = 0; // zero-inflated case
         } else {
-          // Non-zero case
-        abundance[t, s, c] = neg_binomial_2_rng(lambda[t, s, c], phi_nb);
+          // Non-zero expected abundance
+        abundance[t, s, c] = neg_binomial_2_rng(exp(log_lambda), phi_nb); // non-zero case
       }
       }
     }
