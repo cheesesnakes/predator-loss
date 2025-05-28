@@ -11,8 +11,6 @@ pacman::p_load(here,
 theme_set(theme_bw() +
             theme(legend.position = "top", legend.text = element_text(size = 20)))
 
-fit <- readRDS(here("outputs/standardised_behaviour_fit.rds"))
-
 # load data
 source(here("analysis", "standardise_behaviour.R"))
 
@@ -37,6 +35,7 @@ rm(rugosity, responses, traits)
 # extract counterfactual draws
 
 # predictive checks
+fit <- readRDS(here("outputs/standardised_behaviour_fit.rds"))
 
 D_pred <- fit$draws("D_pred", format = "matrix")
 
@@ -168,7 +167,10 @@ protection_df <- as.data.table(protection) %>%
   pivot_longer(cols = -c(Draw),
                names_to = "variable",
                values_to = "value")
+
 rm(protection)
+gc()
+
 setDT(protection_df)
 protection_df[, variable := str_remove(variable, "D_pred_protection\\[")]
 protection_df[, variable := str_remove(variable, "\\]")]
@@ -456,11 +458,16 @@ ggsave(
 )
 
 rm(protection, summary_protection, p1, p2, p3, p4)
+gc()
 
 # counterfactual protection varying biomass
 
 protection_biomass <- fit$draws("D_pred_protection_biomass", format = "matrix")
 protection_biomass_bites <- fit$draws("bites_pred_protection_biomass", format = "matrix")
+
+sample <- sample(1:4000, 100)
+rm(fit)
+gc()
 
 biomass <- as.data.table(protection_biomass) %>%
   mutate(Draw = 1:nrow(protection_biomass)) %>%
@@ -469,14 +476,16 @@ biomass <- as.data.table(protection_biomass) %>%
                values_to = "value")
 rm(protection_biomass)
 gc()
+
 setDT(biomass)
+biomass <- biomass[Draw %in% sample]
 biomass[, variable := str_remove(variable, "D_pred_protection_biomass\\[")]
 biomass[, variable := str_remove(variable, "\\]")]
-biomass[, c("protection", "individual", "response") := tstrsplit(variable, ",")]
+biomass[, c("protection", "sample", "individual", "response") := tstrsplit(variable, ",")]
 
 biomass[, protection := factor(protection,
                                levels = 1:2,
-                               labels = c("Outside", "Inside"))]
+                               labels = c("Outside PA", "Inside PA"))]
 biomass[, response := factor(
   response,
   levels = 1:3,
@@ -491,12 +500,15 @@ biomass_bites <- as.data.table(protection_biomass_bites) %>%
   pivot_longer(cols = -c(Draw),
                names_to = "variable",
                values_to = "value")
+
 rm(protection_biomass_bites)
 gc()
+
 setDT(biomass_bites)
+biomass_bites <- biomass_bites[Draw %in% sample]
 biomass_bites[, variable := str_remove(variable, "bites_pred_protection_biomass\\[")]
 biomass_bites[, variable := str_remove(variable, "\\]")]
-biomass_bites[, c("protection", "individual") := tstrsplit(variable, ",")]
+biomass_bites[, c("protection", "sample", "individual") := tstrsplit(variable, ",")]
 biomass_bites[, protection := factor(protection,
                                      levels = 1:2,
                                      labels = c("Outside", "Inside"))]
@@ -506,27 +518,17 @@ biomass_bites <- biomass_bites[value > 0] # filter out zero bites
 
 biomass <- full_join(biomass, biomass_bites)
 
+mean <- mean(predictors$biomass)
+sd <- sd(predictors$biomass)
+std_var <- seq(-1, 1, length.out = max(as.integer(biomass$sample)))
+
 biomass <- biomass %>%
-  mutate(individual = as.integer(individual)) %>%
-  left_join(fish, by = c("individual" = "ind_id")) %>%
-  left_join(predictors, by = c("plot_id")) %>%
-  select(c(
-    individual,
-    Draw,
-    response,
-    protection,
-    value,
-    biomass,
-    guild,
-    size_class
-  ))
+  mutate(individual = as.integer(individual),
+  sample = as.integer(sample),
+  biomass = (mean + std_var[sample] * sd))
 
 setDT(biomass)
 biomass <- biomass[!is.na(biomass)]
-
-sample <- sample(1:4000, 100)
-
-biomass <- biomass[Draw %in% sample]
 
 p1 <- biomass %>%
   filter(response == "Foraging") %>%
@@ -548,7 +550,7 @@ p1 <- biomass %>%
   facet_wrap( ~ response, ncol = 1, scale = "free_y") +
   labs(x = "Biomass Cover (%)", y = expression("Duration (s)")) +
   scale_color_brewer(palette = "Set1") +
-  scale_y_continuous(limits = c(0, 60)) +
+  scale_y_continuous(limits = c(0, 120)) +
   theme_bw() +
   theme(legend.position = "top", legend.title = element_blank(), )
 
@@ -572,7 +574,7 @@ p2 <- biomass %>%
   facet_wrap( ~ response, ncol = 1, scale = "free_y") +
   labs(x = "Biomass Cover (%)", y = expression("Duration (s)")) +
   scale_color_brewer(palette = "Set1") +
-  scale_y_continuous(limits = c(0, 60)) +
+  scale_y_continuous(limits = c(0, 120)) +
   theme_bw() +
   theme(legend.position = "none", legend.title = element_blank(), )
 
@@ -596,7 +598,7 @@ p3 <- biomass %>%
   facet_wrap( ~ response, ncol = 1, scale = "free_y") +
   labs(x = "Biomass Cover (%)", y = expression("Duration (s)")) +
   scale_color_brewer(palette = "Set1") +
-  scale_y_continuous(limits = c(0, 60)) +
+  scale_y_continuous(limits = c(0, 120)) +
   theme_bw() +
   theme(legend.position = "none", legend.title = element_blank(), )
 
@@ -638,8 +640,13 @@ rm(biomass, p)
 gc()
 
 # counterfactual protection varying rugosity
+fit <- readRDS(here("outputs/standardised_behaviour_fit.rds")) 
+
 protection_rugosity <- fit$draws("D_pred_protection_rugosity", format = "matrix")
 protection_rugosity_bites <- fit$draws("bites_pred_protection_rugosity", format = "matrix")
+
+rm(fit)
+gc()
 
 rugosity <- as.data.table(protection_rugosity) %>%
   mutate(Draw = 1:nrow(protection_rugosity)) %>%
@@ -650,9 +657,10 @@ rugosity <- as.data.table(protection_rugosity) %>%
 rm(protection_rugosity)
 gc()
 setDT(rugosity)
+rugosity <- rugosity[Draw %in% sample]
 rugosity[, variable := str_remove(variable, "D_pred_protection_rugosity\\[")]
 rugosity[, variable := str_remove(variable, "\\]")]
-rugosity[, c("protection", "individual", "response") := tstrsplit(variable, ",")]
+rugosity[, c("protection", "sample", "individual", "response") := tstrsplit(variable, ",")]
 rugosity[, protection := factor(protection,
                                 levels = 1:2,
                                 labels = c("Outside", "Inside"))]
@@ -672,9 +680,10 @@ rugosity_bites <- as.data.table(protection_rugosity_bites) %>%
 rm(protection_rugosity_bites)
 gc()
 setDT(rugosity_bites)
+rugosity_bites <- rugosity_bites[Draw %in% sample]
 rugosity_bites[, variable := str_remove(variable, "bites_pred_protection_rugosity\\[")]
 rugosity_bites[, variable := str_remove(variable, "\\]")]
-rugosity_bites[, c("protection", "individual") := tstrsplit(variable, ",")]
+rugosity_bites[, c("protection", "sample", "individual") := tstrsplit(variable, ",")]
 rugosity_bites[, protection := factor(protection,
                                       levels = 1:2,
                                       labels = c("Outside", "Inside"))]
@@ -684,20 +693,17 @@ rugosity_bites <- rugosity_bites[value > 0] # filter out zero bites
 
 rugosity <- full_join(rugosity, rugosity_bites)
 
+rm(rugosity_bites)
+gc()
+
+mean <- mean(predictors$rugosity)
+sd <- sd(predictors$rugosity)
+
 rugosity <- rugosity %>%
-  mutate(individual = as.integer(individual)) %>%
-  left_join(fish, by = c("individual" = "ind_id")) %>%
-  left_join(predictors, by = c("plot_id")) %>%
-  select(c(
-    individual,
-    Draw,
-    response,
-    protection,
-    value,
-    rugosity,
-    guild,
-    size_class
-  ))
+  mutate(individual = as.integer(individual),
+  sample = as.integer(sample),
+  rugosity = (mean + std_var[sample] * sd))
+  
 
 setDT(rugosity)
 rugosity <- rugosity[!is.na(rugosity)]
@@ -724,7 +730,7 @@ p1 <- rugosity %>%
   facet_wrap( ~ response, ncol = 1, scale = "free_y") +
   labs(x = "Rugosity", y = expression("Duration (s)")) +
   scale_color_brewer(palette = "Set1") +
-  scale_y_continuous(limits = c(0, 60)) +
+  scale_y_continuous(limits = c(0, 120)) +
   theme_bw() +
   theme(legend.position = "top", legend.title = element_blank(), )
 
@@ -748,7 +754,7 @@ p2 <- rugosity %>%
   facet_wrap( ~ response, ncol = 1, scale = "free_y") +
   labs(x = "Rugosity", y = expression("Duration (s)")) +
   scale_color_brewer(palette = "Set1") +
-  scale_y_continuous(limits = c(0, 60)) +
+  scale_y_continuous(limits = c(0, 120)) +
   theme_bw() +
   theme(legend.position = "none", legend.title = element_blank(), )
 
@@ -772,7 +778,7 @@ p3 <- rugosity %>%
   facet_wrap( ~ response, ncol = 1, scale = "free_y") +
   labs(x = "Rugosity", y = expression("Duration (s)")) +
   scale_color_brewer(palette = "Set1") +
-  scale_y_continuous(limits = c(0, 60)) +
+  scale_y_continuous(limits = c(0, 120)) +
   theme_bw() +
   theme(legend.position = "none", legend.title = element_blank(), )
 
@@ -810,9 +816,25 @@ ggsave(
   height = 8
 )
 
+rm(
+  protection_rugosity,
+  protection_rugosity_bites,
+  rugosity,
+  p1,
+  p2,
+  p3,
+  p4
+)
+
+gc()
+
 # counterfactual protection predator presence
+fit <- readRDS(here("outputs/standardised_behaviour_fit.rds"))
 protection_predator <- fit$draws("D_pred_protection_predator", format = "matrix")
 protection_predator_bites <- fit$draws("bites_pred_protection_predator", format = "matrix")
+
+rm(fit)
+gc()
 
 predator <- as.data.table(protection_predator) %>%
   mutate(Draw = 1:nrow(protection_predator)) %>%
@@ -822,10 +844,11 @@ predator <- as.data.table(protection_predator) %>%
 
 rm(protection_predator)
 gc()
+
 setDT(predator)
 predator[, variable := str_remove(variable, "D_pred_protection_predator\\[")]
 predator[, variable := str_remove(variable, "\\]")]
-predator[, c("protection", "individual", "response") := tstrsplit(variable, ",")]
+predator[, c("protection", "predator", "individual", "response") := tstrsplit(variable, ",")]
 predator[, protection := factor(protection,
                                 levels = 1:2,
                                 labels = c("Outside", "Inside"))]
@@ -850,7 +873,7 @@ gc()
 setDT(predator_bites)
 predator_bites[, variable := str_remove(variable, "bites_pred_protection_predator\\[")]
 predator_bites[, variable := str_remove(variable, "\\]")]
-predator_bites[, c("protection", "individual") := tstrsplit(variable, ",")]
+predator_bites[, c("protection", "predator", "individual") := tstrsplit(variable, ",")]
 predator_bites[, protection := factor(protection,
                                       levels = 1:2,
                                       labels = c("Outside", "Inside"))]
@@ -860,20 +883,8 @@ predator_bites <- predator_bites[value > 0] # filter out zero bites
 
 predator <- full_join(predator, predator_bites)
 
-predator <- predator %>%
-  mutate(individual = as.integer(individual)) %>%
-  left_join(fish, by = c("individual" = "ind_id")) %>%
-  left_join(predictors, by = c("plot_id")) %>%
-  select(c(
-    individual,
-    Draw,
-    response,
-    protection,
-    value,
-    predator,
-    guild,
-    size_class
-  ))
+rm(predator_bites)
+gc()
 
 setDT(predator)
 
