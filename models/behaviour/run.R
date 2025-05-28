@@ -8,6 +8,7 @@ theme_set(
   legend.position = "top",
   legend.text = element_text(size = 12),)
 )
+
 # import data
 
 run <- "standardised"
@@ -24,11 +25,14 @@ stan_data <- prep_stan(data$response, data$individuals, data$predictors, data$ru
 
 fit_result <- fit_model(stan_data, here("models/behaviour", "model.stan"), run = run)
 
+print("Completed model fitting.")
+
 # summary of the model fit
 # Retrieve all variable names from the fitted model
 vars <- c("beta_pi", "beta_D", "beta_bites")
 
 # Use grep to filter variable names matching the regex pattern
+print("Extracting summary for parameters")
 print(fit_result$summary(variables = vars))
 
 # Extract draws for specific parameters

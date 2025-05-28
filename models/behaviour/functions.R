@@ -44,8 +44,8 @@ prep_stan <- function(response, individuals, predictors, rugosity, guild) {
     protection = predictors$protected,
     biomass = predictors$biomass,
     group = individuals$group,
-    sim_var = seq(-1, 1, by = 2/100),
-    R = 101
+    sim_var = seq(-1, 1, by = 2/20),
+    R = 21
   )
 
   return(stan_data)
@@ -73,7 +73,7 @@ fit_model <- function(stan_data, model_file, run = "validation") {
     parallel_chains = 4,
     iter_warmup = 1000,
     iter_sampling = 1000,
-    refresh = 1,
+    refresh = 100,
     # adapt_delta = 0.95,
     # max_treedepth = 15
   )
