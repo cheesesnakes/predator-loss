@@ -1,7 +1,7 @@
 # Load required packages
 pacman::p_load(
   here, dplyr, tidyr, flextable, patchwork, stringr,
-  ggplot2, readr, data.table
+  ggplot2, readr, data.table, ggridges
 )
 
 # Set default ggplot theme
@@ -42,9 +42,10 @@ predicted_counts_df <- predicted_counts_df%>%
 predicted_counts_df <- setDT(predicted_counts_df)
 predicted_counts_df[, variable := str_remove(variable, "abundance\\[")]
 predicted_counts_df[, variable := str_remove(variable, "\\]")]
-predicted_counts_df[, Transect := as.integer(str_split(variable, ",", simplify=T)[,1])]
-predicted_counts_df[, Species := as.integer(str_split(variable, ",", simplify=T)[,2])]
-predicted_counts_df[, Size := as.integer(str_split(variable, ",", simplify=T)[,3])]
+predicted_counts_df[, protection := as.integer(str_split(variable, ",", simplify=T)[,1])]
+predicted_counts_df[, Transect := as.integer(str_split(variable, ",", simplify=T)[,2])]
+predicted_counts_df[, Species := as.integer(str_split(variable, ",", simplify=T)[,3])]
+predicted_counts_df[, Size := as.integer(str_split(variable, ",", simplify=T)[,4])]
 predicted_counts_df[, variable := NULL]
 
 rm(predicted_counts_raw)
@@ -52,19 +53,14 @@ gc()
 
 # Join metadata
 
-transects <- select(transects, c(transect, protection))
 species_df <- select(species_df, c(species, guild))
 
-transects <- mutate_all(transects, ~as.integer(.))
 species_df <- mutate_all(species_df, ~as.integer(.))
 
-colnames(transects) <- c("Transect", "Protection")
 colnames(species_df) <- c("Species", "Guild")
 
-transects <- setDT(transects)
 species_df <- setDT(species_df)
 
-predicted_counts_df[transects, on="Transect", Protection := i.Protection]
 predicted_counts_df[species_df, on = "Species", Guild := i.Guild]
 
 colnames(predicted_counts_df) <- str_to_lower(colnames(predicted_counts_df))
@@ -99,7 +95,37 @@ summary_df <- predicted_counts_df[, .(
   CI95 = quantile(count, 0.975)
 ), by = .(guild, protection, size)]
 
+dcast(predicted_counts_df, draw + transect + guild + size ~ protection, value.var = "count", fun.aggregate = sum) -> predicted_counts
+
+predicted_counts[, P := Protected > Unprotected]
+predicted_counts[, .(P = mean(P, na.rm = T)), by = .(draw, guild, size)] -> protection_summary
+
+head(protection_summary)
+
+p <- ggplot(protection_summary, aes(y = size, x = P, fill = guild)) +
+  geom_density_ridges(scale = 1, alpha = 0.5) +
+  labs(x = "P(Protected > Unprotected)", y = "Size class") +
+  scale_fill_brewer(palette = "Set1", name = "Feeding guild") +
+  theme_bw() +
+  theme(
+    legend.position = "top",
+    legend.text = element_text(size = 10),
+    strip.text = element_text(size = 14),
+    axis.title = element_text(size = 14),
+    axis.text = element_text(size = 12)
+  )
+
+ggsave(here("figures/counterfactual_abundance_probability.png"), p, width = 8, height = 8)
+
+protection_summary[,.(P = mean(P, na.rm = T)), by = .(guild, size)] -> protection_summary
+
+summary_df <- summary_df %>%
+  left_join(protection_summary, by = c("guild", "size")) %>%
+  arrange(guild, protection, size)
+
 summary_table <- summary_df %>%
+  select(guild,size, protection, P, mean_count, CI5, CI25, CI75, CI95) %>%
+  arrange(guild, size) %>%
   flextable() %>%
   set_header_labels(
     guild = "Feeding guild",
@@ -111,11 +137,13 @@ summary_table <- summary_df %>%
     CI75 = "75% CI",
     CI95 = "95% CI"
   ) %>%
+  merge_v(j = ~ guild + size + P) %>%   # merge rows with same guild and size
   set_caption("Predicted abundance of fish species by feeding guild, protection status, and size class") %>%
   set_table_properties(width = 0.5) %>%
   align(j = c(1:4), align = "center") %>%
   align(j = c(2:4), align = "right") %>%
-  set_table_properties(layout = "autofit")
+  set_table_properties(layout = "autofit")%>%
+  theme_box()
 
 print(summary_table)
 

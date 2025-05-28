@@ -80,6 +80,8 @@ colnames(guild) <- str_to_lower(colnames(guild))
 
 fish <- rename(fish, abundance = count)
 
+fish <- filter(fish, abundance > 0)
+
 summary(transects)
 summary(fish)
 summary(species_df)

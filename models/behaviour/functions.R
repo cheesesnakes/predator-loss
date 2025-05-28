@@ -44,8 +44,8 @@ prep_stan <- function(response, individuals, predictors, rugosity, guild) {
     protection = predictors$protected,
     biomass = predictors$biomass,
     group = individuals$group,
-    sim_var = seq(-2, 2, length.out = 50), # Simulated variable for testing
-    R = 50
+    sim_var = seq(-2, 2, length.out = 25), # Simulated variable for testing
+    R = 25
   )
 
   return(stan_data)

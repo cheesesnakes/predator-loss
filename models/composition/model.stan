@@ -103,7 +103,7 @@ model {
 generated quantities {
   array[N] real log_lik;
   array[N] real pred_count;
-  array[T, S, C] real abundance;
+  array[P, T, S, C] real abundance;
   
   for (n in 1 : N) {
     int t = transect[n];
@@ -136,26 +136,31 @@ generated quantities {
     }
   }
   
-  for (t in 1 : T) {
-    for (s in 1 : S) {
-      for (c in 1 : C) {
-        int p = protection[t];
-        int l = location[t];
-        real log_lambda = alpha[l] + dot_product(gamma, guild[s]) + delta[p]
-                          + dot_product(beta[p], guild[s]) + phi[p, c]
-                          + dot_product(epsilon[c], guild[s]) + theta[c];
-        real logit_psi = alpha_psi[l] + dot_product(gamma_psi, guild[s])
-                         + delta_psi[p] + dot_product(beta_psi[p], guild[s])
-                         + phi_psi[p, c]
-                         + dot_product(epsilon_psi[c], guild[s])
-                         + theta_psi[c];
-        real psi_tsc = inv_logit(logit_psi);
-        
-        if (bernoulli_rng(psi_tsc)) {
-          abundance[t, s, c] = 0; // zero-inflated case
-        } else {
-          // Non-zero expected abundance
-          abundance[t, s, c] = neg_binomial_2_rng(exp(log_lambda), phi_nb); // non-zero case
+  for (pr in 1 : P) {
+    for (t in 1 : T) {
+      for (s in 1 : S) {
+        for (c in 1 : C) {
+          int p = pr;
+          int l = location[t];
+          real log_lambda = alpha[l] + dot_product(gamma, guild[s])
+                            + delta[p] + dot_product(beta[p], guild[s])
+                            + phi[p, c] + dot_product(epsilon[c], guild[s])
+                            + theta[c];
+          real logit_psi = alpha_psi[l] + dot_product(gamma_psi, guild[s])
+                           + delta_psi[p]
+                           + dot_product(beta_psi[p], guild[s])
+                           + phi_psi[p, c]
+                           + dot_product(epsilon_psi[c], guild[s])
+                           + theta_psi[c];
+          real psi_tsc = inv_logit(logit_psi);
+          
+          if (bernoulli_rng(psi_tsc)) {
+            abundance[p, t, s, c] = 0; // zero-inflated case
+          } else {
+            // Non-zero expected abundance
+            abundance[p, t, s, c] = neg_binomial_2_rng(exp(log_lambda),
+                                                       phi_nb); // non-zero case
+          }
         }
       }
     }
