@@ -31,31 +31,6 @@ parameters {
   array[C] real theta_psi; // zero-inflation size class effects
   array[P, C] real phi_psi; // zero-inflation interaction between protection and size class
 }
-transformed parameters {
-  array[T, S, C] real lambda; // expected counts
-  array[T, S, C] real psi; // zero-inflation proabability
-  
-  for (t in 1 : T) {
-    for (s in 1 : S) {
-      for (c in 1 : C) {
-        // Zero-inflation probability
-        psi[t, s, c] = inv_logit(alpha_psi[location[t]]
-                                 + dot_product(gamma_psi, guild[s])
-                                 + delta_psi[protection[t]]
-                                 + dot_product(beta_psi[protection[t]],
-                                               guild[s])
-                                 + phi_psi[protection[t], c] + theta_psi[c]);
-        
-        // Expected counts
-        lambda[t, s, c] = exp(alpha[location[t]]
-                              + dot_product(gamma, guild[s])
-                              + delta[protection[t]]
-                              + dot_product(beta[protection[t]], guild[s])
-                              + phi[protection[t], c] + theta[c]);
-      }
-    }
-  }
-}
 model {
   // Priors
   alpha ~ normal(0, 0.5);
