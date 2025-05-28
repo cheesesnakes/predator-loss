@@ -43,7 +43,9 @@ prep_stan <- function(response, individuals, predictors, rugosity, guild) {
     rugosity_raw = matrix(c(rugosity$sample_1, rugosity$sample_2, rugosity$sample_3), ncol = 3),
     protection = predictors$protected,
     biomass = predictors$biomass,
-    group = individuals$group
+    group = individuals$group,
+    sim_var = seq(-1, 1, by = 2/100),
+    R = 101
   )
 
   return(stan_data)

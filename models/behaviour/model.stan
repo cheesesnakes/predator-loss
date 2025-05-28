@@ -26,6 +26,10 @@ data {
   array[N] int<lower=1, upper=C> size; // size class of each observation
   array[N] int<lower=1, upper=2> group; // group membership (0 or 1)
   array[K, G] int<lower=0, upper=1> guild; // guild of each observation
+  
+  // simulation parameters
+  int<lower=0> R; // number of simulations for counterfactuals
+  array[R] real sim_var; // standarised values for counterfactuals
 }
 parameters {
   // Parameters to estimate rugosity
@@ -249,121 +253,130 @@ generated quantities {
   }
   
   // counterfactual protection varying rugosity
-  array[P, N, B] real D_pred_protection_rugosity;
-  array[P, N] real bites_pred_protection_rugosity;
-  
+  array[P, R, N, B] real D_pred_protection_rugosity;
+  array[P, R, N] real bites_pred_protection_rugosity;
+
   for (p in 1 : P) {
     for (n in 1 : N) {
       real bio_std = mean(biomass_std);
-      real rug_std = rugosity_std[plot[n]];
-      for (b in 1 : B) {
-        real mu_cf = alpha_D[plot[n], b] + beta_D[p, b]
-                     + gamma_D[b] * rug_std + zeta_D[b] * bio_std
-                     + eta_D[1, b] + omega_D[size[n], b]
-                     + dot_product(epsilon_D[ : , b], guild[species[n]])
-                     + delta_D[group[n], b];
-        
-        real pi_cf = inv_logit(alpha_pi[plot[n], b] + beta_pi[p, b]
-                               + gamma_pi[b] * rug_std + zeta_pi[b] * bio_std
-                               + eta_pi[1, b] + omega_pi[size[n], b]
-                               + dot_product(epsilon_pi[ : , b],
-                                             guild[species[n]])
-                               + delta_pi[group[n], b]);
-        
-        if (bernoulli_rng(pi_cf)) {
-          D_pred_protection_rugosity[p, n, b] = 0;
-        } else {
-          D_pred_protection_rugosity[p, n, b] = lognormal_rng(mu_cf,
-                                                              sigma_D[b]);
+      for (r in 1 : R) {
+        real rug_std = sim_var[r];
+        for (b in 1 : B) {
+          real mu_cf = alpha_D[plot[n], b] + beta_D[p, b]
+                       + gamma_D[b] * rug_std + zeta_D[b] * bio_std
+                       + eta_D[1, b] + omega_D[size[n], b]
+                       + dot_product(epsilon_D[ : , b], guild[species[n]])
+                       + delta_D[group[n], b];
+          
+          real pi_cf = inv_logit(alpha_pi[plot[n], b] + beta_pi[p, b]
+                                 + gamma_pi[b] * rug_std
+                                 + zeta_pi[b] * bio_std + eta_pi[1, b]
+                                 + omega_pi[size[n], b]
+                                 + dot_product(epsilon_pi[ : , b],
+                                               guild[species[n]])
+                                 + delta_pi[group[n], b]);
+          
+          if (bernoulli_rng(pi_cf)) {
+            D_pred_protection_rugosity[p, r, n, b] = 0;
+          } else {
+            D_pred_protection_rugosity[p, r, n, b] = lognormal_rng(mu_cf,
+                                                                   sigma_D[b]);
+          }
         }
+        real lambda_cf = exp(alpha_bites[plot[n]] + beta_bites[p]
+                             + gamma_bites * rug_std + zeta_bites * bio_std
+                             + eta_bites[1] + omega_bites[size[n]]
+                             + dot_product(epsilon_bites, guild[species[n]])
+                             + delta_bites[group[n]]);
+        
+        bites_pred_protection_rugosity[p, r, n] = lambda_cf;
       }
-      real lambda_cf = exp(alpha_bites[plot[n]] + beta_bites[p]
-                           + gamma_bites * rug_std + zeta_bites * bio_std
-                           + eta_bites[1] + omega_bites[size[n]]
-                           + dot_product(epsilon_bites, guild[species[n]])
-                           + delta_bites[group[n]]);
-      
-      bites_pred_protection_rugosity[p, n] = lambda_cf;
     }
   }
   
   // counterfactual protection varying biomass
-  array[P, N, B] real D_pred_protection_biomass;
-  array[P, N] real bites_pred_protection_biomass;
-  
+  array[P, R, N, B] real D_pred_protection_biomass;
+  array[P, R, N] real bites_pred_protection_biomass;
+
   for (p in 1 : P) {
     for (n in 1 : N) {
       real rug_std = mean(rugosity_std);
-      real bio_std = biomass_std[plot[n]];
-      for (b in 1 : B) {
-        real mu_cf = alpha_D[plot[n], b] + beta_D[p, b]
-                     + gamma_D[b] * rug_std + zeta_D[b] * bio_std
-                     + eta_D[1, b] + omega_D[size[n], b]
-                     + dot_product(epsilon_D[ : , b], guild[species[n]])
-                     + delta_D[group[n], b];
-        
-        real pi_cf = inv_logit(alpha_pi[plot[n], b] + beta_pi[p, b]
-                               + gamma_pi[b] * rug_std + zeta_pi[b] * bio_std
-                               + eta_pi[1, b] + omega_pi[size[n], b]
-                               + dot_product(epsilon_pi[ : , b],
-                                             guild[species[n]])
-                               + delta_pi[group[n], b]);
-        
-        if (bernoulli_rng(pi_cf)) {
-          D_pred_protection_biomass[p, n, b] = 0;
-        } else {
-          D_pred_protection_biomass[p, n, b] = lognormal_rng(mu_cf,
-                                                             sigma_D[b]);
+      for (r in 1 : R) {
+        real bio_std = sim_var[r];
+        for (b in 1 : B) {
+          real mu_cf = alpha_D[plot[n], b] + beta_D[p, b]
+                       + gamma_D[b] * rug_std + zeta_D[b] * bio_std
+                       + eta_D[1, b] + omega_D[size[n], b]
+                       + dot_product(epsilon_D[ : , b], guild[species[n]])
+                       + delta_D[group[n], b];
+          
+          real pi_cf = inv_logit(alpha_pi[plot[n], b] + beta_pi[p, b]
+                                 + gamma_pi[b] * rug_std
+                                 + zeta_pi[b] * bio_std + eta_pi[1, b]
+                                 + omega_pi[size[n], b]
+                                 + dot_product(epsilon_pi[ : , b],
+                                               guild[species[n]])
+                                 + delta_pi[group[n], b]);
+          
+          if (bernoulli_rng(pi_cf)) {
+            D_pred_protection_biomass[p, r, n, b] = 0;
+          } else {
+            D_pred_protection_biomass[p, r, n, b] = lognormal_rng(mu_cf,
+                                                                  sigma_D[b]);
+          }
         }
+        real lambda_cf = exp(alpha_bites[plot[n]] + beta_bites[p]
+                             + gamma_bites * rug_std + zeta_bites * bio_std
+                             + eta_bites[1] + omega_bites[size[n]]
+                             + dot_product(epsilon_bites, guild[species[n]])
+                             + delta_bites[group[n]]);
+        bites_pred_protection_biomass[p, r, n] = lambda_cf;
       }
-      real lambda_cf = exp(alpha_bites[plot[n]] + beta_bites[p]
-                           + gamma_bites * rug_std + zeta_bites * bio_std
-                           + eta_bites[1] + omega_bites[size[n]]
-                           + dot_product(epsilon_bites, guild[species[n]])
-                           + delta_bites[group[n]]);
-      bites_pred_protection_biomass[p, n] = lambda_cf;
     }
   }
   
   // counterfactual protection varying predator presence
-  array[P, N, B] real D_pred_protection_predator;
-  array[P, N] real bites_pred_protection_predator;
+  array[P, 2, N, B] real D_pred_protection_predator;
+  array[P, 2, N] real bites_pred_protection_predator;
   
   for (p in 1 : P) {
     for (n in 1 : N) {
       real rug_std = mean(rugosity_std);
       real bio_std = mean(biomass_std);
-      for (b in 1 : B) {
-        real mu_cf = alpha_D[plot[n], b] + beta_D[p, b]
-                     + gamma_D[b] * rug_std + zeta_D[b] * bio_std
-                     + eta_D[2, b]
-                     + // assuming predator absent
-                     omega_D[size[n], b]
-                     + dot_product(epsilon_D[ : , b], guild[species[n]])
-                     + delta_D[group[n], b];
-        
-        real pi_cf = inv_logit(alpha_pi[plot[n], b] + beta_pi[p, b]
-                               + gamma_pi[b] * rug_std + zeta_pi[b] * bio_std
-                               + eta_pi[2, b] + omega_pi[size[n], b]
-                               + dot_product(epsilon_pi[ : , b],
-                                             guild[species[n]])
-                               + delta_pi[group[n], b]);
-        
-        if (bernoulli_rng(pi_cf)) {
-          D_pred_protection_predator[p, n, b] = 0;
-        } else {
-          D_pred_protection_predator[p, n, b] = lognormal_rng(mu_cf,
-                                                              sigma_D[b]);
+      for (g in 1 : 2) {
+        for (b in 1 : B) {
+          real mu_cf = alpha_D[plot[n], b] + beta_D[p, b]
+                       + gamma_D[b] * rug_std + zeta_D[b] * bio_std
+                       + eta_D[g, b]
+                       + // assuming predator absent
+                       omega_D[size[n], b]
+                       + dot_product(epsilon_D[ : , b], guild[species[n]])
+                       + delta_D[group[n], b];
+          
+          real pi_cf = inv_logit(alpha_pi[plot[n], b] + beta_pi[p, b]
+                                 + gamma_pi[b] * rug_std
+                                 + zeta_pi[b] * bio_std + eta_pi[g, b]
+                                 + omega_pi[size[n], b]
+                                 + dot_product(epsilon_pi[ : , b],
+                                               guild[species[n]])
+                                 + delta_pi[group[n], b]);
+          
+          if (bernoulli_rng(pi_cf)) {
+            D_pred_protection_predator[p, g, n, b] = 0;
+          } else {
+            D_pred_protection_predator[p, g, n, b] = lognormal_rng(mu_cf,
+                                                                   sigma_D[b]);
+          }
         }
+        real lambda_cf = exp(alpha_bites[plot[n]] + beta_bites[p]
+                             + gamma_bites * rug_std + zeta_bites * bio_std
+                             + eta_bites[g]
+                             // assuming predator absent
+                             + omega_bites[size[n]]
+                             + dot_product(epsilon_bites, guild[species[n]])
+                             + delta_bites[group[n]]);
+        bites_pred_protection_predator[p, g, n] = lambda_cf;
       }
-      real lambda_cf = exp(alpha_bites[plot[n]] + beta_bites[p]
-                           + gamma_bites * rug_std + zeta_bites * bio_std
-                           + eta_bites[2]
-                           // assuming predator absent
-                           + omega_bites[size[n]]
-                           + dot_product(epsilon_bites, guild[species[n]])
-                           + delta_bites[group[n]]);
-      bites_pred_protection_predator[p, n] = lambda_cf;
     }
   }
 }

@@ -882,104 +882,61 @@ predator[, predator := factor(predator,
                               levels = c(1, 2),
                               labels = c("Absent", "Present"))]
 
-sample <- sample(1:4000, 100)
-predator <- predator[Draw %in% sample]
+summary_predator <- predator[,.(
+  mean = mean(value, na.rm = TRUE),
+  median = median(value, na.rm = TRUE),
+  q025 = quantile(value, 0.025, na.rm = TRUE),
+  q250 = quantile(value, 0.25, na.rm = TRUE),
+  q750 = quantile(value, 0.75, na.rm = TRUE),
+  q975 = quantile(value, 0.975, na.rm = TRUE)
+), by = .(Draw, response, predator, protection)]
 
-p1 <- predator %>%
+p1 <- summary_predator %>%
   filter(response == "Foraging") %>%
-  ggplot(aes(x = predator, y = value, col = protection)) +
-  geom_smooth(
-    aes(group = Draw),
-    method = "gam",
-    formula = y ~ s(x),
-    se = FALSE,
-    alpha = 0.05,
-    color = "gray"
-  ) + # raw posterior draws
-  geom_smooth(
-    method = "gam",
-    formula = y ~ s(x),
-    se = FALSE,
-    linewidth = 1.2
-  ) + # mean trend
+  ggplot(aes(y = predator, x = mean, fill = protection)) +
+  geom_density_ridges(alpha = 0.5, scale = 1) +
   facet_wrap( ~ response, ncol = 1, scale = "free_y") +
   labs(x = "Predator Presence", y = expression("Duration (s)")) +
   scale_color_brewer(palette = "Set1") +
-  scale_y_continuous(limits = c(0, 60)) +
+  scale_x_continuous(limits = c(0, 120)) +
   theme_bw() +
-  theme(legend.position = "top", legend.title = element_blank(), )
+  theme(legend.position = "none", legend.title = element_blank(), )
 
-p2 <- predator %>%
+p2 <- summary_predator %>%
   filter(response == "Vigilance") %>%
-  ggplot(aes(x = predator, y = value, col = protection)) +
-  geom_smooth(
-    aes(group = Draw),
-    method = "gam",
-    formula = y ~ s(x),
-    se = FALSE,
-    alpha = 0.05,
-    color = "gray"
-  ) + # raw posterior draws
-  geom_smooth(
-    method = "gam",
-    formula = y ~ s(x),
-    se = FALSE,
-    linewidth = 1.2
-  ) + # mean trend
+  ggplot(aes(y = predator, x = mean, fill = protection)) +
+  geom_density_ridges(alpha = 0.5, scale = 1) +
   facet_wrap( ~ response, ncol = 1, scale = "free_y") +
   labs(x = "Predator Presence", y = expression("Duration (s)")) +
   scale_color_brewer(palette = "Set1") +
-  scale_y_continuous(limits = c(0, 60)) +
+  scale_x_continuous(limits = c(0, 120)) +
   theme_bw() +
   theme(legend.position = "none", legend.title = element_blank(), )
 
-p3 <- predator %>%
+p3 <- summary_predator %>%
   filter(response == "Movement") %>%
-  ggplot(aes(x = predator, y = value, col = protection)) +
-  geom_smooth(
-    aes(group = Draw),
-    method = "gam",
-    formula = y ~ s(x),
-    se = FALSE,
-    alpha = 0.05,
-    color = "gray"
-  ) + # raw posterior draws
-  geom_smooth(
-    method = "gam",
-    formula = y ~ s(x),
-    se = FALSE,
-    linewidth = 1.2
-  ) + # mean trend
+  ggplot(aes(y = predator, x = mean, fill = protection)) +
+  geom_density_ridges(alpha = 0.5, scale = 1) +
   facet_wrap( ~ response, ncol = 1, scale = "free_y") +
   labs(x = "Predator Presence", y = expression("Duration (s)")) +
   scale_color_brewer(palette = "Set1") +
-  scale_y_continuous(limits = c(0, 60)) +
+  scale_x_continuous(limits = c(0, 120)) +
   theme_bw() +
   theme(legend.position = "none", legend.title = element_blank(), )
 
-p4 <- predator %>%
+p4 <- summary_predator %>%
   filter(response == "Bites") %>%
-  ggplot(aes(x = predator, y = value, col = protection)) +
-  geom_smooth(
-    aes(group = Draw),
-    method = "gam",
-    formula = y ~ s(x),
-    se = FALSE,
-    alpha = 0.05,
-    color = "gray"
-  ) + # raw posterior draws
-  geom_smooth(
-    method = "gam",
-    formula = y ~ s(x),
-    se = FALSE,
-    linewidth = 1.2
-  ) + # mean trend
+  ggplot(aes(y = predator, x = mean, fill = protection)) +
+  geom_density_ridges(alpha = 0.5, scale = 1) +
   facet_wrap( ~ response, ncol = 1, scale = "free_y") +
   labs(x = "Predator Presence", y = expression("Bite rate")) +
   scale_color_brewer(palette = "Set1") +
   theme_bw() +
   theme(legend.position = "none", legend.title = element_blank(), )
 
+p <- (p1 + p2 + p3 + p4) +
+  plot_layout(ncol = 1, guides = "collect") &
+  theme(legend.position = "top")
 
 ggsave(
   plot = p,
