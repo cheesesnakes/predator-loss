@@ -669,12 +669,12 @@ p4 <- biomass %>%
   theme_bw() +
   theme(legend.position = "none", legend.title = element_blank(), )
 
-p <- (p1 + p2 + p3 + p4) +
+g1 <- (p1 + p2 + p3 + p4) +
   plot_layout(ncol = 2, guides = "collect") &
   theme(legend.position = "top")
 
 ggsave(
-  plot = p,
+  plot = g1,
   file = here("figures", "counterfactual_protection_biomass.png"),
   width = 8,
   height = 8
@@ -858,12 +858,12 @@ p4 <- rugosity %>%
   theme_bw() +
   theme(legend.position = "none", legend.title = element_blank(), )
 
-p <- (p1 + p2 + p3 + p4) +
+g2 <- (p1 + p2 + p3 + p4) +
   plot_layout(ncol = 2, guides = "collect") &
   theme(legend.position = "top")
 
 ggsave(
-  plot = p,
+  plot = g2,
   file = here("figures", "counterfactual_protection_rugosity.png"),
   width = 8,
   height = 8
@@ -879,6 +879,20 @@ rm(
   p4
 )
 
+gc()
+
+g <- g1 + g2 +
+  plot_layout(ncol = 2, guides = "collect") &
+  theme(legend.position = "top")
+
+ggsave(
+  here("figures", "figure5.png"),
+  g,
+  width = 16,
+  height = 8
+)
+
+rm(g, g1, g2)
 gc()
 
 # counterfactual protection predator presence
