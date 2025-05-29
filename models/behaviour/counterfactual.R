@@ -859,13 +859,13 @@ p4 <- rugosity %>%
   theme(legend.position = "none", legend.title = element_blank(), )
 
 p <- (p1 + p2 + p3 + p4) +
-  plot_layout(ncol = 1, guides = "collect") &
+  plot_layout(ncol = 2, guides = "collect") &
   theme(legend.position = "top")
 
 ggsave(
   plot = p,
   file = here("figures", "counterfactual_protection_rugosity.png"),
-  width = 6,
+  width = 8,
   height = 8
 )
 
@@ -1009,7 +1009,7 @@ p1 <- summary_predator %>%
   facet_wrap(~response, ncol = 1, scale = "free_y") +
   labs(x = "Predator Presence", y = expression("Duration (s)")) +
   scale_color_brewer(palette = "Set1") +
-  scale_x_continuous(limits = c(0, 60)) +
+  scale_x_continuous(limits = c(-120, 120)) +
   theme_bw() +
   theme(legend.position = "none", legend.title = element_blank(), )
 
@@ -1025,7 +1025,7 @@ p2 <- summary_predator %>%
   facet_wrap(~response, ncol = 1, scale = "free_y") +
   labs(x = "Predator Presence", y = expression("Duration (s)")) +
   scale_color_brewer(palette = "Set1") +
-  scale_x_continuous(limits = c(0, 60)) +
+  scale_x_continuous(limits = c(-120, 120)) +
   theme_bw() +
   theme(legend.position = "none", legend.title = element_blank(), )
 
@@ -1041,7 +1041,7 @@ p3 <- summary_predator %>%
   facet_wrap(~response, ncol = 1, scale = "free_y") +
   labs(x = "Predator Presence", y = expression("Duration (s)")) +
   scale_color_brewer(palette = "Set1") +
-  scale_x_continuous(limits = c(0, 60)) +
+  scale_x_continuous(limits = c(-120, 120)) +
   theme_bw() +
   theme(legend.position = "none", legend.title = element_blank(), )
 

@@ -155,7 +155,9 @@ save_as_docx(summary_table, path = here("outputs/counterfactual_abundance_summar
 gc()
 
 # Plot: Mean ± 95% credible interval
-p <- ggplot(summary_df, aes(x = size, y = mean_count, color = protection)) +
+p <- summary_df %>%
+  filter(guild != "Unknown") %>%
+  ggplot(aes(x = size, y = mean_count, color = protection)) +
   geom_point(size = 2.5, position = position_dodge(width = 0.5)) +
   geom_errorbar(aes(ymin = CI5, ymax = CI95),
     width = 0, size = 0.5, position = position_dodge(width = 0.5)
@@ -166,7 +168,7 @@ p <- ggplot(summary_df, aes(x = size, y = mean_count, color = protection)) +
   labs(y = "Predicted count (mean ± 50,95% CrI)", x = "Size class") +
   scale_color_brewer(palette = "Set1", name = "Protection") +
   scale_shape(name = "Protection") +
-  facet_wrap(~guild, ncol = 1, scale = "free_y") +
+  facet_wrap(~guild, ncol = 2, scale = "free_y") +
   theme_bw() +
   theme(
     legend.position = "top",
@@ -177,4 +179,4 @@ p <- ggplot(summary_df, aes(x = size, y = mean_count, color = protection)) +
   )
 
 # Save figure
-ggsave(here("figures/counterfactual_abundance.png"), p, width = 6, height = 12)
+ggsave(here("figures/counterfactual_abundance.png"), p, width = 12, height = 12)
