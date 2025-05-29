@@ -90,3 +90,52 @@ fit_model <- function(stan_data, model_file, run = "validation") {
   # fit_mle$save_object(file = here(output_dir, paste0(run, "_fit_mle.rds")))
   return(fit_result)
 }
+
+# function to extract posterior samples
+
+extract <- function(p) {
+# Load the fitted model
+fit <- readRDS(here("outputs/standardised_behaviour_fit.rds"))
+
+# set type of model
+responses <- c("pi", "D", "bites")
+
+if (p == "sigma_D"){
+  responses <- "D"
+}
+
+# Extract draws for each response
+data = data.table()
+
+for (r in responses) {
+    param <- paste0(p,"_", r)
+    message("Extracting ", param)
+
+    draw <- fit$draws(param)
+    df <- as.data.table(draw)
+
+    # Create draw index
+    df[, draw := as.numeric(iteration) * as.numeric(chain)]
+    df[, c("iteration", "chain") := NULL]
+
+    # Clean variable names
+    df[, variable := str_remove(variable, paste0(param, "\\["))]
+    df[, variable := str_remove(variable, "\\]")]
+
+    if (r == "pi"){
+        df[, model := "Zero-inflated"]
+    } else {
+        df[, model := "Behaviour"]
+    }
+
+    data <- rbind(data, df, use.names = TRUE, fill = TRUE)
+    rm(df)
+    gc()
+}
+
+rm(fit)
+gc()
+
+return(data)
+
+}
