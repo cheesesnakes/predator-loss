@@ -31,21 +31,21 @@ gc()
 
 predicted_counts_df <- as.data.table(predicted_counts_raw)
 predicted_counts_df[, Draw := 1:nrow(predicted_counts_df)]
-predicted_counts_df <- predicted_counts_df%>%
+predicted_counts_df <- predicted_counts_df %>%
   pivot_longer(
     cols = -Draw,
     names_to = "variable",
     values_to = "count"
-  )%>%
-  mutate(Draw = as.integer(Draw)) 
+  ) %>%
+  mutate(Draw = as.integer(Draw))
 
 predicted_counts_df <- setDT(predicted_counts_df)
 predicted_counts_df[, variable := str_remove(variable, "abundance\\[")]
 predicted_counts_df[, variable := str_remove(variable, "\\]")]
-predicted_counts_df[, protection := as.integer(str_split(variable, ",", simplify=T)[,1])]
-predicted_counts_df[, Transect := as.integer(str_split(variable, ",", simplify=T)[,2])]
-predicted_counts_df[, Species := as.integer(str_split(variable, ",", simplify=T)[,3])]
-predicted_counts_df[, Size := as.integer(str_split(variable, ",", simplify=T)[,4])]
+predicted_counts_df[, protection := as.integer(str_split(variable, ",", simplify = T)[, 1])]
+predicted_counts_df[, Transect := as.integer(str_split(variable, ",", simplify = T)[, 2])]
+predicted_counts_df[, Species := as.integer(str_split(variable, ",", simplify = T)[, 3])]
+predicted_counts_df[, Size := as.integer(str_split(variable, ",", simplify = T)[, 4])]
 predicted_counts_df[, variable := NULL]
 
 rm(predicted_counts_raw)
@@ -55,7 +55,7 @@ gc()
 
 species_df <- select(species_df, c(species, guild))
 
-species_df <- mutate_all(species_df, ~as.integer(.))
+species_df <- mutate_all(species_df, ~ as.integer(.))
 
 colnames(species_df) <- c("Species", "Guild")
 
@@ -69,10 +69,10 @@ gc()
 
 # set factors
 
-guild_levels <- str_split(guild_levels, ",", simplify = T)[,1]
+guild_levels <- str_split(guild_levels, ",", simplify = T)[, 1]
 predicted_counts_df[, guild := factor(guild,
-                                      levels = 1:length(guild_levels),
-                                      labels = guild_levels
+  levels = 1:length(guild_levels),
+  labels = guild_levels
 )]
 
 predicted_counts_df[, protection := factor(protection, levels = c(1, 2), labels = c("Unprotected", "Protected"))]
@@ -81,7 +81,7 @@ predicted_counts_df[, size := factor(size, levels = 1:length(size_levels), label
 
 # sum count
 
-predicted_counts_df[, species:=NULL]
+predicted_counts_df[, species := NULL]
 
 predicted_counts_df[, count := sum(count), by = .(draw, protection, transect, guild, size)]
 
@@ -102,7 +102,9 @@ predicted_counts[, .(P = mean(P, na.rm = T)), by = .(draw, guild, size)] -> prot
 
 head(protection_summary)
 
-p <- ggplot(protection_summary, aes(y = size, x = P, fill = guild)) +
+p <- protection_summary %>%
+  filter(guild != "Unknown") %>%
+  ggplot(aes(y = size, x = P, fill = guild)) +
   geom_density_ridges(scale = 1, alpha = 0.5) +
   labs(x = "P(Protected > Unprotected)", y = "Size class") +
   scale_fill_brewer(palette = "Set1", name = "Feeding guild") +
@@ -113,18 +115,19 @@ p <- ggplot(protection_summary, aes(y = size, x = P, fill = guild)) +
     strip.text = element_text(size = 14),
     axis.title = element_text(size = 14),
     axis.text = element_text(size = 12)
-  )
+  ) +
+  facet_wrap(~guild, ncol = 2)
 
 ggsave(here("figures/counterfactual_abundance_probability.png"), p, width = 8, height = 8)
 
-protection_summary[,.(P = mean(P, na.rm = T)), by = .(guild, size)] -> protection_summary
+protection_summary[, .(P = mean(P, na.rm = T)), by = .(guild, size)] -> protection_summary
 
 summary_df <- summary_df %>%
   left_join(protection_summary, by = c("guild", "size")) %>%
   arrange(guild, protection, size)
 
 summary_table <- summary_df %>%
-  select(guild,size, protection, P, mean_count, CI5, CI25, CI75, CI95) %>%
+  select(guild, size, protection, P, mean_count, CI5, CI25, CI75, CI95) %>%
   arrange(guild, size) %>%
   flextable() %>%
   set_header_labels(
@@ -137,12 +140,12 @@ summary_table <- summary_df %>%
     CI75 = "75% CI",
     CI95 = "95% CI"
   ) %>%
-  merge_v(j = ~ guild + size + P) %>%   # merge rows with same guild and size
+  merge_v(j = ~ guild + size + P) %>% # merge rows with same guild and size
   set_caption("Predicted abundance of fish species by feeding guild, protection status, and size class") %>%
   set_table_properties(width = 0.5) %>%
   align(j = c(1:4), align = "center") %>%
   align(j = c(2:4), align = "right") %>%
-  set_table_properties(layout = "autofit")%>%
+  set_table_properties(layout = "autofit") %>%
   theme_box()
 
 print(summary_table)
@@ -155,12 +158,12 @@ gc()
 p <- ggplot(summary_df, aes(x = size, y = mean_count, color = protection)) +
   geom_point(size = 2.5, position = position_dodge(width = 0.5)) +
   geom_errorbar(aes(ymin = CI5, ymax = CI95),
-    width = 0, size= 0.5, position = position_dodge(width = 0.5)
+    width = 0, size = 0.5, position = position_dodge(width = 0.5)
   ) +
   geom_errorbar(aes(ymin = CI25, ymax = CI75),
     width = 0, position = position_dodge(width = 0.5), size = 1,
   ) +
-  labs(y = "Predicted count (mean ± 50,95% CrI)", x = "Size class")+
+  labs(y = "Predicted count (mean ± 50,95% CrI)", x = "Size class") +
   scale_color_brewer(palette = "Set1", name = "Protection") +
   scale_shape(name = "Protection") +
   facet_wrap(~guild, ncol = 1, scale = "free_y") +
