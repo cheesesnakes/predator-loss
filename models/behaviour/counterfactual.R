@@ -882,7 +882,7 @@ rm(
 gc()
 
 g <- g1 + g2 +
-  plot_layout(ncol = 2, guides = "collect") &
+  plot_layout(guides = "collect") &
   theme(legend.position = "top")
 
 ggsave(
