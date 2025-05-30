@@ -194,7 +194,8 @@ select(size_class, response, model, mean, q025, q975, P) %>%
 
 print(summary_table)
 
-save_as_docx(summary_table, path = here("outputs/behaviour_summary_size.docx"))
+#save_as_docx(summary_table, path = here("outputs/behaviour_summary_size.docx"))
+save_as_image(summary_table, path = here("outputs/behaviour_summary_size.png"))
 
 # Guild
 
@@ -217,10 +218,11 @@ summary_table <- summary %>%
     theme_box()
 
 print(summary_table)
-save_as_docx(summary_table, path = here("outputs/behaviour_summary_guild.docx"))
+#save_as_docx(summary_table, path = here("outputs/behaviour_summary_guild.docx"))
+save_as_image(summary_table, path = here("outputs/behaviour_summary_guild.png"))
 
 # SD duration
-data = extract(p = "sigma_D")
+data = extract(p = "sigma")
 data[, response := factor(variable, levels = c(1, 2, 3), labels = c("Foraging", "Vigilance", "Movement"))]
 data[, variable := NULL]
 
@@ -244,4 +246,5 @@ summary_table <- model_summary %>%
 
 print(summary_table)
 
-save_as_docx(summary, path = here("outputs/behaviour_summary.docx"))
+#save_as_docx(summary, path = here("outputs/behaviour_summary.docx"))
+save_as_image(summary_table, path = here("outputs/behaviour_summary.png"))

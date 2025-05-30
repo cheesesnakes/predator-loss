@@ -100,7 +100,7 @@ fit <- readRDS(here("outputs/standardised_behaviour_fit.rds"))
 # set type of model
 responses <- c("pi", "D", "bites")
 
-if (p == "sigma_D"){
+if (p == "sigma"){
   responses <- "D"
 }
 
