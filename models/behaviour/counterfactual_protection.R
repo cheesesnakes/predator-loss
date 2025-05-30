@@ -251,7 +251,7 @@ p6 <- summary_protection_bites %>%
 
 ggsave(
   here("figures", "counterfactual_protection.png"),
-  width = 6,
+  width = 8,
   height = 8
 )
 
