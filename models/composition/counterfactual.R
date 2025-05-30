@@ -179,4 +179,4 @@ p <- summary_df %>%
   )
 
 # Save figure
-ggsave(here("figures/counterfactual_abundance.png"), p, width = 12, height = 12)
+ggsave(here("figures/counterfactual_abundance.png"), p, width = 8, height = 8)
