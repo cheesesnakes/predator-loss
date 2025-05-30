@@ -142,7 +142,7 @@ protection_bites <- as.data.table(protection_bites) %>%
     values_to = "value"
   )
 
-rm(fit, protection_bites, protection_df)
+rm(fitf)
 gc()
 
 setDT(protection_bites)

@@ -167,7 +167,6 @@ p <- summary_df %>%
   ) +
   labs(y = "Predicted count (mean ± 50,95% CrI)", x = "Size class") +
   scale_color_brewer(palette = "Set1", name = "Protection") +
-  scale_shape(name = "Protection") +
   facet_wrap(~guild, ncol = 2, scale = "free_y") +
   theme_bw() +
   theme(
