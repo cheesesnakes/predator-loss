@@ -47,8 +47,8 @@ assemblage <- fish%>%
 colnames(assemblage) <- c("Order", "Family", "Species", "Guild", "Column", "Habitat", "Abundance")
 
 assemblage <- flextable(assemblage, col_keys = colnames(assemblage))%>%
-  italic(j = 2)%>%
-  set_table_properties(layout = "autofit", align = "center")%>%
+  italic(j = 3)%>%
+  set_table_properties(layout = "fixed", align = "center", width = 0.95)%>%
   theme_box()
 
 print(assemblage)

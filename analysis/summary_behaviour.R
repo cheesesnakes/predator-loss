@@ -68,7 +68,7 @@ colnames(predictors_summary) <- str_to_title(colnames(predictors_summary))
 
 predictors_summary <- predictors_summary %>%
   flextable() %>%
-  set_table_properties(width = .95, layout = "autofit") %>%
+  set_table_properties(width = .95, layout = "fixed") %>%
   colformat_double(
     j = c("Mean", "Sd", "Min", "Q1", "Median", "Q3", "Max"),
     digits = 2, na_str = "-"
@@ -129,10 +129,11 @@ responses_summary <- responses %>%
   ), .names = "{.fn}"), .groups = "drop")
 
 colnames(responses_summary) <- str_to_title(colnames(responses_summary))
+responses_summary$Response <- str_to_sentence(str_replace(responses_summary$Response, "_", " "))
 
 responses_summary <- responses_summary %>%
   flextable() %>%
-  set_table_properties(width = .95, layout = "autofit") %>%
+  set_table_properties(width = .95, layout = "fixed") %>%
   colformat_double(
     j = c("Mean", "Sd", "Min", "Q1", "Median", "Q3", "Max"),
     digits = 2, na_str = "-"
@@ -140,12 +141,12 @@ responses_summary <- responses_summary %>%
   align(align = "center", part = "header") %>%
   align(j = 3:9, align = "right", part = "body") %>%
   bold(part = "header") %>%
-  autofit() %>%
   theme_box()
 
 print(responses_summary)
 
 save_as_docx(responses_summary, path = here("outputs", "responses_summary.docx"))
+
 save_as_image(
   responses_summary,
   path = here("figures", "responses_summary.png"),
@@ -168,7 +169,7 @@ guild_n <- traits %>%
 
 guild_n <- guild_n %>%
   flextable() %>%
-  set_table_properties(width = .95, layout = "autofit") %>%
+  set_table_properties(width = .95, layout = "fixed") %>%
   colformat_double(
     j = c("Count"),
     digits = 0, na_str = "-"
