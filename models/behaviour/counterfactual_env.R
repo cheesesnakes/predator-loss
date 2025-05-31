@@ -1,4 +1,3 @@
-
 pacman::p_load(
   here,
   dplyr,
@@ -17,10 +16,26 @@ theme_set(theme_bw() +
 # load data
 source(here("analysis", "standardise_behaviour.R"))
 
+traits <- traits %>%
+  pivot_longer(
+    cols = -c(species),
+    names_to = "guild",
+    values_to = "value"
+  ) %>%
+  filter(value > 0) %>%
+  group_by(species) %>%
+  summarise(guild = first(guild))
+
+
+fish <- fish %>%
+  left_join(traits, by = "species") %>%
+  select(-c(group, species, size_class, plot_id))
+
 predictors <- predictors %>%
   select(c(plot_id, biomass, rugosity, predator))
 
-rm(fish, rugosity, responses, traits)
+rm(rugosity, responses, traits)
+gc()
 
 # counterfactual protection varying biomass
 
@@ -94,14 +109,17 @@ biomass <- biomass %>%
     individual = as.integer(individual),
     sample = as.integer(sample),
     biomass = (mean + std_var[sample] * sd)
-  )
+  ) %>%
+  left_join(fish, by = c("individual" = "ind_id"))
 
 setDT(biomass)
 biomass <- biomass[!is.na(biomass)]
+biomass <- biomass[!is.na(guild)]
+biomass <- biomass[guild != "Piscivore"]
 
 p1 <- biomass %>%
   filter(response == "Foraging") %>%
-  ggplot(aes(x = biomass * 100, y = value, col = protection)) +
+  ggplot(aes(x = biomass * 100, y = value, col = guild)) +
   geom_smooth(
     aes(group = Draw),
     method = "gam",
@@ -118,14 +136,14 @@ p1 <- biomass %>%
   ) + # mean trend
   facet_wrap(~response, ncol = 1, scale = "free_y") +
   labs(x = "Biomass Cover (%)", y = expression("Duration (s)")) +
-  scale_color_brewer(palette = "Set1") +
+  scale_color_brewer(palette = "Set1", name = "Foraging Guild") +
   scale_y_continuous(limits = c(0, 60)) +
   theme_bw() +
   theme(legend.position = "none", legend.title = element_blank(), )
 
 p2 <- biomass %>%
   filter(response == "Vigilance") %>%
-  ggplot(aes(x = biomass * 100, y = value, col = protection)) +
+  ggplot(aes(x = biomass * 100, y = value, col = guild)) +
   geom_smooth(
     aes(group = Draw),
     method = "gam",
@@ -142,14 +160,14 @@ p2 <- biomass %>%
   ) + # mean trend
   facet_wrap(~response, ncol = 1, scale = "free_y") +
   labs(x = "Biomass Cover (%)", y = expression("Duration (s)")) +
-  scale_color_brewer(palette = "Set1") +
+  scale_color_brewer(palette = "Set1", name = "Foraging Guild") +
   scale_y_continuous(limits = c(0, 60)) +
   theme_bw() +
   theme(legend.position = "none", legend.title = element_blank(), )
 
 p3 <- biomass %>%
   filter(response == "Movement") %>%
-  ggplot(aes(x = biomass * 100, y = value, col = protection)) +
+  ggplot(aes(x = biomass * 100, y = value, col = guild)) +
   geom_smooth(
     aes(group = Draw),
     method = "gam",
@@ -166,14 +184,14 @@ p3 <- biomass %>%
   ) + # mean trend
   facet_wrap(~response, ncol = 1, scale = "free_y") +
   labs(x = "Biomass Cover (%)", y = expression("Duration (s)")) +
-  scale_color_brewer(palette = "Set1") +
+  scale_color_brewer(palette = "Set1", name = "Foraging Guild") +
   scale_y_continuous(limits = c(0, 60)) +
   theme_bw() +
   theme(legend.position = "none", legend.title = element_blank(), )
 
 p4 <- biomass %>%
   filter(response == "Bites") %>%
-  ggplot(aes(x = biomass * 100, y = value, col = protection)) +
+  ggplot(aes(x = biomass * 100, y = value, col = guild)) +
   geom_smooth(
     aes(group = Draw),
     method = "gam",
@@ -190,7 +208,7 @@ p4 <- biomass %>%
   ) + # mean trend
   facet_wrap(~response, ncol = 1, scale = "free_y") +
   labs(x = "Biomass Cover (%)", y = expression("Bite rate")) +
-  scale_color_brewer(palette = "Set1") +
+  scale_color_brewer(palette = "Set1", name = "Foraging Guild") +
   theme_bw() +
   theme(legend.position = "none", legend.title = element_blank(), )
 
@@ -282,16 +300,19 @@ rugosity <- rugosity %>%
     individual = as.integer(individual),
     sample = as.integer(sample),
     rugosity = (mean + std_var[sample] * sd)
-  )
+  ) %>%
+  left_join(fish, by = c("individual" = "ind_id"))
 
 
 setDT(rugosity)
 rugosity <- rugosity[!is.na(rugosity)]
+rugosity <- rugosity[!is.na(guild)]
+rugosity <- rugosity[guild != "Piscivore"]
 sample <- sample(1:4000, 100)
 
 p1 <- rugosity %>%
   filter(response == "Foraging") %>%
-  ggplot(aes(x = rugosity, y = value, col = protection)) +
+  ggplot(aes(x = rugosity, y = value, col = guild)) +
   geom_smooth(
     aes(group = Draw),
     method = "gam",
@@ -308,14 +329,14 @@ p1 <- rugosity %>%
   ) + # mean trend
   facet_wrap(~response, ncol = 1, scale = "free_y") +
   labs(x = "Rugosity", y = expression("Duration (s)")) +
-  scale_color_brewer(palette = "Set1") +
+  scale_color_brewer(palette = "Set1", name = "Foraging Guild") +
   scale_y_continuous(limits = c(0, 60)) +
   theme_bw() +
   theme(legend.position = "top", legend.title = element_blank(), )
 
 p2 <- rugosity %>%
   filter(response == "Vigilance") %>%
-  ggplot(aes(x = rugosity, y = value, col = protection)) +
+  ggplot(aes(x = rugosity, y = value, col = guild)) +
   geom_smooth(
     aes(group = Draw),
     method = "gam",
@@ -332,14 +353,14 @@ p2 <- rugosity %>%
   ) + # mean trend
   facet_wrap(~response, ncol = 1, scale = "free_y") +
   labs(x = "Rugosity", y = expression("Duration (s)")) +
-  scale_color_brewer(palette = "Set1") +
+  scale_color_brewer(palette = "Set1", name = "Foraging Guild") +
   scale_y_continuous(limits = c(0, 60)) +
   theme_bw() +
   theme(legend.position = "none", legend.title = element_blank(), )
 
 p3 <- rugosity %>%
   filter(response == "Movement") %>%
-  ggplot(aes(x = rugosity, y = value, col = protection)) +
+  ggplot(aes(x = rugosity, y = value, col = guild)) +
   geom_smooth(
     aes(group = Draw),
     method = "gam",
@@ -356,14 +377,14 @@ p3 <- rugosity %>%
   ) + # mean trend
   facet_wrap(~response, ncol = 1, scale = "free_y") +
   labs(x = "Rugosity", y = expression("Duration (s)")) +
-  scale_color_brewer(palette = "Set1") +
+  scale_color_brewer(palette = "Set1", name = "Foraging Guild") +
   scale_y_continuous(limits = c(0, 60)) +
   theme_bw() +
   theme(legend.position = "none", legend.title = element_blank(), )
 
 p4 <- rugosity %>%
   filter(response == "Bites") %>%
-  ggplot(aes(x = rugosity, y = value, col = protection)) +
+  ggplot(aes(x = rugosity, y = value, col = guild)) +
   geom_smooth(
     aes(group = Draw),
     method = "gam",
@@ -380,7 +401,7 @@ p4 <- rugosity %>%
   ) + # mean trend
   facet_wrap(~response, ncol = 1, scale = "free_y") +
   labs(x = "Rugosity", y = expression("Bite rate")) +
-  scale_color_brewer(palette = "Set1") +
+  scale_color_brewer(palette = "Set1", name = "Foraging Guild") +
   theme_bw() +
   theme(legend.position = "none", legend.title = element_blank(), )
 
@@ -481,6 +502,17 @@ dcast(predator, Draw + individual + response + protection ~ predator, value.var 
 predator[, value := Present - Absent]
 predator[, P := Present > Absent] # P(Present > Absent)
 
+predator <- predator %>%
+  mutate(
+    individual = as.integer(individual),
+    Draw = as.integer(Draw)
+  ) %>%
+  left_join(fish, by = c("individual" = "ind_id"))
+
+setDT(predator)
+predator <- predator[!is.na(guild)]
+predator <- predator[guild != "Piscivore"]
+
 summary_predator <- predator[, .(
   mean = mean(value, na.rm = TRUE),
   median = median(value, na.rm = TRUE),
@@ -489,11 +521,11 @@ summary_predator <- predator[, .(
   q750 = quantile(value, 0.75, na.rm = TRUE),
   q975 = quantile(value, 0.975, na.rm = TRUE),
   P = sum(P, na.rm = TRUE) / .N
-), by = .(Draw, response, protection)]
+), by = .(Draw, response, guild)]
 
 summary_predator_table <- summary_predator %>%
   filter(mean < 1.2 * 1e2, mean > -1.2 * 1e2) %>%
-  group_by(response, protection) %>%
+  group_by(response, guild) %>%
   summarise(
     Mean = mean(mean, na.rm = TRUE),
     Median = median(mean, na.rm = TRUE),
@@ -520,12 +552,12 @@ summary_predator_table <- summary_predator %>%
 
 save_as_docx(
   summary_predator_table,
-  path = here("outputs", "counterfactual_protection_predator_summary.docx")
+  path = here("outputs", "counterfactual_predator_summary.docx")
 )
 
 p1 <- summary_predator %>%
   filter(response == "Foraging") %>%
-  ggplot(aes(x = mean, fill = protection)) +
+  ggplot(aes(x = mean, fill = guild)) +
   geom_density(alpha = 0.5) +
   geom_vline(
     xintercept = 0,
@@ -533,15 +565,15 @@ p1 <- summary_predator %>%
     color = "black"
   ) +
   facet_wrap(~response, ncol = 1, scale = "free_y") +
-  labs(x = "Predator Presence", y = expression("Duration (s)")) +
-  scale_fill_brewer(palette = "Set1") +
+  labs(y = "Probability Density", x = expression(Delta ~ "Duration (s)")) +
+  scale_fill_brewer(palette = "Set1", name = "Foraging Guild") +
   scale_x_continuous(limits = c(-120, 120)) +
   theme_bw() +
   theme(legend.position = "none", legend.title = element_blank(), )
 
 p2 <- summary_predator %>%
   filter(response == "Vigilance") %>%
-  ggplot(aes(x = mean, fill = protection)) +
+  ggplot(aes(x = mean, fill = guild)) +
   geom_density(alpha = 0.5) +
   geom_vline(
     xintercept = 0,
@@ -549,15 +581,15 @@ p2 <- summary_predator %>%
     color = "black"
   ) +
   facet_wrap(~response, ncol = 1, scale = "free_y") +
-  labs(x = "Predator Presence", y = expression("Duration (s)")) +
-  scale_fill_brewer(palette = "Set1") +
+  labs(y = "Probability Density", x = expression(Delta ~ "Duration (s)")) +
+  scale_fill_brewer(palette = "Set1", name = "Foraging Guild") +
   scale_x_continuous(limits = c(-120, 120)) +
   theme_bw() +
   theme(legend.position = "none", legend.title = element_blank(), )
 
 p3 <- summary_predator %>%
   filter(response == "Movement") %>%
-  ggplot(aes(x = mean, fill = protection)) +
+  ggplot(aes(x = mean, fill = guild)) +
   geom_density(alpha = 0.5) +
   geom_vline(
     xintercept = 0,
@@ -565,15 +597,15 @@ p3 <- summary_predator %>%
     color = "black"
   ) +
   facet_wrap(~response, ncol = 1, scale = "free_y") +
-  labs(x = "Predator Presence", y = expression("Duration (s)")) +
-  scale_fill_brewer(palette = "Set1") +
+  labs(y = "Probability Density", x = expression(Delta ~ "Duration (s)")) +
+  scale_fill_brewer(palette = "Set1", name = "Foraging Guild") +
   scale_x_continuous(limits = c(-120, 120)) +
   theme_bw() +
   theme(legend.position = "none", legend.title = element_blank(), )
 
 p4 <- summary_predator %>%
   filter(response == "Bites") %>%
-  ggplot(aes(x = mean, fill = protection)) +
+  ggplot(aes(x = mean, fill = guild)) +
   geom_density(alpha = 0.5) +
   geom_vline(
     xintercept = 0,
@@ -581,8 +613,8 @@ p4 <- summary_predator %>%
     color = "black"
   ) +
   facet_wrap(~response, ncol = 1, scale = "free_y") +
-  labs(x = "Predator Presence", y = expression("Bite rate")) +
-  scale_fill_brewer(palette = "Set1") +
+  labs(y = "Probability Density", x = expression(Delta ~ "Bite rate")) +
+  scale_fill_brewer(palette = "Set1", name = "Foraging Guild") +
   theme_bw() +
   theme(legend.position = "none", legend.title = element_blank(), )
 
@@ -612,14 +644,13 @@ gc()
 
 # Combine all plots into one figure
 
-g <- ((g1 | g2) / g3) +
-  plot_layout(nrow = 2, guides = "collect", heights = c(3,2), width = c(3, 2)) &
+g <- ((g1 | g2) / (plot_spacer() + g3 + plot_spacer())) +
+  plot_layout(nrow = 2, guides = "collect", widths = c(1, 1, 1)) &
   theme(legend.position = "top")
 
 ggsave(
   here("figures", "figure5.png"),
   g,
-  width = 10,
+  width = 12,
   height = 10
 )
-

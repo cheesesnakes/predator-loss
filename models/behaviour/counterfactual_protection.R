@@ -12,7 +12,7 @@ pacman::p_load(
 
 theme_set(theme_bw() +
   theme(legend.position = "top", legend.text = element_text(size = 20)))
-  
+
 # load data
 source(here("analysis", "standardise_behaviour.R"))
 
@@ -142,7 +142,7 @@ protection_bites <- as.data.table(protection_bites) %>%
     values_to = "value"
   )
 
-rm(fitf)
+rm(fit)
 gc()
 
 setDT(protection_bites)
@@ -251,8 +251,8 @@ p6 <- summary_protection_bites %>%
 
 ggsave(
   here("figures", "counterfactual_protection.png"),
-  width = 8,
-  height = 8
+  width = 6,
+  height = 6
 )
 
 rm(
@@ -310,20 +310,9 @@ p1 <- summary_protection %>%
     color = "black"
   ) +
   scale_x_continuous(limits = c(-120, 120)) +
-  facet_wrap(~response, ncol = 1) +
+  facet_wrap(~response, nrow = 1) +
   theme_bw() +
   theme(legend.position = "top")
-
-p2 <- summary_protection %>%
-  filter(response != "Bites") %>%
-  ggplot(aes(x = P, y = size_class, fill = guild)) +
-  geom_density_ridges(alpha = 0.5, scale = 1) +
-  labs(y = "Size Class", x = "P(Inside > Outside)") +
-  scale_fill_brewer(palette = "Set1", name = "Feeding Guild") +
-  scale_x_continuous(limits = c(0, 1)) +
-  facet_wrap(~response, ncol = 1) +
-  theme_bw() +
-  theme(legend.position = "none")
 
 p3 <- summary_protection %>%
   filter(response == "Bites") %>%
@@ -337,22 +326,18 @@ p3 <- summary_protection %>%
     color = "black"
   ) +
   scale_x_continuous(limits = c(-1, 1)) +
+  facet_wrap(~response) +
   theme_bw() +
-  theme(legend.position = "top")
-p4 <- summary_protection %>%
-  filter(response == "Bites") %>%
-  ggplot(aes(x = P, y = size_class, fill = guild)) +
-  geom_density_ridges(alpha = 0.5, scale = 1) +
-  labs(y = "Size Class", x = "P(Inside > Outside)") +
-  scale_fill_brewer(palette = "Set1", name = "Feeding Guild") +
-  scale_x_continuous(limits = c(0, 1)) +
-  theme_bw() +
-  theme(legend.position = "none")
+  theme(
+    legend.position = "top",
+    axis.title.y = element_blank(),
+    axis.text.y = element_blank(),
+  )
 
-p <- (p1 + p2) / (p3 + p4) +
+p <- p1 + p3 +
   plot_layout(
-    ncol = 1,
-    heights = c(3, 1),
+    nrow = 1,
+    widths = c(3, 1),
     # Top row gets 75%, bottom 25%
     guides = "collect"
   ) &
@@ -361,6 +346,6 @@ p <- (p1 + p2) / (p3 + p4) +
 ggsave(
   here("figures", "counterfactual_protection_individuals.png"),
   p,
-  width = 6,
-  height = 8
+  width = 10,
+  height = 4
 )
