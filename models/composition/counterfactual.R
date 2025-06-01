@@ -46,26 +46,24 @@ rm(fit)
 gc()
 
 predicted_counts_df <- as.data.table(predicted_counts_raw)
-predicted_counts_df[, Draw := 1:nrow(predicted_counts_df)]
-predicted_counts_df <- predicted_counts_df %>%
-  pivot_longer(
-    cols = -Draw,
-    names_to = "variable",
-    values_to = "count"
-  ) %>%
-  mutate(Draw = as.integer(Draw))
-
-predicted_counts_df <- setDT(predicted_counts_df)
-predicted_counts_df[, variable := str_remove(variable, "abundance\\[")]
-predicted_counts_df[, variable := str_remove(variable, "\\]")]
-predicted_counts_df[, protection := as.integer(str_split(variable, ",", simplify = T)[, 1])]
-predicted_counts_df[, Transect := as.integer(str_split(variable, ",", simplify = T)[, 2])]
-predicted_counts_df[, Species := as.integer(str_split(variable, ",", simplify = T)[, 3])]
-predicted_counts_df[, Size := as.integer(str_split(variable, ",", simplify = T)[, 4])]
-predicted_counts_df[, variable := NULL]
-
 rm(predicted_counts_raw)
 gc()
+
+predicted_counts_df[, Draw := .I]
+
+# Melt to long format using data.table's melt (faster than pivot_longer)
+predicted_counts_df <- melt(predicted_counts_df,
+  id.vars = "Draw",
+  variable.name = "variable", value.name = "count"
+)
+
+# Remove prefix/suffix and split into multiple columns in one go
+predicted_counts_df[, variable := str_remove_all(variable, "abundance\\[|\\]")]
+predicted_counts_df[, c("protection", "Transect", "Species", "Size") :=
+  tstrsplit(variable, ",", type.convert = TRUE)]
+
+# Remove the original 'variable' column
+predicted_counts_df[, variable := NULL]
 
 toc()
 
@@ -119,16 +117,22 @@ predicted_counts_df <- predicted_counts_df[, .(
   N = uniqueN(species)
 ), by = .(draw, protection, transect, guild, size)]
 
+
+dcast(predicted_counts_df, draw + transect + guild + size + N ~ protection, value.var = "count", fun.aggregate = sum) -> predicted_counts_df
+
+predicted_counts_df[, P := Protected > Unprotected]
+
+predicted_counts_df[, Delta := Protected - Unprotected]
+
+toc()
+
 tic("...for guilds..")
 
-summary_df1 <- predicted_counts_df[, .(
+summary_df_guild <- predicted_counts_df[, .(
   N = max(N),
-  mean_count = mean(count),
-  CI5 = quantile(count, 0.025),
-  CI25 = quantile(count, 0.25),
-  CI75 = quantile(count, 0.75),
-  CI95 = quantile(count, 0.975)
-), by = .(guild, protection)]
+  mean_count = mean(Delta),
+  P = mean(P, na.rm = TRUE)
+), by = .(draw, guild)]
 
 toc()
 
@@ -137,37 +141,21 @@ toc()
 tic("...for guilds and size...")
 
 summary_df <- predicted_counts_df[, .(
-  mean_count = mean(count),
-  CI5 = quantile(count, 0.025),
-  CI25 = quantile(count, 0.25),
-  CI75 = quantile(count, 0.75),
-  CI95 = quantile(count, 0.975)
-), by = .(guild, protection, size)]
-
-toc()
-
-tic("Calculating probability P(Protected > Unprotected)...")
-
-dcast(predicted_counts_df, draw + transect + guild + size ~ protection, value.var = "count", fun.aggregate = sum) -> predicted_counts
-
-predicted_counts[, P := Protected > Unprotected]
-
-# P > Unprotected for guilds
-predicted_counts[, .(P = mean(P, na.rm = T)), by = .(draw, guild)] -> protection_summary_guild
-
-# P > Unprotected for guilds and size
-predicted_counts[, .(P = mean(P, na.rm = T)), by = .(draw, guild, size)] -> protection_summary
+  mean_count = mean(Delta),
+  P = mean(P, na.rm = TRUE)
+), by = .(draw, guild, size)]
 
 toc()
 
 tic("Plotting probability P(Protected > Unprotected)...")
 
-p <- protection_summary %>%
+p <- summary_df %>%
   filter(guild != "Unknown") %>%
   ggplot(aes(y = size, x = P, fill = guild)) +
   geom_density_ridges(scale = 1, alpha = 0.5) +
   labs(x = "P(Protected > Unprotected)", y = "Size class") +
   scale_fill_brewer(palette = "Set1", name = "Feeding guild") +
+  scale_x_continuous(limits = c(0, 1), expand = c(0, 0)) +
   theme_bw() +
   theme(
     legend.position = "top",
@@ -176,15 +164,34 @@ p <- protection_summary %>%
     axis.title = element_text(size = 14),
     axis.text = element_text(size = 12)
   ) +
-  facet_wrap(~guild, ncol = 2)
+  facet_wrap(~guild, ncol = 3)
 
-ggsave(here("figures/counterfactual_abundance_probability.png"), p, width = 8, height = 8)
+ggsave(here("figures/counterfactual_abundance_probability.png"), p, width = 8, height = 4)
 
-toc()
+# Plot: Mean ± 95% credible interval
+p <- summary_df %>%
+  filter(guild != "Unknown") %>%
+  ggplot(aes(y = size, x = mean_count)) +
+  geom_density_ridges(aes(fill = guild), scale = 1, alpha = 0.5) +
+  geom_vline(
+    aes(xintercept = 0),
+    linetype = "dashed", color = "black"
+  ) +
+  scale_fill_brewer(palette = "Set1", name = "Feeding guild") +
+  scale_x_continuous(limits = c(-3000, 3000)) +
+  labs(y  = "Size class", x = expression(Delta ~ "Abundance")) +
+  #facet_wrap(~guild, ncol = 3, scale = "free_y") +
+  theme_bw() +
+  theme(
+    legend.position = "top",
+    legend.text = element_text(size = 10),
+    strip.text = element_text(size = 14),
+    axis.title = element_text(size = 14),
+    axis.text = element_text(size = 12)
+  )
 
-tic("Summarising P...")
-
-protection_summary[, .(P = mean(P, na.rm = T)), by = .(guild, size)] -> protection_summary
+# Save figure
+ggsave(here("figures/counterfactual_abundance.png"), p, width = 6, height = 6)
 
 toc()
 
@@ -193,19 +200,25 @@ toc()
 # summary table guild + size
 tic("Creating summary table for guilds and size...")
 
-summary_df <- summary_df %>%
-  left_join(protection_summary, by = c("guild", "size")) %>%
-  arrange(guild, protection, size)
+summary_df[, .(
+  mean_count = mean(mean_count),
+  CI5 = quantile(mean_count, 0.025),
+  CI25 = quantile(mean_count, 0.25),
+  CI75 = quantile(mean_count, 0.75),
+  CI95 = quantile(mean_count, 0.975),
+  P = mean(P, na.rm = TRUE)
+), by = .(guild, size)] -> summary_df
 
 summary_table <- summary_df %>%
-  select(guild, size, protection, P, mean_count, CI5, CI25, CI75, CI95) %>%
+  select(guild, size, P, mean_count, CI5, CI25, CI75, CI95) %>%
   arrange(guild, size) %>%
   flextable() %>%
   set_header_labels(
     guild = "Feeding guild",
+    P = "P(Protected > Unprotected)",
     protection = "Protection",
     size = "Size class",
-    mean_count = "Predicted Abundance",
+    mean_count = "Difference",
     CI5 = "5% CI",
     CI25 = "25% CI",
     CI75 = "75% CI",
@@ -251,28 +264,28 @@ herbivore_P[, guild := NULL]
 herbivore_P <- herbivore_P[, .(P = mean(P, na.rm = TRUE)), by = size]
 
 summary_df <- herbivore_count[, .(
-  mean_count = mean(count),
-  CI5 = quantile(count, 0.025),
-  CI25 = quantile(count, 0.25),
-  CI75 = quantile(count, 0.75),
-  CI95 = quantile(count, 0.975)
-), by = .(protection, size)]
+  mean_count = mean(Delta),
+  CI5 = quantile(Delta, 0.025),
+  CI25 = quantile(Delta, 0.25),
+  CI75 = quantile(Delta, 0.75),
+  CI95 = quantile(Delta, 0.975)
+), by = .(size)]
 
 summary_df <- summary_df %>%
   left_join(herbivore_P, by = "size") %>%
-  arrange(protection, size)
+  arrange(size)
 
 
 # Create summary table for herbivores only
 
 summary_table <- summary_df %>%
-  select(size, protection, P, mean_count, CI5, CI25, CI75, CI95) %>%
+  select(size, P, mean_count, CI5, CI25, CI75, CI95) %>%
   arrange(size) %>%
   flextable() %>%
   set_header_labels(
-    protection = "Protection",
     size = "Size class",
-    mean_count = "Predicted Abundance",
+    P = "P(Protected > Unprotected)",
+    mean_count = "Difference",
     CI5 = "5% CI",
     CI25 = "25% CI",
     CI75 = "75% CI",
@@ -292,20 +305,24 @@ save_as_docx(summary_table, path = here("outputs/counterfactual_abundance_summar
 toc()
 
 # summary table guild only
-protection_summary_guild[, .(P = mean(P, na.rm = T)), by = guild]
+summary_df_guild <- summary_df_guild[, .(
+  N = max(N),
+  mean_count = mean(mean_count),
+  CI5 = quantile(mean_count, 0.025),
+  CI25 = quantile(mean_count, 0.25),
+  CI75 = quantile(mean_count, 0.75),
+  CI95 = quantile(mean_count, 0.975),
+  P = mean(P, na.rm = TRUE)
+), by = guild]
 
-summary_df1 <- summary_df1 %>%
-  left_join(protection_summary_guild, by = "guild") %>%
-  arrange(guild, protection)
-
-summary_table1 <- summary_df1 %>%
-  select(guild, N, protection, P, mean_count, CI5, CI25, CI75, CI95) %>%
+summary_table1 <- summary_df_guild %>%
+  select(guild, N, P, mean_count, CI5, CI25, CI75, CI95) %>%
   arrange(guild) %>%
   flextable() %>%
   set_header_labels(
     guild = "Feeding guild",
-    protection = "Protection",
-    mean_count = "Predicted Abundance",
+    P = "P(Protected > Unprotected)",
+    mean_count = "Difference",
     CI5 = "5% CI",
     CI25 = "25% CI",
     CI75 = "75% CI",
@@ -321,31 +338,3 @@ summary_table1 <- summary_df1 %>%
 print(summary_table1)
 
 save_as_docx(summary_table1, path = here("outputs/counterfactual_abundance_summary_guild.docx"))
-
-# Plot: Mean ± 95% credible interval
-p <- summary_df %>%
-  filter(guild != "Unknown") %>%
-  ggplot(aes(x = size, y = mean_count, color = protection)) +
-  geom_point(size = 2.5, position = position_dodge(width = 0.5)) +
-  geom_errorbar(aes(ymin = CI5, ymax = CI95),
-    width = 0, size = 0.5, position = position_dodge(width = 0.5)
-  ) +
-  geom_errorbar(aes(ymin = CI25, ymax = CI75),
-    width = 0, position = position_dodge(width = 0.5), size = 1,
-  ) +
-  labs(y = "Predicted count (mean ± 50,95% CrI)", x = "Size class") +
-  scale_color_brewer(palette = "Set1", name = "Protection") +
-  facet_wrap(~guild, ncol = 2, scale = "free_y") +
-  theme_bw() +
-  theme(
-    legend.position = "top",
-    legend.text = element_text(size = 10),
-    strip.text = element_text(size = 14),
-    axis.title = element_text(size = 14),
-    axis.text = element_text(size = 12)
-  )
-
-# Save figure
-ggsave(here("figures/counterfactual_abundance.png"), p, width = 8, height = 8)
-
-toc()
