@@ -188,7 +188,7 @@ summary_protection_table <- summary_protection %>%
   mutate(across(where(is.numeric), ~ round(.x, 3))) %>%
   rename(Behaviour = response) %>%
   flextable() %>%
-  set_table_properties(width = .95, layout = "autofit") %>%
+  set_table_properties(width = .95, layout = "fixed") %>%
   colformat_double(
     j = c("Mean", "Median", "Q025", "Q250", "Q750", "Q975"),
     digits = 2,
@@ -197,7 +197,6 @@ summary_protection_table <- summary_protection %>%
   align(align = "center", part = "header") %>%
   align(j = 2:8, align = "right", part = "body") %>%
   bold(part = "header") %>%
-  autofit() %>%
   theme_box()
 
 print(summary_protection_table)
@@ -271,12 +270,7 @@ gc()
 
 # add individual information
 
-protection_bites[, Outside := NULL]
-protection_bites[, Inside := NULL]
 protection_bites[, response := "Bites"]
-
-protection_df[, Outside := NULL]
-protection_df[, Inside := NULL]
 
 protection <- full_join(protection_df, protection_bites)
 
@@ -343,9 +337,88 @@ p <- p1 + p3 +
   ) &
   theme(legend.position = "top")
 
+# Save the plot
 ggsave(
   here("figures", "counterfactual_protection_individuals.png"),
   p,
   width = 10,
   height = 4
+)
+
+# summary across guilds only
+
+summary_protection_guild <- protection[guild %in% c("Herbivore", "Invertivore"), .(
+  mean = mean(Delta, na.rm = TRUE),
+  median = median(Delta, na.rm = TRUE),
+  q025 = quantile(Delta, 0.025, na.rm = TRUE),
+  q250 = quantile(Delta, 0.25, na.rm = TRUE),
+  q750 = quantile(Delta, 0.75, na.rm = TRUE),
+  q975 = quantile(Delta, 0.975, na.rm = TRUE),
+  P = mean(Delta > 0, na.rm = TRUE)
+), by = .(Draw, response, guild)]
+
+summary_protection_guild <- summary_protection_guild %>%
+  group_by(response, guild) %>%
+  summarise(
+    Mean = mean(mean, na.rm = TRUE),
+    P = mean(P, na.rm = TRUE)
+  ) %>%
+  mutate(across(where(is.numeric), ~ round(.x, 3))) %>%
+  rename(Behaviour = response, Guild = guild) %>%
+  flextable() %>%
+  set_table_properties(width = .95, layout = "fixed") %>%
+  colformat_double(
+    j = c("Mean", "P"),
+    digits = 2,
+    na_str = "-"
+  ) %>%
+  align(align = "center", part = "header") %>%
+  align(j = 2:3, align = "right", part = "body") %>%
+  bold(part = "header") %>%
+  theme_box()
+
+print(summary_protection_guild)
+
+save_as_docx(
+  summary_protection_guild,
+  path = here("outputs", "counterfactual_protection_guild_summary.docx")
+)
+
+# summary across size classes only
+
+summary_protection_size <- protection[guild %in% c("Herbivore", "Invertivore"), .(
+  mean = mean(Delta, na.rm = TRUE),
+  median = median(Delta, na.rm = TRUE),
+  q025 = quantile(Delta, 0.025, na.rm = TRUE),
+  q250 = quantile(Delta, 0.25, na.rm = TRUE),
+  q750 = quantile(Delta, 0.75, na.rm = TRUE),
+  q975 = quantile(Delta, 0.975, na.rm = TRUE),
+  P = mean(Delta > 0, na.rm = TRUE)
+), by = .(Draw, response, size_class)]
+
+summary_protection_size <- summary_protection_size %>%
+  group_by(response, size_class) %>%
+  summarise(
+    Mean = mean(mean, na.rm = TRUE),
+    P = mean(P, na.rm = TRUE)
+  ) %>%
+  mutate(across(where(is.numeric), ~ round(.x, 3))) %>%
+  rename(Behaviour = response, Size_Class = size_class) %>%
+  flextable() %>%
+  set_table_properties(width = .95, layout = "fixed") %>%
+  colformat_double(
+    j = c("Mean", "P"),
+    digits = 2,
+    na_str = "-"
+  ) %>%
+  align(align = "center", part = "header") %>%
+  align(j = 2:3, align = "right", part = "body") %>%
+  bold(part = "header") %>%
+  theme_box()
+
+print(summary_protection_size)
+
+save_as_docx(
+  summary_protection_size,
+  path = here("outputs", "counterfactual_protection_size_summary.docx")
 )

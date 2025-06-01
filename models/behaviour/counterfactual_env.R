@@ -538,7 +538,7 @@ summary_predator_table <- summary_predator %>%
   mutate(across(where(is.numeric), ~ round(.x, 3))) %>%
   rename(Behaviour = response) %>%
   flextable() %>%
-  set_table_properties(width = .95, layout = "autofit") %>%
+  set_table_properties(width = .95, layout = "fixed") %>%
   colformat_double(
     j = c("Mean", "Median", "Q025", "Q250", "Q750", "Q975"),
     digits = 2,
@@ -547,7 +547,6 @@ summary_predator_table <- summary_predator %>%
   align(align = "center", part = "header") %>%
   align(j = 2:8, align = "right", part = "body") %>%
   bold(part = "header") %>%
-  autofit() %>%
   theme_box()
 
 save_as_docx(
