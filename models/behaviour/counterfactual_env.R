@@ -644,8 +644,8 @@ gc()
 
 # Combine all plots into one figure
 
-g <- ((g1 | g2) / (plot_spacer() + g3 + plot_spacer())) +
-  plot_layout(nrow = 2, guides = "collect", widths = c(1, 1, 1)) &
+g <- ((g1 | g2) / (plot_spacer() + g3 + plot_spacer() + plot_layout(widths = c(1, 3, 1)))) +
+  plot_layout(nrow = 2, guides = "collect") &
   theme(legend.position = "top")
 
 ggsave(
