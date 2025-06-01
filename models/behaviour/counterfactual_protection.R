@@ -16,7 +16,7 @@ theme_set(theme_bw() +
 # load data
 source(here("analysis", "standardise_behaviour.R"))
 
-traits <- traits %>%
+traits <- guild %>%
   pivot_longer(
     cols = -c(species),
     names_to = "guild",
