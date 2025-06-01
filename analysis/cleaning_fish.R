@@ -9,8 +9,8 @@ transects <- transects %>%
        rename(
               transect = transect_id,
               protection = status
-       )%>%
-       mutate_all(~str_trim(.))
+       ) %>%
+       mutate_all(~ str_trim(.))
 
 # Fish data
 
@@ -46,23 +46,25 @@ fish <- fish %>%
        summarise(count = sum(count, na.rm = TRUE)) %>%
        ungroup() %>%
        replace_na(list(count = 0)) %>%
-       complete(transect, species, size, fill = list(count = 0))%>%
-       mutate_if(~is.character(.), ~str_trim(.))
+       complete(transect, species, size, fill = list(count = 0)) %>%
+       mutate_if(~ is.character(.), ~ str_trim(.))
 
 
-fish <- fish%>%
-  mutate(size = str_replace(size, "X", ""),
-         size = str_replace(size, "cm", ""),
-         size = str_replace(size, "\\.", "-"))
+fish <- fish %>%
+       mutate(
+              size = str_replace(size, "X", ""),
+              size = str_replace(size, "cm", ""),
+              size = str_replace(size, "\\.", "-")
+       )
 
 # species data
 
 traits <- read.csv(here("data", "transect-fish-traits.csv"))
 
 phylo <- traits %>%
-  select(c(Order, Family, Genus)) %>%
-  filter(Family != "") %>%
-  distinct()
+       select(c(Order, Family, Genus)) %>%
+       filter(Family != "") %>%
+       distinct()
 
 traits <- traits %>%
        select(c(Family, Genus, Species, Length..cm., Height, Feeding.Guild, Habitat, Water.Column)) %>%
@@ -72,9 +74,9 @@ traits <- traits %>%
               height = Height, guild = Feeding.Guild, habitat = Habitat, column = Water.Column
        ) %>%
        select(-c(Species)) %>%
-       mutate_if(~is.character(.), ~str_trim(.))%>%
-       mutate(Genus = ifelse(is.na(Genus), str_split(species, " ", simplify = TRUE)[, 1], Genus))%>%
-      mutate(guild = str_to_sentence(guild))
+       mutate_if(~ is.character(.), ~ str_trim(.)) %>%
+       mutate(Genus = ifelse(is.na(Genus), str_split(species, " ", simplify = TRUE)[, 1], Genus)) %>%
+       mutate(guild = str_to_sentence(guild))
 
 
 # Helper function to get mode
@@ -119,7 +121,7 @@ species_df <- data.frame(species = unique(fish$species)) %>%
        mutate(
               Family = ifelse(is.na(Family.x), Family.y, Family.x),
               guild = ifelse(
-                     is.na(guild),
+                     is.na(guild) | guild == "Unknown",
                      map2_chr(Family, Genus, ~ trait_mode(family = .x, genus = .y, trait = "guild")),
                      guild
               ),
@@ -136,10 +138,10 @@ write.csv(species_noinfo, here("outputs/standardised_data/species_noinfo.csv"), 
 
 species_df <- species_df %>%
        filter(!is.na(guild)) %>%
-       distinct(species, .keep_all = TRUE)%>%
-  mutate(guild = str_to_sentence(guild))
+       distinct(species, .keep_all = TRUE) %>%
+       mutate(guild = str_to_sentence(guild))
 
 species_list <- unique(species_df$species)
 
 fish <- fish %>%
-       filter(species %in% species_list) 
+       filter(species %in% species_list)
