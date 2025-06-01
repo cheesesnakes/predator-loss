@@ -245,13 +245,13 @@ p6 <- summary_protection_bites %>%
   scale_x_continuous(limits = c(0, 1)) +
   theme_bw()
 
-(p2 + p3) / (p5 + p6) +
+(p2 | p5) +
   plot_layout(guides = "collect")
 
 ggsave(
   here("figures", "counterfactual_protection.png"),
   width = 6,
-  height = 6
+  height = 3
 )
 
 rm(
@@ -326,6 +326,7 @@ p3 <- summary_protection %>%
     legend.position = "top",
     axis.title.y = element_blank(),
     axis.text.y = element_blank(),
+    axis.ticks.y = element_blank()
   )
 
 p <- p1 + p3 +
@@ -341,7 +342,7 @@ p <- p1 + p3 +
 ggsave(
   here("figures", "counterfactual_protection_individuals.png"),
   p,
-  width = 10,
+  width = 12,
   height = 4
 )
 
