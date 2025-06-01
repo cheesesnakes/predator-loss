@@ -1,7 +1,6 @@
 outputs/
 figures/
 renv/
-*.csv
 *.png
 models/model
 .Rproj.user
