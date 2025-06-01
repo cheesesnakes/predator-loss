@@ -3,7 +3,7 @@ pacman::p_load(here, data.table, dplyr, tidyr, flextable, ggplot2, stringr)
 source(here("models/behaviour/functions.R"))
 source(here("analysis/standardise_behaviour.R"))
 
-guild_levels <- colnames(traits)[-1]
+guild_levels <- colnames(guild)[-1]
 rm(fish, predictors, responses, traits, rugosity)
 
 # Extract summary of parameters
@@ -189,7 +189,7 @@ select(size_class, response, model, mean, q025, q975, P) %>%
     flextable() %>%
     merge_v(j = c("size_class", "response")) %>%
     set_header_labels(model = "Model", response = "Behaviour", size_class = "Size class", mean = "Mean", q025 = "2.5% CrI", q975 = "97.5% CrI") %>%
-    set_table_properties(width = 0, layout = "autofit") %>%
+    set_table_properties(width = 0.95, layout = "fixed") %>%
     theme_box()
 
 print(summary_table)
@@ -214,7 +214,7 @@ summary_table <- summary %>%
     flextable() %>%
     merge_v(j = c("guild", "response")) %>%
     set_header_labels(model = "Model", response = "Behaviour", guild = "Guild", mean = "Mean", q025 = "2.5% CrI", q975 = "97.5% CrI") %>%
-    set_table_properties(width = 0, layout = "autofit") %>%
+    set_table_properties(width = 0.95, layout = "fixed") %>%
     theme_box()
 
 print(summary_table)
@@ -241,7 +241,7 @@ summary_table <- model_summary %>%
     flextable() %>%
     merge_v(j = c("Variable", "response")) %>%
     set_header_labels(model = "Model", response = "Behaviour", mean = "Mean", q025 = "2.5% CrI", q975 = "97.5% CrI") %>%
-    set_table_properties(width = 0, layout = "autofit") %>%
+    set_table_properties(width = 0.95, layout = "fixed") %>%
     theme_box()
 
 print(summary_table)
