@@ -1,29 +1,6 @@
 pacman::p_load(here)
 
 source(here("analysis", "cleaning_behaviour.R"))
-# Guild membership
-
-guild <- traits %>%
-  select(species, guild) %>%
-  mutate(
-    FG1 = str_split(guild, ", ", simplify = T)[, 1],
-    FG2 = str_split(guild, ", ", simplify = T)[, 2]
-  ) %>%
-  select(-c(guild)) %>%
-  pivot_longer(cols = c(FG1, FG2), names_to = "type", values_to = "guild") %>%
-  select(-c(type)) %>%
-  mutate(guild = str_to_sentence(str_trim(guild))) %>%
-  distinct() %>%
-  filter(guild != "") %>%
-  mutate(value = 1) %>%
-  complete(species, guild, fill = list(value = 0)) %>%
-  group_by(species) %>%
-  reframe(
-    value = value / sum(value),
-    guild = guild
-  ) %>%
-  pivot_wider(names_from = guild, values_from = value)
-
 
 # standardise data
 species_levels <- sort(unique(fish$spp))

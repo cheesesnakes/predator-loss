@@ -157,9 +157,9 @@ save_as_image(
 
 # traits
 
-guild_n <- traits %>%
+guild_n <- guild %>%
   ungroup() %>%
-  select(-c(spp)) %>%
+  select(-c(species)) %>%
   summarise_all(~ sum(. > 0, na.rm = TRUE)) %>%
   pivot_longer(
     cols = everything(),
@@ -193,10 +193,10 @@ save_as_image(
 
 # guilds
 
-multiguild <- traits[which(rowSums(traits[, -1] > 0) > 1), ] %>%
-  select(spp) %>%
-  filter(spp %in% fish$spp) %>%
-  rename(Species = spp)
+multiguild <- guild[which(rowSums(guild[, -1] > 0) > 1), ] %>%
+  select(species) %>%
+  filter(species %in% fish$spp) %>%
+  rename(Species = species)
 
 print(paste0("Number of species with multiple guilds: ", nrow(multiguild)))
 
@@ -205,3 +205,11 @@ multiguild <- multiguild %>%
   autofit()
 
 print(multiguild)
+
+save_as_image(
+  multiguild,
+  path = here("figures", "multiguild.png"),
+  type = "png",
+  width = 12,
+  height = 8
+)
