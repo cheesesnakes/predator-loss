@@ -292,58 +292,53 @@ summary_protection <- protection[guild %in% c("Herbivore", "Invertivore"), .(
   P = mean(Delta > 0, na.rm = TRUE)
 ), by = .(Draw, response, guild, size_class)]
 
-p1 <- summary_protection %>%
-  filter(response != "Bites") %>%
-  ggplot(aes(x = mean, y = size_class, fill = guild)) +
-  geom_density_ridges(alpha = 0.5, scale = 1) +
-  labs(y = "Size Class", x = expression("Mean" ~ Delta ~ "Duration (s)")) +
-  scale_fill_brewer(palette = "Set1", name = "Feeding Guild") +
-  geom_vline(
-    xintercept = 0,
-    linetype = "dashed",
-    color = "black"
-  ) +
-  scale_x_continuous(limits = c(-120, 120)) +
-  facet_wrap(~response, nrow = 1) +
-  theme_bw() +
-  theme(legend.position = "top")
+summary_protection[, .(
+  mean = mean(mean, na.rm = TRUE),
+  q025 = quantile(mean, 0.11, na.rm = TRUE),
+  q250 = quantile(mean, 0.25, na.rm = TRUE),
+  q750 = quantile(mean, 0.75, na.rm = TRUE),
+  q975 = quantile(mean, 0.89, na.rm = TRUE),
+  P = mean(P, na.rm = TRUE)
+), by = .(response, guild, size_class)] -> summary_protection
 
-p3 <- summary_protection %>%
-  filter(response == "Bites") %>%
-  ggplot(aes(x = mean, y = size_class, fill = guild)) +
-  geom_density_ridges(alpha = 0.5, scale = 1) +
-  labs(y = "Size Class", x = expression("Mean" ~ Delta ~ "Bite rate")) +
-  scale_fill_brewer(palette = "Set1", name = "Feeding Guild") +
-  geom_vline(
-    xintercept = 0,
-    linetype = "dashed",
-    color = "black"
+p <- summary_protection %>%
+  complete() %>%
+  ggplot(aes(x = size_class, y = mean, col = guild)) +
+  geom_point(size = 2, position = position_dodge(width = 0.5)) +
+  geom_errorbar(
+    aes(ymin = q025, ymax = q975),
+    width = 0,
+    linewidth = 0.5, position = position_dodge(width = 0.5)
   ) +
-  scale_x_continuous(limits = c(-1, 1)) +
-  facet_wrap(~response) +
+  geom_errorbar(
+    aes(ymin = q250, ymax = q750),
+    width = 0,
+    linewidth = 1.5, position = position_dodge(width = 0.5)
+  ) +
+  geom_hline(
+    yintercept = 0,
+    linetype = "dashed",
+    color = "black",
+    alpha = 0.5
+  ) +
+  geom_line(aes(group = guild), linewidth = 0.5, position = position_dodge(width = 0.5), linetype = "dashed") +
+  facet_wrap(~ interaction(guild, response, sep = " | "), scales = "free", ncol = 4) +
+  labs(
+    x = "Size Class",
+    y = expression("Mean" ~ Delta ~ "± 50,89% HDI"),
+    col = "Foraging Guild"
+  ) +
+  scale_color_brewer(palette = "Set1") +
   theme_bw() +
   theme(
-    legend.position = "top",
-    axis.title.y = element_blank(),
-    axis.text.y = element_blank(),
-    axis.ticks.y = element_blank()
+    legend.position = "none",
   )
 
-p <- p1 + p3 +
-  plot_layout(
-    nrow = 1,
-    widths = c(3, 1),
-    # Top row gets 75%, bottom 25%
-    guides = "collect"
-  ) &
-  theme(legend.position = "top")
-
-# Save the plot
 ggsave(
-  here("figures", "counterfactual_protection_individuals.png"),
-  p,
-  width = 12,
-  height = 4
+  here("figures", "counterfactual_protection_summary.png"),
+  plot = p,
+  width = 10,
+  height = 5
 )
 
 # summary across guilds only

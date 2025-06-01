@@ -117,7 +117,62 @@ predicted_counts_df <- predicted_counts_df[, .(
   N = uniqueN(species)
 ), by = .(draw, protection, transect, guild, size)]
 
+toc()
 
+# summary of abundance by protection status
+
+head(predicted_counts_df)
+
+summary_dist <- predicted_counts_df[guild != "Unknown", .(
+  mean_count = mean(count)
+), by = .(draw, protection, guild)]
+
+summary_count <- predicted_counts_df[, .(
+  mean_count = mean(count),
+  CI5 = quantile(count, 0.025),
+  CI25 = quantile(count, 0.25),
+  CI75 = quantile(count, 0.75),
+  CI95 = quantile(count, 0.975)
+), by = .(protection, guild, size)]
+
+p1 <- summary_count %>%
+  filter(guild != "Unknown") %>%
+  ggplot(aes(x = size, y = mean_count, color = protection)) +
+  geom_point(size = 2, position = position_dodge(width = 0.5)) +
+  geom_errorbar(
+    aes(ymin = CI5, ymax = CI95),
+    width = 0,
+    position = position_dodge(width = 0.5),
+    linewidth = 0.5
+  ) +
+  geom_errorbar(
+    aes(ymin = CI25, ymax = CI75),
+    width = 0,
+    position = position_dodge(width = 0.5),
+    linewidth = 1.5
+  ) +
+  geom_line(aes(group = protection), position = position_dodge(width = 0.5), linetype = "dashed") +
+  scale_color_brewer(palette = "Set1", name = "Protection") +
+  scale_x_discrete(guide = guide_axis(n.dodge = 2)) +
+  labs(x = "Size class", y = "Abundance") +
+  facet_wrap(~guild, ncol = 3, scale = "free_y") +
+  theme_bw() +
+  theme(
+    legend.position = "top"
+  )
+
+p2 <- ggplot(summary_dist, aes(x = mean_count, fill = protection)) +
+  geom_density(alpha = 0.5) +
+  labs(x = "Mean abundance", y = "Density") +
+  scale_fill_brewer(palette = "Set1", name = "Protection") +
+  facet_wrap(~guild, ncol = 3, scales = "free") +
+  theme_bw() +
+  theme(
+    legend.position = "top"
+  )
+
+# Reshape to wide format for protection status
+tic("Reshaping to wide format...")
 dcast(predicted_counts_df, draw + transect + guild + size + N ~ protection, value.var = "count", fun.aggregate = sum) -> predicted_counts_df
 
 predicted_counts_df[, P := Protected > Unprotected]
@@ -169,29 +224,52 @@ p <- summary_df %>%
 ggsave(here("figures/counterfactual_abundance_probability.png"), p, width = 8, height = 4)
 
 # Plot: Mean ± 95% credible interval
-p <- summary_df %>%
+
+summary_df[, .(
+  mean_count = mean(mean_count),
+  CI5 = quantile(mean_count, 0.025),
+  CI25 = quantile(mean_count, 0.25),
+  CI75 = quantile(mean_count, 0.75),
+  CI95 = quantile(mean_count, 0.975)
+), by = .(guild, size)] -> summary_df
+
+p3 <- summary_df %>%
   filter(guild != "Unknown") %>%
-  ggplot(aes(y = size, x = mean_count)) +
-  geom_density_ridges(aes(fill = guild), scale = 1, alpha = 0.5) +
-  geom_vline(
-    aes(xintercept = 0),
-    linetype = "dashed", color = "black"
+  ggplot(aes(x = size, y = mean_count)) +
+  geom_point(, size = 2, position = position_dodge(width = 0.5)) +
+  geom_errorbar(
+    aes(ymin = CI5, ymax = CI95),
+    width = 0,
+    position = position_dodge(width = 0.5),
+    linewidth = 0.5
   ) +
-  scale_fill_brewer(palette = "Set1", name = "Feeding guild") +
-  scale_x_continuous(limits = c(-3000, 3000)) +
-  labs(y  = "Size class", x = expression(Delta ~ "Abundance")) +
-  #facet_wrap(~guild, ncol = 3, scale = "free_y") +
+  geom_errorbar(
+    aes(ymin = CI25, ymax = CI75),
+    width = 0,
+    position = position_dodge(width = 0.5),
+    linewidth = 1.5
+  ) +
+  geom_hline(
+    aes(yintercept = 0),
+    linetype = "dashed", color = "black", linewidth = 0.5, alpha = 0.5
+  ) +
+  geom_line(aes(group = guild), position = position_dodge(width = 0.5), linetype = "dashed") +
+  scale_x_discrete(guide = guide_axis(n.dodge = 2)) +
+  labs(x = "Size class", y = expression(Delta ~ "Abundance")) +
+  facet_wrap(~guild, ncol = 3, scale = "free_y") +
   theme_bw() +
   theme(
-    legend.position = "top",
-    legend.text = element_text(size = 10),
-    strip.text = element_text(size = 14),
-    axis.title = element_text(size = 14),
-    axis.text = element_text(size = 12)
+    legend.position = "top"
   )
 
 # Save figure
-ggsave(here("figures/counterfactual_abundance.png"), p, width = 6, height = 6)
+ggsave(here("figures/counterfactual_abundance.png"), p3, width = 6, height = 6)
+
+(p2 / p1 / p3) +
+  plot_layout(guides = "collect") +
+  theme(legend.position = "top")
+# Save figure
+ggsave(here("figures/figure2.png"), width = 8, height = 8)
 
 toc()
 
