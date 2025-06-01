@@ -36,7 +36,7 @@ aspect_levels <- sort(unique(transects$aspect))
 site_levels <- sort(unique(transects$site))
 species_levels <- sort(unique(species_df$species))
 size_levels <- sort(unique(fish$size))
-guild_levels <- sort(unique(species_df$guild))
+guild_levels <- sort(colnames(guild)[-1]) # Exclude 'species' column
 column_levels <- sort(unique(species_df$column))
 habitat_levels <- sort(unique(species_df$habitat))
 protection_levels <- c("unprotected", "protected")

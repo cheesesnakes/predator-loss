@@ -53,9 +53,19 @@ gc()
 
 # Join metadata
 
-species_df <- select(species_df, c(species, guild))
+guild <- guild %>%
+  pivot_longer(
+    cols = -species,
+    names_to = "guild",
+    values_to = "value"
+  ) %>%
+  filter(value > 0) %>%
+  select(-value) %>%
+  mutate(guild = str_to_sentence(str_trim(guild))) %>%
+  group_by(species) %>%
+  summarise(guild = ifelse("Piscivore" %in% guild, "Piscivore", first(guild)))
 
-species_df <- mutate_all(species_df, ~ as.integer(.))
+species_df <- guild
 
 colnames(species_df) <- c("Species", "Guild")
 

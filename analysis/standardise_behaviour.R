@@ -33,6 +33,7 @@ plot_levels <- sort(unique(predictors$plot_id))
 location_levels <- sort(unique(predictors$location))
 site_levels <- sort(unique(predictors$site))
 protection_levels <- c("Unprotected", "Protected")
+guild_levels <- sort(colnames(guild)[-1]) # Exclude 'species' column
 
 responses <- responses %>%
   mutate(
