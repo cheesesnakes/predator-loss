@@ -34,7 +34,7 @@ parameters {
   real tau; // effect of resource availability
   array[G] real tau_G; // effect of resource availability by guild
   array[C] real tau_C; // effect of resource availability by size class
-  array[P] real<lower=0> phi_nb; // dispersion parameter for each protection level
+  array[L] real<lower=0> phi_nb; // location-specific dispersion parameters for negative binomial
   
   array[L] real alpha_psi; // zero-inflation intercepts for locations
   array[G] real gamma_psi; // zero-inflation effect of feeding guilds
@@ -61,7 +61,11 @@ model {
   gamma ~ normal(0, 0.5);
   delta ~ normal(0, 0.5);
   omega ~ normal(0, 0.5); // habitat complexity effect
+  omega_G ~ normal(0, 0.5); // habitat complexity effect by guild
+  omega_C ~ normal(0, 0.5); // habitat complexity effect by size class
   tau ~ normal(0, 0.5); // resource availability effect
+  tau_G ~ normal(0, 0.5); // resource availability effect by guild
+  tau_C ~ normal(0, 0.5); // resource availability effect by size class
   phi_nb ~ exponential(1); // dispersion prior
   
   for (p in 1 : P) {
@@ -85,7 +89,11 @@ model {
   delta_psi ~ normal(0, 0.5);
   theta_psi ~ normal(0, 0.5);
   omega_psi ~ normal(0, 0.5); // habitat complexity effect
+  omega_psi_G ~ normal(0, 0.5); // habitat complexity effect by guild
+  omega_psi_C ~ normal(0, 0.5); // habitat complexity effect by size class
   tau_psi ~ normal(0, 0.5); // resource availability effect
+  tau_psi_G ~ normal(0, 0.5); // resource availability effect by guild
+  tau_psi_C ~ normal(0, 0.5); // resource availability effect by size class
   
   for (c in 1 : C) {
     for (g in 1 : G) {
@@ -145,7 +153,7 @@ model {
       target += bernoulli_lpmf(1 | psi_n);
     } else {
       target += bernoulli_lpmf(0 | psi_n)
-                + neg_binomial_2_lpmf(count[n] | lambda_n, phi_nb[p]);
+                + neg_binomial_2_lpmf(count[n] | lambda_n, phi_nb[l]);
     }
   }
 }
@@ -186,13 +194,13 @@ generated quantities {
       log_lik[n] = bernoulli_lpmf(1 | psi_n);
     } else {
       log_lik[n] = bernoulli_lpmf(0 | psi_n)
-                   + neg_binomial_2_lpmf(count[n] | lambda_n, phi_nb[p]);
+                   + neg_binomial_2_lpmf(count[n] | lambda_n, phi_nb[l]);
     }
     
     if (count[n] == 0) {
       pred_count[n] = 0; // zero-inflated case
     } else {
-      pred_count[n] = neg_binomial_2_rng(lambda_n, phi_nb[p]); // non-zero case
+      pred_count[n] = neg_binomial_2_rng(lambda_n, phi_nb[l]); // non-zero case
     }
   }
   
@@ -236,7 +244,7 @@ generated quantities {
           } else {
             // Non-zero expected abundance
             abundance[p, t, s, c] = neg_binomial_2_rng(exp(log_lambda),
-                                                       phi_nb[p]); // non-zero case
+                                                       phi_nb[l]); // non-zero case
           }
         }
       }
