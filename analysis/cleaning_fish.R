@@ -1,7 +1,30 @@
 pacman::p_load(dplyr, tidyr, here, stringr, purrr)
 
-# Transect data
+# Benthic cover data
 
+transects <- read.csv(here("data", "transect-metadata.csv"))
+benthic <- read.csv("data/chapter-3_benthic_cover-transects.csv")
+
+transects <- transects %>%
+    select(transect_id, n_cover)
+
+category_names <- read.csv(here("data/benthic_categories.csv"))
+
+benthic <- benthic %>%
+    left_join(category_names, by = "category") %>%
+    select(transect_id, quadrat, names, count) %>%
+    group_by(transect_id, quadrat, names) %>%
+    summarise(cover = sum(count))%>%
+    left_join(transects, by = "transect_id") %>%
+    mutate(p = cover / n_cover) %>%
+    select(-c(cover, n_cover)) %>%
+    pivot_wider(
+      names_from = names,
+      values_from = p,
+      values_fill = 0
+    )
+
+# Clean transect metadata
 transects <- read.csv(here("data", "transect-metadata.csv"))
 
 transects <- transects %>%
@@ -145,3 +168,8 @@ species_list <- unique(species_df$species)
 
 fish <- fish %>%
        filter(species %in% species_list)
+
+head(fish)
+head(species_df)
+head(transects)
+head(benthic)

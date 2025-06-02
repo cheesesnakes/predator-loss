@@ -63,6 +63,9 @@ fish <- fish %>%
               species = as.numeric(factor(species, levels = species_levels)),
               size = as.numeric(factor(size, levels = size_levels)),
        )
+fish <- rename(fish, abundance = count)
+
+fish <- filter(fish, abundance > 0)
 
 species_df <- species_df %>%
        mutate(
@@ -77,22 +80,25 @@ guild <- guild %>%
               species = as.numeric(factor(species, levels = species_levels))
        )
 
+benthic <- benthic %>%
+       mutate(
+              transect_id = as.numeric(factor(transect_id, levels = transect_levels)))
+
 colnames(transects) <- str_to_lower(colnames(transects))
 colnames(fish) <- str_to_lower(colnames(fish))
 colnames(species_df) <- str_to_lower(colnames(species_df))
 colnames(guild) <- str_to_lower(colnames(guild))
-
-fish <- rename(fish, abundance = count)
-
-fish <- filter(fish, abundance > 0)
+colnames(benthic) <- str_to_lower(colnames(benthic))
 
 summary(transects)
 summary(fish)
 summary(species_df)
 summary(guild)
+summary(benthic)
 
 # Save cleaned data
 write.csv(transects, here("outputs/standardised_data/transects.csv"), row.names = FALSE)
 write.csv(fish, here("outputs/standardised_data/fish.csv"), row.names = FALSE)
 write.csv(species_df, here("outputs/standardised_data/species.csv"), row.names = FALSE)
 write.csv(guild, here("outputs/standardised_data/transect_guild.csv"), row.names = FALSE)
+write.csv(benthic, here("outputs/standardised_data/transect_benthic.csv"), row.names = FALSE)
