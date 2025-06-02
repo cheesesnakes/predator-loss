@@ -230,7 +230,8 @@ summary_df[, .(
   CI5 = quantile(mean_count, 0.025),
   CI25 = quantile(mean_count, 0.25),
   CI75 = quantile(mean_count, 0.75),
-  CI95 = quantile(mean_count, 0.975)
+  CI95 = quantile(mean_count, 0.975),
+  P = mean(P, na.rm = TRUE)
 ), by = .(guild, size)] -> summary_df
 
 p3 <- summary_df %>%
@@ -278,15 +279,6 @@ toc()
 # summary table guild + size
 tic("Creating summary table for guilds and size...")
 
-summary_df[, .(
-  mean_count = mean(mean_count),
-  CI5 = quantile(mean_count, 0.025),
-  CI25 = quantile(mean_count, 0.25),
-  CI75 = quantile(mean_count, 0.75),
-  CI95 = quantile(mean_count, 0.975),
-  P = mean(P, na.rm = TRUE)
-), by = .(guild, size)] -> summary_df
-
 summary_table <- summary_df %>%
   select(guild, size, P, mean_count, CI5, CI25, CI75, CI95) %>%
   arrange(guild, size) %>%
@@ -330,29 +322,14 @@ herbivore_count[, size := case_when(
 herbivore_count[, size := factor(size, levels = 1:3, labels = size_levels)]
 herbivore_count[, guild := NULL]
 
-herbivore_P <- protection_summary[guild == "Herbivore"]
-herbivore_P[, size := as.numeric(size)]
-herbivore_P[, size := case_when(
-  size < 2 ~ 1,
-  size == 2 | size == 3 ~ 2,
-  size > 3 ~ 3
-)]
-herbivore_P[, size := factor(size, levels = 1:3, labels = size_levels)]
-herbivore_P[, guild := NULL]
-herbivore_P <- herbivore_P[, .(P = mean(P, na.rm = TRUE)), by = size]
-
 summary_df <- herbivore_count[, .(
   mean_count = mean(Delta),
   CI5 = quantile(Delta, 0.025),
   CI25 = quantile(Delta, 0.25),
   CI75 = quantile(Delta, 0.75),
-  CI95 = quantile(Delta, 0.975)
+  CI95 = quantile(Delta, 0.975),
+  P = mean(P, na.rm = TRUE)
 ), by = .(size)]
-
-summary_df <- summary_df %>%
-  left_join(herbivore_P, by = "size") %>%
-  arrange(size)
-
 
 # Create summary table for herbivores only
 

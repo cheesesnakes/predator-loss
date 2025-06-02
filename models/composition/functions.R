@@ -89,3 +89,27 @@ fit_model <- function(stan_data, model_file, run = "validation") {
   # fit_mle$save_object(file = here(output_dir, paste0(run, "_fit_mle.rds")))
   return(fit_result)
 }
+
+
+# function to extract posterior samples
+
+extract <- function(param) {
+# Load the fitted model
+fit <- readRDS(here("outputs/standardised_community_fit.rds"))
+
+# Extract draws 
+message("Extracting ", param)
+
+draw <- fit$draws(param)
+df <- as.data.table(draw)
+
+rm(fit)
+gc()
+
+# Create draw index
+df[, draw := as.numeric(iteration) * as.numeric(chain)]
+df[, c("iteration", "chain") := NULL]
+
+return(df)
+
+}
