@@ -47,16 +47,6 @@ parameters {
   array[T] real<lower=1e-6, upper=1 - 1e-6> R; // resource availability estimate
   array[T] real<lower=1e-6> pi_R; // precision of resource availability
 }
-transformed parameters {
-  // Transformations for habitat complexity and resource availability
-  array[T] real H_std;
-  array[T] real R_std;
-  
-  for (t in 1 : T) {
-    H_std[t] = (H[t] - mean(H)) / sd(H);
-    R_std[t] = (R[t] - mean(R)) / sd(R);
-  }
-}
 model {
   // Priors for count
   alpha ~ normal(0, 0.5);
@@ -126,13 +116,12 @@ model {
     real log_lambda = alpha[l] + dot_product(gamma, guild[s]) + delta[p]
                       + dot_product(beta[p], guild[s]) + phi[p, c]
                       + dot_product(epsilon[c], guild[s]) + theta[c]
-                      + omega * H_std[t] + tau * R_std[t];
+                      + omega * H[t] + tau * R[t];
     
     real logit_psi = alpha_psi[l] + dot_product(gamma_psi, guild[s])
                      + delta_psi[p] + dot_product(beta_psi[p], guild[s])
                      + dot_product(epsilon_psi[c], guild[s]) + phi_psi[p, c]
-                     + theta_psi[c] + omega_psi * H_std[t]
-                     + tau_psi * R_std[t];
+                     + theta_psi[c] + omega_psi * H[t] + tau_psi * R[t];
     
     real lambda_n = exp(log_lambda);
     real psi_n = inv_logit(logit_psi);
@@ -161,13 +150,12 @@ generated quantities {
     real log_lambda = alpha[l] + dot_product(gamma, guild[s]) + delta[p]
                       + dot_product(beta[p], guild[s]) + phi[p, c]
                       + dot_product(epsilon[c], guild[s]) + theta[c]
-                      + omega * H_std[t] + tau * R_std[t];
+                      + omega * H[t] + tau * R[t];
     
     real logit_psi = alpha_psi[l] + dot_product(gamma_psi, guild[s])
                      + delta_psi[p] + dot_product(beta_psi[p], guild[s])
                      + phi_psi[p, c] + dot_product(epsilon_psi[c], guild[s])
-                     + theta_psi[c] + omega_psi * H_std[t]
-                     + tau_psi * R_std[t];
+                     + theta_psi[c] + omega_psi * H[t] + tau_psi * R[t];
     
     real lambda_n = exp(log_lambda);
     real psi_n = inv_logit(logit_psi);
@@ -188,8 +176,8 @@ generated quantities {
   
   // counterfactual abundance estimation
   
-  real mean_H = mean(H_std);
-  real mean_R = mean(R_std);
+  real mean_H = mean(H);
+  real mean_R = mean(R);
   
   for (pr in 1 : P) {
     for (t in 1 : T) {

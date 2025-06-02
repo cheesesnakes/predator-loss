@@ -35,7 +35,7 @@ fit_result <- fit_model(stan_data, here("models", "composition/model.stan"), run
 
 # summary of the model fit
 # Retrieve all variable names from the fitted model
-vars <- c("gamma", "delta")
+vars <- c("gamma", "delta", "omega", "tau")
 # Use grep to filter variable names matching the regex pattern
 print(fit_result$summary(variables = vars))
 

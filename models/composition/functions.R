@@ -93,23 +93,43 @@ fit_model <- function(stan_data, model_file, run = "validation") {
 
 # function to extract posterior samples
 
-extract <- function(param) {
+extract <- function(p) {
 # Load the fitted model
 fit <- readRDS(here("outputs/standardised_community_fit.rds"))
 
+models <- c("", "_psi")
+
+data <- data.table()
+
+for (m in models){
+
+param <- paste0(p, m)
 # Extract draws 
 message("Extracting ", param)
 
 draw <- fit$draws(param)
 df <- as.data.table(draw)
 
-rm(fit)
-gc()
-
 # Create draw index
 df[, draw := as.numeric(iteration) * as.numeric(chain)]
 df[, c("iteration", "chain") := NULL]
 
-return(df)
+# add model name
+if (m == "_psi") {
+  df[, model := "zero-inflation"]
+} else {
+  df[, model := "abundance"]
+}
+
+# save 
+data <- rbind(data, df, use.names = TRUE, fill = TRUE)
+rm(df)
+gc()
+}
+# Clean up
+rm(fit)
+gc()
+
+return(data)
 
 }
