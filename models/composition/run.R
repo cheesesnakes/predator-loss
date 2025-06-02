@@ -61,7 +61,7 @@ counts <- response$abundance
 
 # Posterior predictive check for foraging durations
 ppc_dens_overlay(y = counts, yrep = ppc) +
-  scale_x_log10()+
+  scale_x_continuous(limits = c(0, 100)) +
   labs(x = "Abundance", y = "Density")
 
 ggsave(here(figure_dir, "ppc_abundance.png"), width = 10, height = 8)

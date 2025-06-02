@@ -39,11 +39,11 @@ prep_stan <- function(fish, transects, species, guild, benthic) {
     guild = as.matrix(guild[-1]), # feeding guild IDs
     count = fish$abundance, # abundance data
     protection = as.integer(transects$protection), # protection level IDs
-    location = as.integer(transects$location) # location IDs
+    location = as.integer(transects$location), # location IDs
 
     transect_quadrat = benthic$transect_id, # transect index for benthic data
     coral = benthic$coral, # coral cover data
-    biomass = benthic$resource, # benthic biomass data
+    biomass = benthic$resource # benthic biomass data
   )
 
   return(stan_data)
@@ -73,7 +73,8 @@ fit_model <- function(stan_data, model_file, run = "validation") {
     iter_sampling = 1000,
     refresh = 50,
     # adapt_delta = 0.95,
-    # max_treedepth = 15
+    # max_treedepth = 15,
+    init = 0.01
   )
 
   ## optimize the model

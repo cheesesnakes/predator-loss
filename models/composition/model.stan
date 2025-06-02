@@ -7,16 +7,16 @@ data {
   int G; // number of feeding guilds
   int C; // number of size classes
   int Q; // total number of quadrats sampled
-
+  
   array[N] int<lower=1, upper=S> species; // species index
   array[T] int<lower=1, upper=L> location; // location index
   array[N] int<lower=1, upper=T> transect; // transect index
   array[T] int<lower=1, upper=P> protection; // protection level index
-  array[S, G] int<lower=0, upper=1> guild; // feeding guild membership matrix
+  array[S, G] real<lower=0, upper=1> guild; // feeding guild membership matrix
   array[N] int<lower=1, upper=C> size; // size class index
   array[N] int<lower=0> count; // count of individuals
   
-  array[Q] int<lower=0, upper = T> transect_quadrat; // transect index for quadrats
+  array[Q] int<lower=1, upper=T> transect_quadrat; // transect index for quadrats
   array[Q] real<lower=0, upper=1> coral; // coral cover
   array[Q] real<lower=0, upper=1> biomass; // biomass 
 }
@@ -41,18 +41,27 @@ parameters {
   array[P, C] real phi_psi; // zero-inflation interaction between protection and size class
   real omega_psi; // zero-inflation effect of habitat complexity
   real tau_psi; // zero-inflation effect of resource availability
-
-  array[T] real<lower=0, upper=1> H; // habitat complexity estimate
-  real pi_H; //precision of habitat complexity
-  array[T] real<lower=0, upper=1> R; // resource availability estimate
-  real pi_R; // precision of resource availability
+  
+  array[T] real<lower=1e-6, upper=1 - 1e-6> H; // habitat complexity estimate
+  array[T] real<lower=1e-6> pi_H; //precision of habitat complexity
+  array[T] real<lower=1e-6, upper=1 - 1e-6> R; // resource availability estimate
+  array[T] real<lower=1e-6> pi_R; // precision of resource availability
+}
+transformed parameters {
+  // Transformations for habitat complexity and resource availability
+  array[T] real H_std;
+  array[T] real R_std;
+  
+  for (t in 1 : T) {
+    H_std[t] = (H[t] - mean(H)) / sd(H);
+    R_std[t] = (R[t] - mean(R)) / sd(R);
+  }
 }
 model {
   // Priors for count
   alpha ~ normal(0, 0.5);
   gamma ~ normal(0, 0.5);
   delta ~ normal(0, 0.5);
-  theta ~ normal(0, 0.5);
   omega ~ normal(0, 0.5); // habitat complexity effect
   tau ~ normal(0, 0.5); // resource availability effect
   phi_nb ~ exponential(1); // dispersion prior
@@ -72,16 +81,15 @@ model {
   }
   
   // Priors for zero-inflation
-
+  
   alpha_psi ~ normal(0, 0.5);
   gamma_psi ~ normal(0, 0.5);
   delta_psi ~ normal(0, 0.5);
   theta_psi ~ normal(0, 0.5);
   omega_psi ~ normal(0, 0.5); // habitat complexity effect
   tau_psi ~ normal(0, 0.5); // resource availability effect
-
+  
   for (c in 1 : C) {
-    epsilon_psi[c] ~ normal(0, 0.5);
     for (g in 1 : G) {
       epsilon_psi[c, g] ~ normal(0, 0.5);
     }
@@ -93,15 +101,20 @@ model {
   }
   
   // Priors for habitat complexity and resource availability
-  pi_H ~ normal(0, 1);
-  pi_R ~ normal(0, 1);
-
+  H ~ beta(1, 1); // uniform prior for habitat complexity
+  R ~ beta(1, 1); // uniform prior for resource availability
+  pi_H ~ exponential(1);
+  pi_R ~ exponential(1);
+  
   // estimate habitat complexity and resource availability
   for (q in 1 : Q) {
-    coral[q] ~ beta(H[transect_quadrat[q]]*pi_H, (1 - H[transect_quadrat[q]])*pi_H);
-    biomass[q] ~ beta(R[transect_quadrat[q]]*pi_R, (1 - R[transect_quadrat[q]])*pi_R);
+    coral[q] ~ beta(H[transect_quadrat[q]] * pi_H[transect_quadrat[q]],
+                    (1 - H[transect_quadrat[q]]) * pi_H[transect_quadrat[q]]);
+    biomass[q] ~ beta(R[transect_quadrat[q]] * pi_R[transect_quadrat[q]],
+                      (1 - R[transect_quadrat[q]])
+                      * pi_R[transect_quadrat[q]]);
   }
-
+  
   // Likelihood
   for (n in 1 : N) {
     int t = transect[n];
@@ -113,15 +126,13 @@ model {
     real log_lambda = alpha[l] + dot_product(gamma, guild[s]) + delta[p]
                       + dot_product(beta[p], guild[s]) + phi[p, c]
                       + dot_product(epsilon[c], guild[s]) + theta[c]
-                      + omega * coral[transect_quadrat[n]]
-                      + tau * biomass[transect_quadrat[n]];
+                      + omega * H_std[t] + tau * R_std[t];
     
     real logit_psi = alpha_psi[l] + dot_product(gamma_psi, guild[s])
                      + delta_psi[p] + dot_product(beta_psi[p], guild[s])
                      + dot_product(epsilon_psi[c], guild[s]) + phi_psi[p, c]
-                     + theta_psi[c] 
-                     + omega_psi * coral[transect_quadrat[n]]
-                     + tau_psi * biomass[transect_quadrat[n]];
+                     + theta_psi[c] + omega_psi * H_std[t]
+                     + tau_psi * R_std[t];
     
     real lambda_n = exp(log_lambda);
     real psi_n = inv_logit(logit_psi);
@@ -150,23 +161,23 @@ generated quantities {
     real log_lambda = alpha[l] + dot_product(gamma, guild[s]) + delta[p]
                       + dot_product(beta[p], guild[s]) + phi[p, c]
                       + dot_product(epsilon[c], guild[s]) + theta[c]
-                      + omega * coral[transect_quadrat[n]]
-                      + tau * biomass[transect_quadrat[n]];
+                      + omega * H_std[t] + tau * R_std[t];
     
     real logit_psi = alpha_psi[l] + dot_product(gamma_psi, guild[s])
                      + delta_psi[p] + dot_product(beta_psi[p], guild[s])
                      + phi_psi[p, c] + dot_product(epsilon_psi[c], guild[s])
-                     + theta_psi[c]
-                     + omega_psi * coral[transect_quadrat[n]]
-                     + tau_psi * biomass[transect_quadrat[n]];
+                     + theta_psi[c] + omega_psi * H_std[t]
+                     + tau_psi * R_std[t];
     
     real lambda_n = exp(log_lambda);
     real psi_n = inv_logit(logit_psi);
     
-    log_lik[n] = bernoulli_lpmf(1 | psi_n) * (count[n] == 0)
-                 + bernoulli_lpmf(0 | psi_n) * (count[n] > 0)
-                 + neg_binomial_2_lpmf(count[n] | lambda_n, phi_nb)
-                   * (count[n] > 0);
+    if (count[n] == 0) {
+      log_lik[n] = bernoulli_lpmf(1 | psi_n);
+    } else {
+      log_lik[n] = bernoulli_lpmf(0 | psi_n)
+                   + neg_binomial_2_lpmf(count[n] | lambda_n, phi_nb);
+    }
     
     if (count[n] == 0) {
       pred_count[n] = 0; // zero-inflated case
@@ -176,33 +187,30 @@ generated quantities {
   }
   
   // counterfactual abundance estimation
-
-  real mean_H = mean(H);
-  real mean_R = mean(R);
-
+  
+  real mean_H = mean(H_std);
+  real mean_R = mean(R_std);
+  
   for (pr in 1 : P) {
     for (t in 1 : T) {
       for (s in 1 : S) {
         for (c in 1 : C) {
           int p = pr;
           int l = location[t];
-
+          
           real log_lambda = alpha[l] + dot_product(gamma, guild[s])
                             + delta[p] + dot_product(beta[p], guild[s])
                             + phi[p, c] + dot_product(epsilon[c], guild[s])
-                            + theta[c]
-                            + omega * mean_H
-                            + tau * mean_R;
-
+                            + theta[c] + omega * mean_H + tau * mean_R;
+          
           real logit_psi = alpha_psi[l] + dot_product(gamma_psi, guild[s])
                            + delta_psi[p]
                            + dot_product(beta_psi[p], guild[s])
                            + phi_psi[p, c]
                            + dot_product(epsilon_psi[c], guild[s])
-                           + theta_psi[c]
-                           + omega_psi * mean_H
+                           + theta_psi[c] + omega_psi * mean_H
                            + tau_psi * mean_R;
-                           
+          
           real psi_tsc = inv_logit(logit_psi);
           
           if (bernoulli_rng(psi_tsc)) {
