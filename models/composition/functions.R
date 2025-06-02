@@ -98,12 +98,14 @@ extract <- function(p) {
 fit <- readRDS(here("outputs/standardised_community_fit.rds"))
 
 models <- c("", "_psi")
+interactions <- c("", "_G", "_C")
 
 data <- data.table()
 
 for (m in models){
-
-param <- paste0(p, m)
+for (i in interactions) 
+{
+param <- paste0(p, m, i)
 # Extract draws 
 message("Extracting ", param)
 
@@ -114,6 +116,15 @@ df <- as.data.table(draw)
 df[, draw := as.numeric(iteration) * as.numeric(chain)]
 df[, c("iteration", "chain") := NULL]
 
+# strip variable name
+
+if (i != ""){
+  df[, variable := str_remove_all(variable, paste0(param, "\\["))]
+  df[, variable := str_remove_all(variable, "\\]")]
+}else{
+  df[, variable := NA]
+}
+
 # add model name
 if (m == "_psi") {
   df[, model := "zero-inflation"]
@@ -121,10 +132,20 @@ if (m == "_psi") {
   df[, model := "abundance"]
 }
 
+# add interaction type
+
+if (i == "_G") {
+  df[, interaction := "Foraging guild"]
+} else if (i == "_C") {
+  df[, interaction := "Size class"]
+} else {
+  df[, interaction := "Overall"]
+}
+
 # save 
 data <- rbind(data, df, use.names = TRUE, fill = TRUE)
 rm(df)
-gc()
+gc()}
 }
 # Clean up
 rm(fit)
