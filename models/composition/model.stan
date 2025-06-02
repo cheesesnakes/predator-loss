@@ -124,12 +124,19 @@ model {
     real log_lambda = alpha[l] + dot_product(gamma, guild[s]) + delta[p]
                       + dot_product(beta[p], guild[s]) + phi[p, c]
                       + dot_product(epsilon[c], guild[s]) + theta[c]
-                      + omega * H[t] + tau * R[t];
+                      + omega * H[t] + tau * R[t]
+                      + dot_product(omega_G, guild[s]) * H[t]
+                      + omega_C[c] * H[t]
+                      + dot_product(tau_G, guild[s]) * R[t] + tau_C[c] * R[t];
     
     real logit_psi = alpha_psi[l] + dot_product(gamma_psi, guild[s])
                      + delta_psi[p] + dot_product(beta_psi[p], guild[s])
                      + dot_product(epsilon_psi[c], guild[s]) + phi_psi[p, c]
-                     + theta_psi[c] + omega_psi * H[t] + tau_psi * R[t];
+                     + theta_psi[c] + omega_psi * H[t] + tau_psi * R[t]
+                     + dot_product(omega_psi_G, guild[s]) * H[t]
+                     + omega_psi_C[c] * H[t]
+                     + dot_product(tau_psi_G, guild[s]) * R[t]
+                     + tau_psi_C[c] * R[t];
     
     real lambda_n = exp(log_lambda);
     real psi_n = inv_logit(logit_psi);
@@ -158,12 +165,19 @@ generated quantities {
     real log_lambda = alpha[l] + dot_product(gamma, guild[s]) + delta[p]
                       + dot_product(beta[p], guild[s]) + phi[p, c]
                       + dot_product(epsilon[c], guild[s]) + theta[c]
-                      + omega * H[t] + tau * R[t];
+                      + omega * H[t] + tau * R[t]
+                      + dot_product(omega_G, guild[s]) * H[t]
+                      + omega_C[c] * H[t]
+                      + dot_product(tau_G, guild[s]) * R[t] + tau_C[c] * R[t];
     
     real logit_psi = alpha_psi[l] + dot_product(gamma_psi, guild[s])
                      + delta_psi[p] + dot_product(beta_psi[p], guild[s])
                      + phi_psi[p, c] + dot_product(epsilon_psi[c], guild[s])
-                     + theta_psi[c] + omega_psi * H[t] + tau_psi * R[t];
+                     + theta_psi[c] + omega_psi * H[t] + tau_psi * R[t]
+                     + dot_product(omega_psi_G, guild[s]) * H[t]
+                     + omega_psi_C[c] * H[t]
+                     + dot_product(tau_psi_G, guild[s]) * R[t]
+                     + tau_psi_C[c] * R[t];
     
     real lambda_n = exp(log_lambda);
     real psi_n = inv_logit(logit_psi);
@@ -197,7 +211,11 @@ generated quantities {
           real log_lambda = alpha[l] + dot_product(gamma, guild[s])
                             + delta[p] + dot_product(beta[p], guild[s])
                             + phi[p, c] + dot_product(epsilon[c], guild[s])
-                            + theta[c] + omega * mean_H + tau * mean_R;
+                            + theta[c] + omega * mean_H + tau * mean_R
+                            + dot_product(omega_G, guild[s]) * mean_H
+                            + omega_C[c] * mean_H
+                            + dot_product(tau_G, guild[s]) * mean_R
+                            + tau_C[c] * mean_R;
           
           real logit_psi = alpha_psi[l] + dot_product(gamma_psi, guild[s])
                            + delta_psi[p]
@@ -205,7 +223,11 @@ generated quantities {
                            + phi_psi[p, c]
                            + dot_product(epsilon_psi[c], guild[s])
                            + theta_psi[c] + omega_psi * mean_H
-                           + tau_psi * mean_R;
+                           + tau_psi * mean_R
+                           + dot_product(omega_psi_G, guild[s]) * mean_H
+                           + omega_psi_C[c] * mean_H
+                           + dot_product(tau_psi_G, guild[s]) * mean_R
+                           + tau_psi_C[c] * mean_R;
           
           real psi_tsc = inv_logit(logit_psi);
           
