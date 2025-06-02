@@ -12,13 +12,14 @@ load_data <- function(run) {
   transects <- read.csv(here(data_dir, "transects.csv"))
   species <- read.csv(here(data_dir, "species.csv"))
   guild <- read.csv(here(data_dir, "transect_guild.csv"))
+  benthic <- read.csv(here(data_dir, "transect_benthic.csv"))
 
-  return(list(fish = fish, transects = transects, species = species, guild = guild))
+  return(list(fish = fish, transects = transects, species = species, guild = guild, benthic = benthic))
 }
 
 # prepare the data for Stan
 
-prep_stan <- function(fish, transects, species, guild) {
+prep_stan <- function(fish, transects, species, guild, benthic) {
   # Prepare the data for Stan
   # fish: data frame with fish data
   # transects: data frame with transect data
@@ -31,6 +32,7 @@ prep_stan <- function(fish, transects, species, guild) {
     L = length(unique(transects$location)), # number of locations
     G = ncol(guild) - 1, # number of feeding guilds
     C = length(unique(fish$size)), # number of size classes
+    Q = length(benthic$quadrat), # number of quadrats
     transect = as.integer(fish$transect), # transect IDs
     species = as.integer(fish$species), # species IDs
     size = as.integer(fish$size), # size class IDs
@@ -38,6 +40,10 @@ prep_stan <- function(fish, transects, species, guild) {
     count = fish$abundance, # abundance data
     protection = as.integer(transects$protection), # protection level IDs
     location = as.integer(transects$location) # location IDs
+
+    transect_quadrat = benthic$transect_id, # transect index for benthic data
+    coral = benthic$coral, # coral cover data
+    biomass = benthic$resource, # benthic biomass data
   )
 
   return(stan_data)

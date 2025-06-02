@@ -27,7 +27,8 @@ stan_data <- prep_stan(
   fish = data$fish,
   transects = data$transects,
   species = data$species,
-  guild = data$guild
+  guild = data$guild,
+  benthic = data$benthic
 )
 
 fit_result <- fit_model(stan_data, here("models", "composition/model.stan"), run = run)
