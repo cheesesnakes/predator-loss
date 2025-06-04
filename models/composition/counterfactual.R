@@ -177,7 +177,7 @@ dcast(predicted_counts_df, draw + transect + guild + size + N ~ protection, valu
 
 predicted_counts_df[, P := Protected > Unprotected]
 
-predicted_counts_df[, Delta := Protected - Unprotected]
+predicted_counts_df[, Delta := log(Protected + 1) - log(Unprotected + 1)]
 
 toc()
 
@@ -213,11 +213,8 @@ p <- summary_df %>%
   scale_x_continuous(limits = c(0, 1), expand = c(0, 0)) +
   theme_bw() +
   theme(
-    legend.position = "top",
-    legend.text = element_text(size = 10),
-    strip.text = element_text(size = 14),
-    axis.title = element_text(size = 14),
-    axis.text = element_text(size = 12)
+    legend.position = "none",
+    text = element_text(size = 16),
   ) +
   facet_wrap(~guild, ncol = 3)
 
@@ -227,10 +224,10 @@ ggsave(here("figures/counterfactual_abundance_probability.png"), p, width = 8, h
 
 summary_df[, .(
   mean_count = mean(mean_count),
-  CI5 = quantile(mean_count, 0.025),
-  CI25 = quantile(mean_count, 0.25),
-  CI75 = quantile(mean_count, 0.75),
-  CI95 = quantile(mean_count, 0.975),
+  CI5 = quantile(mean_count, 0.025, na.rm = TRUE),
+  CI25 = quantile(mean_count, 0.25, na.rm = TRUE),
+  CI75 = quantile(mean_count, 0.75, na.rm = TRUE),
+  CI95 = quantile(mean_count, 0.975, na.rm = TRUE),
   P = mean(P, na.rm = TRUE)
 ), by = .(guild, size)] -> summary_df
 
@@ -256,7 +253,7 @@ p3 <- summary_df %>%
   ) +
   geom_line(aes(group = guild), position = position_dodge(width = 0.5), linetype = "dashed") +
   scale_x_discrete(guide = guide_axis(n.dodge = 2)) +
-  labs(x = "Size class", y = expression(Delta ~ "Abundance")) +
+  labs(x = "Size class", y = "Log-fold change") +
   facet_wrap(~guild, ncol = 3, scale = "free_y") +
   theme_bw() +
   theme(
@@ -264,7 +261,7 @@ p3 <- summary_df %>%
   )
 
 # Save figure
-ggsave(here("figures/counterfactual_abundance.png"), p3, width = 6, height = 6)
+ggsave(here("figures/counterfactual_abundance.png"), p3, width = 9, height = 4)
 
 (p2 / p1 / p3) +
   plot_layout(guides = "collect") +
@@ -288,7 +285,7 @@ summary_table <- summary_df %>%
     P = "P(Protected > Unprotected)",
     protection = "Protection",
     size = "Size class",
-    mean_count = "Difference",
+    mean_count = "LFC",
     CI5 = "5% CI",
     CI25 = "25% CI",
     CI75 = "75% CI",
@@ -340,7 +337,7 @@ summary_table <- summary_df %>%
   set_header_labels(
     size = "Size class",
     P = "P(Protected > Unprotected)",
-    mean_count = "Difference",
+    mean_count = "LFC",
     CI5 = "5% CI",
     CI25 = "25% CI",
     CI75 = "75% CI",
@@ -377,7 +374,7 @@ summary_table1 <- summary_df_guild %>%
   set_header_labels(
     guild = "Feeding guild",
     P = "P(Protected > Unprotected)",
-    mean_count = "Difference",
+    mean_count = "LFC",
     CI5 = "5% CI",
     CI25 = "25% CI",
     CI75 = "75% CI",

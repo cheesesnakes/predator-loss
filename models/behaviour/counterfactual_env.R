@@ -499,7 +499,7 @@ predator[, predator := factor(predator,
 )]
 
 dcast(predator, Draw + individual + response + protection ~ predator, value.var = "value") -> predator
-predator[, value := Present - Absent]
+predator[, value := log(Present + 1) - log(Absent + 1)]
 predator[, P := Present > Absent] # P(Present > Absent)
 
 predator <- predator %>%
@@ -524,7 +524,6 @@ summary_predator <- predator[, .(
 ), by = .(Draw, response, guild)]
 
 summary_predator_table <- summary_predator %>%
-  filter(mean < 1.2 * 1e2, mean > -1.2 * 1e2) %>%
   group_by(response, guild) %>%
   summarise(
     Mean = mean(mean, na.rm = TRUE),
@@ -554,8 +553,7 @@ save_as_docx(
   path = here("outputs", "counterfactual_predator_summary.docx")
 )
 
-p1 <- summary_predator %>%
-  filter(response == "Foraging") %>%
+g3 <-  summary_predator %>%
   ggplot(aes(x = mean, fill = guild)) +
   geom_density(alpha = 0.5) +
   geom_vline(
@@ -563,63 +561,11 @@ p1 <- summary_predator %>%
     linetype = "dashed",
     color = "black"
   ) +
-  facet_wrap(~response, ncol = 1, scale = "free_y") +
-  labs(y = "Probability Density", x = expression(Delta ~ "Duration (s)")) +
-  scale_fill_brewer(palette = "Set1", name = "Foraging Guild") +
-  scale_x_continuous(limits = c(-120, 120)) +
-  theme_bw() +
-  theme(legend.position = "none", legend.title = element_blank(), )
-
-p2 <- summary_predator %>%
-  filter(response == "Vigilance") %>%
-  ggplot(aes(x = mean, fill = guild)) +
-  geom_density(alpha = 0.5) +
-  geom_vline(
-    xintercept = 0,
-    linetype = "dashed",
-    color = "black"
-  ) +
-  facet_wrap(~response, ncol = 1, scale = "free_y") +
-  labs(y = "Probability Density", x = expression(Delta ~ "Duration (s)")) +
-  scale_fill_brewer(palette = "Set1", name = "Foraging Guild") +
-  scale_x_continuous(limits = c(-120, 120)) +
-  theme_bw() +
-  theme(legend.position = "none", legend.title = element_blank(), )
-
-p3 <- summary_predator %>%
-  filter(response == "Movement") %>%
-  ggplot(aes(x = mean, fill = guild)) +
-  geom_density(alpha = 0.5) +
-  geom_vline(
-    xintercept = 0,
-    linetype = "dashed",
-    color = "black"
-  ) +
-  facet_wrap(~response, ncol = 1, scale = "free_y") +
-  labs(y = "Probability Density", x = expression(Delta ~ "Duration (s)")) +
-  scale_fill_brewer(palette = "Set1", name = "Foraging Guild") +
-  scale_x_continuous(limits = c(-120, 120)) +
-  theme_bw() +
-  theme(legend.position = "none", legend.title = element_blank(), )
-
-p4 <- summary_predator %>%
-  filter(response == "Bites") %>%
-  ggplot(aes(x = mean, fill = guild)) +
-  geom_density(alpha = 0.5) +
-  geom_vline(
-    xintercept = 0,
-    linetype = "dashed",
-    color = "black"
-  ) +
-  facet_wrap(~response, ncol = 1, scale = "free_y") +
-  labs(y = "Probability Density", x = expression(Delta ~ "Bite rate")) +
+  facet_wrap(~response, ncol = 2, scale = "free_y") +
+  labs(y = "Probability Density", x = "Log-fold change") +
   scale_fill_brewer(palette = "Set1", name = "Foraging Guild") +
   theme_bw() +
-  theme(legend.position = "none", legend.title = element_blank(), )
-
-g3 <- (p1 + p2 + p3 + p4) +
-  plot_layout(ncol = 2, guides = "collect") &
-  theme(legend.position = "top")
+  theme(legend.position = "top", legend.title = element_blank(), )
 
 ggsave(
   plot = g3,
