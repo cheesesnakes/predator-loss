@@ -254,7 +254,7 @@ p3 <- summary_df %>%
   geom_line(aes(group = guild), position = position_dodge(width = 0.5), linetype = "dashed") +
   scale_x_discrete(guide = guide_axis(n.dodge = 2)) +
   labs(x = "Size class", y = "Log-fold change") +
-  facet_wrap(~guild, ncol = 3, scale = "free_y") +
+  facet_wrap(~guild, ncol = 3) +
   theme_bw() +
   theme(
     legend.position = "top"

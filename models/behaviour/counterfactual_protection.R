@@ -163,19 +163,20 @@ save_as_docx(
 
 # plot counterfactual protection
 
-ggplot(summary_protection, aes(x = mean, fill = response))+
-geom_density(alpha = 0.5) +
-geom_vline(
-  aes(xintercept = 0),
-  linetype = "dashed",
-  color = "black",
-  alpha = 0.5
+ggplot(summary_protection, aes(y = mean, x = response, fill = response))+
+geom_boxplot(
+  width = 0.25,
+  alpha = 0.5,
+  col = "black",
+  outlier.shape = NA
 ) +
-labs(x = "Log-fold chnage", 
-     y = "Density",
-     fill = "Behaviour") +
-scale_fill_brewer(palette = "Set1") +
-facet_wrap(~ response, scales = "free_y", ncol = 2) +
+geom_hline(
+  aes(yintercept = 0),
+  linetype = "dashed",
+  color = "black"
+) +
+labs(y = "Log-fold change", 
+     x = "Density") +
 theme_bw() +
 theme(
   legend.position = "none",
@@ -185,8 +186,8 @@ theme(
 ggsave(
   here("figures", "counterfactual_protection.png"),
   plot = p1,
-  width = 8,
-  height = 8
+  width = 5,
+  height = 5
 )
 
 rm(
@@ -252,7 +253,7 @@ p <- summary_protection %>%
     alpha = 0.5
   ) +
   geom_line(aes(group = guild), linewidth = 0.5, position = position_dodge(width = 0.5), linetype = "dashed") +
-  facet_wrap(~interaction(guild, response, sep = " | "), scales = "free", ncol = 4) +
+  facet_wrap(~interaction(guild, response, sep = " | "), scales = "free", ncol = 2) +
   labs(
     x = "Size Class",
     y = "Log-fold change",
@@ -267,8 +268,8 @@ p <- summary_protection %>%
 ggsave(
   here("figures", "counterfactual_protection_summary.png"),
   plot = p,
-  width = 10,
-  height = 5
+  width = 6,
+  height = 8
 )
 
 # summary across guilds only
