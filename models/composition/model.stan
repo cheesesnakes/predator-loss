@@ -34,8 +34,8 @@ parameters {
   real tau; // effect of resource availability
   array[G] real tau_G; // effect of resource availability by guild
   array[C] real tau_C; // effect of resource availability by size class
-  array[L] real<lower=0> phi_nb; // location-specific dispersion parameters for negative binomial
-  
+  real<lower=0> phi_nb; // dispersion parameters for negative binomial
+
   array[L] real alpha_psi; // zero-inflation intercepts for locations
   array[G] real gamma_psi; // zero-inflation effect of feeding guilds
   array[P] real delta_psi; // zero-inflation effect of protection levels
@@ -153,7 +153,7 @@ model {
       target += bernoulli_lpmf(1 | psi_n);
     } else {
       target += bernoulli_lpmf(0 | psi_n)
-                + neg_binomial_2_lpmf(count[n] | lambda_n, phi_nb[l]);
+                + neg_binomial_2_lpmf(count[n] | lambda_n, phi_nb);
     }
   }
 }
@@ -194,13 +194,13 @@ generated quantities {
       log_lik[n] = bernoulli_lpmf(1 | psi_n);
     } else {
       log_lik[n] = bernoulli_lpmf(0 | psi_n)
-                   + neg_binomial_2_lpmf(count[n] | lambda_n, phi_nb[l]);
+                   + neg_binomial_2_lpmf(count[n] | lambda_n, phi_nb);
     }
     
     if (count[n] == 0) {
       pred_count[n] = 0; // zero-inflated case
     } else {
-      pred_count[n] = neg_binomial_2_rng(lambda_n, phi_nb[l]); // non-zero case
+      pred_count[n] = neg_binomial_2_rng(lambda_n, phi_nb); // non-zero case
     }
   }
   
@@ -244,7 +244,7 @@ generated quantities {
           } else {
             // Non-zero expected abundance
             abundance[p, t, s, c] = neg_binomial_2_rng(exp(log_lambda),
-                                                       phi_nb[l]); // non-zero case
+                                                       phi_nb); // non-zero case
           }
         }
       }
