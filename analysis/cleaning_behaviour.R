@@ -148,27 +148,6 @@ colnames(fish) <- str_to_lower(colnames(fish))
 
 # attach foraging guild information
 
-traits <- read.csv("data/transect-fish-traits.csv")
-
-# traits <- traits%>%
-# select(c(Genus, Species, Feeding.Guild))%>%
-## join genus and species
-# mutate(spp = paste0(Genus, " ", Species))%>%
-## split feeding guild into FG1 and FG2
-# mutate(Feeding.Guild = gsub(" ", "", Feeding.Guild))%>%
-# separate(Feeding.Guild, into = c("FG1", "FG2"), sep = ",")%>%
-# pivot_longer(cols = c(FG1, FG2), names_to = "FG", values_to = "Feeding.Guild")%>%
-# select(spp, Feeding.Guild)%>%
-# filter(Feeding.Guild != "Unknown", !is.na(Feeding.Guild))%>%
-# mutate(Feeding.Guild = str_to_sentence(Feeding.Guild),
-# Feeding.Guild =  ifelse(Feeding.Guild == "Corallivore", "Coralivore", Feeding.Guild),
-# Feeding.Guild =  ifelse(Feeding.Guild == "Planktivores", "Planktivore", Feeding.Guild))%>%
-# mutate(value = 1)%>%
-# complete(spp, Feeding.Guild, fill = list(value = 0))%>%
-# group_by(spp)%>%
-# mutate(value =  value/sum(value))%>%
-# pivot_wider(names_from = "Feeding.Guild", values_from = "value", values_fn = last)
-
 traits <- read.csv(here("data", "transect-fish-traits.csv"))
 
 phylo <- traits %>%
@@ -408,6 +387,38 @@ guild <- traits %>%
     guild = guild
   ) %>%
   pivot_wider(names_from = guild, values_from = value)
+
+# multiple guilds
+
+multiguild <- guild[which(rowSums(guild[, -1] > 0) > 1), ] %>%
+  select(species) %>%
+  filter(species %in% fish$spp) %>%
+  rename(Species = species)
+
+print(paste0("Number of species with multiple guilds: ", nrow(multiguild)))
+
+multiguild <- multiguild %>%
+  flextable() %>%
+  autofit()
+
+print(multiguild)
+
+save_as_image(
+  multiguild,
+  path = here("figures", "multiguild.png"),
+  type = "png",
+  width = 12,
+  height = 8
+)
+
+# make multiple guild into single
+
+guild <- guild %>%
+  mutate(
+    Herbivore = ifelse(Herbivore > 0, 1, 0),
+    Piscivore = ifelse(Piscivore > 0, 1, 0),
+    Invertivore = ifelse(Invertivore == 1, 1, 0),
+  )
 
 # remove temporary objects
 

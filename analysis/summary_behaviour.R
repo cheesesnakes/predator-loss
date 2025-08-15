@@ -15,7 +15,7 @@ print(paste0("Number of species: ", length(unique(fish$spp))))
 print(paste0("Number of size classes: ", length(unique(fish$size))))
 print(paste0("Size classes sampled: ", paste(unique(fish$size), collapse = ", ")))
 
-print(paste0("Guilds samples: ", paste(colnames(traits)[-1], collapse = ", ")))
+print(paste0("Guilds samples: ", paste(colnames(guild)[-1], collapse = ", ")))
 
 print(paste0("Number of grouping individuals: ", sum(fish$group)))
 
@@ -160,7 +160,7 @@ save_as_image(
 guild_n <- guild %>%
   ungroup() %>%
   select(-c(species)) %>%
-  summarise_all(~ sum(. > 0, na.rm = TRUE)) %>%
+  summarise_all(~ sum(. == 1, na.rm = TRUE)) %>%
   pivot_longer(
     cols = everything(),
     names_to = "Trait",
@@ -186,29 +186,6 @@ save_as_docx(guild_n, path = here("outputs", "guild_n.docx"))
 save_as_image(
   guild_n,
   path = here("figures", "guild_n.png"),
-  type = "png",
-  width = 12,
-  height = 8
-)
-
-# guilds
-
-multiguild <- guild[which(rowSums(guild[, -1] > 0) > 1), ] %>%
-  select(species) %>%
-  filter(species %in% fish$spp) %>%
-  rename(Species = species)
-
-print(paste0("Number of species with multiple guilds: ", nrow(multiguild)))
-
-multiguild <- multiguild %>%
-  flextable() %>%
-  autofit()
-
-print(multiguild)
-
-save_as_image(
-  multiguild,
-  path = here("figures", "multiguild.png"),
   type = "png",
   width = 12,
   height = 8

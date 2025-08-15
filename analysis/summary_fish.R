@@ -4,7 +4,7 @@ source(here("analysis", "cleaning_fish.R"))
 
 colnames(fish) <- str_to_sentence(colnames(fish))
 
-# sampling 
+# sampling
 
 print(paste0("Number of locations: ", n_distinct(transects$location)))
 
@@ -35,22 +35,58 @@ print(paste0("Species with no information: ", nrow(species_noinfo)))
 
 print(paste0("Size classes: ", paste(unique(fish$Size), collapse = ", ")))
 
-assemblage <- fish%>%
+assemblage <- fish %>%
   group_by(Species) %>%
   summarise(Abundance = sum(Count)) %>%
   mutate(Species = str_to_sentence(Species)) %>%
   left_join(species_df, by = c("Species" = "species")) %>%
-  arrange(desc(Abundance))%>%
-  distinct()%>%
+  arrange(desc(Abundance)) %>%
+  distinct() %>%
   select(Order, Family, Species, guild, column, habitat, Abundance)
 
 colnames(assemblage) <- c("Order", "Family", "Species", "Guild", "Column", "Habitat", "Abundance")
 
-assemblage <- flextable(assemblage, col_keys = colnames(assemblage))%>%
-  italic(j = 3)%>%
-  set_table_properties(layout = "fixed", align = "center", width = 0.95)%>%
+assemblage <- flextable(assemblage, col_keys = colnames(assemblage)) %>%
+  italic(j = 3) %>%
+  set_table_properties(layout = "fixed", align = "center", width = 0.95) %>%
   theme_box()
 
 print(assemblage)
 
 save_as_docx(assemblage, path = here("outputs/assemblage_summary.docx"))
+
+# traits
+
+guild_n <- guild %>%
+  ungroup() %>%
+  select(-c(species)) %>%
+  summarise_all(~ sum(. == 1, na.rm = TRUE)) %>%
+  pivot_longer(
+    cols = everything(),
+    names_to = "Trait",
+    values_to = "Count"
+  )
+
+guild_n <- guild_n %>%
+  flextable() %>%
+  set_table_properties(width = .95, layout = "fixed") %>%
+  colformat_double(
+    j = c("Count"),
+    digits = 0, na_str = "-"
+  ) %>%
+  align(align = "center", part = "header") %>%
+  align(j = 2, align = "right", part = "body") %>%
+  bold(part = "header") %>%
+  autofit() %>%
+  theme_box()
+
+print(guild_n)
+
+save_as_docx(guild_n, path = here("outputs", "transects_guild_n.docx"))
+save_as_image(
+  guild_n,
+  path = here("figures", "transects_guild_n.png"),
+  type = "png",
+  width = 12,
+  height = 8
+)

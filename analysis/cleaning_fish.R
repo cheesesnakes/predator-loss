@@ -6,23 +6,23 @@ transects <- read.csv(here("data", "transect-metadata.csv"))
 benthic <- read.csv("data/chapter-3_benthic_cover-transects.csv")
 
 transects <- transects %>%
-    select(transect_id, n_cover)
+       select(transect_id, n_cover)
 
 category_names <- read.csv(here("data/benthic_categories.csv"))
 
 benthic <- benthic %>%
-    left_join(category_names, by = "category") %>%
-    select(transect_id, quadrat, names, count) %>%
-    group_by(transect_id, quadrat, names) %>%
-    summarise(cover = sum(count))%>%
-    left_join(transects, by = "transect_id") %>%
-    mutate(p = cover / n_cover) %>%
-    select(-c(cover, n_cover)) %>%
-    pivot_wider(
-      names_from = names,
-      values_from = p,
-      values_fill = 0
-    )
+       left_join(category_names, by = "category") %>%
+       select(transect_id, quadrat, names, count) %>%
+       group_by(transect_id, quadrat, names) %>%
+       summarise(cover = sum(count)) %>%
+       left_join(transects, by = "transect_id") %>%
+       mutate(p = cover / n_cover) %>%
+       select(-c(cover, n_cover)) %>%
+       pivot_wider(
+              names_from = names,
+              values_from = p,
+              values_fill = 0
+       )
 
 # Clean transect metadata
 transects <- read.csv(here("data", "transect-metadata.csv"))
@@ -169,7 +169,65 @@ species_list <- unique(species_df$species)
 fish <- fish %>%
        filter(species %in% species_list)
 
+# Guild membership
+
+guild <- species_df %>%
+       select(species, guild) %>%
+       mutate(
+              FG1 = str_split(guild, ", ", simplify = T)[, 1],
+              FG2 = str_split(guild, ", ", simplify = T)[, 2]
+       ) %>%
+       select(-c(guild)) %>%
+       pivot_longer(cols = c(FG1, FG2), names_to = "type", values_to = "guild") %>%
+       select(-c(type)) %>%
+       mutate(guild = str_to_sentence(str_trim(guild))) %>%
+       distinct() %>%
+       filter(guild != "") %>%
+       mutate(value = 1) %>%
+       complete(species, guild, fill = list(value = 0)) %>%
+       group_by(species) %>%
+       reframe(
+              value = value / sum(value),
+              guild = guild
+       ) %>%
+       pivot_wider(names_from = guild, values_from = value)
+
+# Multiguild
+
+multiguild <- guild[which(rowSums(guild[, -1] > 0) > 1), ] %>%
+       select(species) %>%
+       filter(species %in% fish$species) %>%
+       rename(Species = species)
+
+print(paste0("Number of species with multiple guilds: ", nrow(multiguild)))
+
+multiguild <- multiguild %>%
+       flextable() %>%
+       autofit()
+
+print(multiguild)
+
+save_as_image(
+       multiguild,
+       path = here("figures", "transects_multiguild.png"),
+       type = "png",
+       width = 12,
+       height = 8
+)
+
+# Use only dominant guild
+
+guild <- guild %>%
+       mutate(
+              Herbivore = ifelse(Herbivore > 0, 1, 0),
+              Piscivore = ifelse(Piscivore > 0, 1, 0),
+              Invertivore = ifelse(Invertivore == 1, 1, 0),
+       ) %>%
+       select(-c(Planktivore))
+
+
 head(fish)
 head(species_df)
 head(transects)
 head(benthic)
+head(guild)

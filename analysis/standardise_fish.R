@@ -4,30 +4,6 @@ pacman::p_load(
 
 source(here("analysis", "cleaning_fish.R"))
 
-# Guild membership
-
-guild <- species_df %>%
-       select(species, guild) %>%
-       mutate(
-              FG1 = str_split(guild, ", ", simplify = T)[, 1],
-              FG2 = str_split(guild, ", ", simplify = T)[, 2]
-       ) %>%
-       select(-c(guild)) %>%
-       pivot_longer(cols = c(FG1, FG2), names_to = "type", values_to = "guild") %>%
-       select(-c(type)) %>%
-       mutate(guild = str_to_sentence(str_trim(guild))) %>%
-       distinct() %>%
-       filter(guild != "") %>%
-       mutate(value = 1) %>%
-       complete(species, guild, fill = list(value = 0)) %>%
-       group_by(species) %>%
-       reframe(
-              value = value / sum(value),
-              guild = guild
-       ) %>%
-       pivot_wider(names_from = guild, values_from = value)
-
-
 # code factors
 
 transect_levels <- sort(unique(transects$transect))
@@ -82,7 +58,8 @@ guild <- guild %>%
 
 benthic <- benthic %>%
        mutate(
-              transect_id = as.numeric(factor(transect_id, levels = transect_levels)))
+              transect_id = as.numeric(factor(transect_id, levels = transect_levels))
+       )
 
 colnames(transects) <- str_to_lower(colnames(transects))
 colnames(fish) <- str_to_lower(colnames(fish))
