@@ -161,15 +161,16 @@ p1 <- summary_count %>%
     legend.position = "top"
   )
 
-p2 <- ggplot(summary_dist, aes(x = mean_count, fill = protection)) +
-  geom_density(alpha = 0.5) +
-  labs(x = "Mean abundance", y = "Density") +
+p2 <- ggplot(summary_dist, aes(x = guild, y = mean_count, fill = protection)) +
+  geom_boxplot(alpha = 0.5, col = "black", outliers = FALSE, width = 0.5) +
+  labs(y = "Mean abundance", x = "Foraging Guild") +
   scale_fill_brewer(palette = "Set1", name = "Protection") +
-  facet_wrap(~guild, ncol = 3, scales = "free") +
   theme_bw() +
   theme(
     legend.position = "top"
   )
+
+ggsave(here("figures/predicted_abundance_guild.png"), p2, width = 6, height = 4)
 
 # Reshape to wide format for protection status
 tic("Reshaping to wide format...")
@@ -263,7 +264,7 @@ p3 <- summary_df %>%
 # Save figure
 ggsave(here("figures/counterfactual_abundance.png"), p3, width = 9, height = 4)
 
-(p2 / p1 / p3) +
+(p1 / p3) +
   plot_layout(guides = "collect") +
   theme(legend.position = "top")
 # Save figure

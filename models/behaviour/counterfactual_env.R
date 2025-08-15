@@ -103,7 +103,7 @@ biomass_bites[, variable := str_remove(variable, "\\]")]
 biomass_bites[, c("protection", "sample", "individual") := tstrsplit(variable, ",")]
 biomass_bites[, protection := factor(protection,
   levels = 1:2,
-  labels = c("Outside", "Inside")
+  labels = c("Outside PA", "Inside PA")
 )]
 biomass_bites[, variable := NULL]
 biomass_bites[, response := "Bites"]
@@ -273,7 +273,7 @@ rugosity[, variable := str_remove(variable, "\\]")]
 rugosity[, c("protection", "sample", "individual", "response") := tstrsplit(variable, ",")]
 rugosity[, protection := factor(protection,
   levels = 1:2,
-  labels = c("Outside", "Inside")
+  labels = c("Outside PA", "Inside PA")
 )]
 rugosity[, response := factor(
   response,
@@ -299,7 +299,7 @@ rugosity_bites[, variable := str_remove(variable, "\\]")]
 rugosity_bites[, c("protection", "sample", "individual") := tstrsplit(variable, ",")]
 rugosity_bites[, protection := factor(protection,
   levels = 1:2,
-  labels = c("Outside", "Inside")
+  labels = c("Outside PA", "Inside PA")
 )]
 rugosity_bites[, variable := NULL]
 rugosity_bites[, response := "Bites"]
@@ -320,7 +320,7 @@ rugosity <- rugosity %>%
     individual = as.integer(individual),
     sample = as.integer(sample),
     rugosity = (mean + std_var[sample] * sd)
-  ) 
+  )
 
 
 setDT(rugosity)
@@ -482,7 +482,7 @@ predator[, variable := str_remove(variable, "\\]")]
 predator[, c("protection", "predator", "individual", "response") := tstrsplit(variable, ",")]
 predator[, protection := factor(protection,
   levels = 1:2,
-  labels = c("Outside", "Inside")
+  labels = c("Outside PA", "Inside PA")
 )]
 predator[, response := factor(
   response,
@@ -508,7 +508,7 @@ predator_bites[, variable := str_remove(variable, "\\]")]
 predator_bites[, c("protection", "predator", "individual") := tstrsplit(variable, ",")]
 predator_bites[, protection := factor(protection,
   levels = 1:2,
-  labels = c("Outside", "Inside")
+  labels = c("Outside PA", "Inside PA")
 )]
 predator_bites[, variable := NULL]
 predator_bites[, response := "Bites"]
@@ -535,7 +535,7 @@ predator <- predator %>%
   mutate(
     individual = as.integer(individual),
     Draw = as.integer(Draw)
-  ) 
+  )
 
 setDT(predator)
 
@@ -589,7 +589,7 @@ toc()
 print("Plotting counterfactual protection predator presence...\n")
 tic()
 
-g3 <-  summary_predator %>%
+g3 <- summary_predator %>%
   ggplot(aes(y = mean, x = response)) +
   geom_boxplot(
     aes(fill = protection),
@@ -634,7 +634,8 @@ toc()
 print("Combining all plots into one figure...\n")
 tic()
 
-g <- (g1 / g2) 
+g <- (g1 / g2) + plot_layout(guides = "collect") &
+  theme(legend.position = "top", legend.title = element_blank())
 
 ggsave(
   here("figures", "figure5.png"),
