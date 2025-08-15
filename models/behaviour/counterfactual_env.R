@@ -120,10 +120,13 @@ biomass <- biomass %>%
     individual = as.integer(individual),
     sample = as.integer(sample),
     biomass = (mean + std_var[sample] * sd)
-  )
+  )%>%
+  left_join(fish, by = c("individual" = "ind_id"))
 
 setDT(biomass)
 biomass <- biomass[!is.na(biomass)]
+biomass <- biomass[!is.na(guild)]
+biomass <- biomass[guild != "Piscivore"]
 
 toc()
 
@@ -132,7 +135,7 @@ tic()
 
 p1 <- biomass %>%
   filter(response == "Foraging") %>%
-  ggplot(aes(x = biomass * 100, y = value, col = protection)) +
+  ggplot(aes(x = biomass * 100, y = value, col = guild)) +
   geom_smooth(
     aes(group = Draw),
     method = "gam",
@@ -156,7 +159,7 @@ p1 <- biomass %>%
 
 p2 <- biomass %>%
   filter(response == "Vigilance") %>%
-  ggplot(aes(x = biomass * 100, y = value, col = protection)) +
+  ggplot(aes(x = biomass * 100, y = value, col = guild)) +
   geom_smooth(
     aes(group = Draw),
     method = "gam",
@@ -180,7 +183,7 @@ p2 <- biomass %>%
 
 p3 <- biomass %>%
   filter(response == "Movement") %>%
-  ggplot(aes(x = biomass * 100, y = value, col = protection)) +
+  ggplot(aes(x = biomass * 100, y = value, col = guild)) +
   geom_smooth(
     aes(group = Draw),
     method = "gam",
@@ -204,7 +207,7 @@ p3 <- biomass %>%
 
 p4 <- biomass %>%
   filter(response == "Bites") %>%
-  ggplot(aes(x = biomass * 100, y = value, col = protection)) +
+  ggplot(aes(x = biomass * 100, y = value, col = guild)) +
   geom_smooth(
     aes(group = Draw),
     method = "gam",
@@ -320,11 +323,14 @@ rugosity <- rugosity %>%
     individual = as.integer(individual),
     sample = as.integer(sample),
     rugosity = (mean + std_var[sample] * sd)
-  )
+  ) %>%
+  left_join(fish, by = c("individual" = "ind_id"))
 
 
 setDT(rugosity)
 rugosity <- rugosity[!is.na(rugosity)]
+rugosity <- rugosity[!is.na(guild)]
+rugosity <- rugosity[guild != "Piscivore"]
 sample <- sample(1:4000, 100)
 
 toc()
@@ -334,7 +340,7 @@ tic()
 
 p1 <- rugosity %>%
   filter(response == "Foraging") %>%
-  ggplot(aes(x = rugosity, y = value, col = protection)) +
+  ggplot(aes(x = rugosity, y = value, col = guild)) +
   geom_smooth(
     aes(group = Draw),
     method = "gam",
@@ -358,7 +364,7 @@ p1 <- rugosity %>%
 
 p2 <- rugosity %>%
   filter(response == "Vigilance") %>%
-  ggplot(aes(x = rugosity, y = value, col = protection)) +
+  ggplot(aes(x = rugosity, y = value, col = guild)) +
   geom_smooth(
     aes(group = Draw),
     method = "gam",
@@ -382,7 +388,7 @@ p2 <- rugosity %>%
 
 p3 <- rugosity %>%
   filter(response == "Movement") %>%
-  ggplot(aes(x = rugosity, y = value, col = protection)) +
+  ggplot(aes(x = rugosity, y = value, col = guild)) +
   geom_smooth(
     aes(group = Draw),
     method = "gam",
@@ -406,7 +412,7 @@ p3 <- rugosity %>%
 
 p4 <- rugosity %>%
   filter(response == "Bites") %>%
-  ggplot(aes(x = rugosity, y = value, col = protection)) +
+  ggplot(aes(x = rugosity, y = value, col = guild)) +
   geom_smooth(
     aes(group = Draw),
     method = "gam",
@@ -535,9 +541,12 @@ predator <- predator %>%
   mutate(
     individual = as.integer(individual),
     Draw = as.integer(Draw)
-  )
+  ) %>%
+  left_join(fish, by = c("individual" = "ind_id"))
 
 setDT(predator)
+predator <- predator[!is.na(guild)]
+predator <- predator[guild != "Piscivore"]
 
 toc()
 
@@ -552,10 +561,10 @@ summary_predator <- predator[, .(
   q750 = quantile(value, 0.75, na.rm = TRUE),
   q975 = quantile(value, 0.975, na.rm = TRUE),
   P = sum(P, na.rm = TRUE) / .N
-), by = .(Draw, response, protection)]
+), by = .(Draw, response, guild)]
 
 summary_predator_table <- summary_predator %>%
-  group_by(response, protection) %>%
+  group_by(response, guild) %>%
   summarise(
     Mean = mean(mean, na.rm = TRUE),
     Median = median(mean, na.rm = TRUE),
@@ -592,7 +601,7 @@ tic()
 g3 <- summary_predator %>%
   ggplot(aes(y = mean, x = response)) +
   geom_boxplot(
-    aes(fill = protection),
+    aes(fill = guild),
     alpha = 0.5,
     outlier.shape = NA,
     width = 0.5
