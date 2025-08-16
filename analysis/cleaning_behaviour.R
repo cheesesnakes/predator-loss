@@ -1,4 +1,4 @@
-pacman::p_load(dplyr, tidyr, here, stringr, purrr)
+pacman::p_load(dplyr, tidyr, here, stringr, purrr, flextable)
 
 # import data
 
@@ -201,7 +201,8 @@ trait_mode <- function(family = NA, genus = NA, trait = NA) {
 }
 
 # Main species data processing
-traits <- data.frame(species = unique(fish$spp)) %>%
+
+fish_traits <- data.frame(species = unique(fish$spp)) %>%
   left_join(traits, by = "species") %>%
   mutate(
     Genus = ifelse(is.na(Genus), str_split(species, " ", simplify = TRUE)[, 1], Genus)
@@ -367,7 +368,7 @@ responses <- responses %>%
 
 # Guild membership
 
-guild <- traits %>%
+guild <- fish_traits %>%
   select(species, guild) %>%
   mutate(
     FG1 = str_split(guild, ", ", simplify = T)[, 1],

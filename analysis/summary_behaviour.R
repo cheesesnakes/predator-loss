@@ -190,3 +190,32 @@ save_as_image(
   width = 12,
   height = 8
 )
+
+# Calculate guild wise abundance
+
+guild_long <- guild %>%
+  pivot_longer(
+    cols = -species,
+    names_to = "Trait",
+    values_to = "Value"
+  ) %>%
+  filter(Value == 1) %>%
+  select(-Value)
+
+fish %>%
+  left_join(guild_long, by = c("spp" = "species")) %>%
+  rename(Species = spp) %>%
+  filter(is.na(Trait)) %>%
+  select(Species) %>%
+  distinct() %>%
+  arrange(Species) %>%
+  flextable() %>%
+  italic(j = 1) %>%
+  print(.)
+
+fish %>%
+  left_join(guild_long, by = c("spp" = "species")) %>%
+  group_by(Trait) %>%
+  summarise(Richness = length(unique(spp)), Abundance = n(), .groups = "drop") %>%
+  mutate(Trait = ifelse(is.na(Trait), "Unknown", Trait)) %>%
+  print(.)

@@ -1,4 +1,4 @@
-pacman::p_load(dplyr, tidyr, here, stringr, purrr)
+pacman::p_load(dplyr, tidyr, here, stringr, purrr, flextable)
 
 # Benthic cover data
 
