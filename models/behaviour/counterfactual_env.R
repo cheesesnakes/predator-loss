@@ -55,6 +55,7 @@ protection_biomass <- fit$draws("D_pred_protection_biomass", format = "matrix")
 protection_biomass_bites <- fit$draws("bites_pred_protection_biomass", format = "matrix")
 
 sample <- sample(1:4000, 100)
+
 rm(fit)
 gc()
 
@@ -70,6 +71,7 @@ gc()
 
 setDT(biomass)
 biomass <- biomass[Draw %in% sample]
+biomass <- biomass[value < 1000]
 biomass[, variable := str_remove(variable, "D_pred_protection_biomass\\[")]
 biomass[, variable := str_remove(variable, "\\]")]
 biomass[, c("protection", "sample", "individual", "response") := tstrsplit(variable, ",")]
@@ -135,98 +137,103 @@ tic()
 
 p1 <- biomass %>%
   filter(response == "Foraging") %>%
-  ggplot(aes(x = biomass * 100, y = value, col = guild)) +
-  geom_smooth(
-    aes(group = Draw),
+  ggplot(aes(x = biomass * 100, y = value, col = guild, group = interaction(Draw, guild))) +
+  # Raw posterior draws, colored by guild
+  geom_line(
+    stat = "smooth",
     method = "gam",
     formula = y ~ s(x),
-    se = FALSE,
-    alpha = 0.05,
-    color = "gray"
-  ) + # raw posterior draws
+    alpha = 0.15,
+  ) +
+  # Mean trend for each guild (one line per guild)
   geom_smooth(
+    aes(group = guild),
     method = "gam",
     formula = y ~ s(x),
     se = FALSE,
     linewidth = 1.2
-  ) + # mean trend
+  ) +
   facet_wrap(~response, ncol = 1, scale = "free_y") +
   labs(x = "Biomass Cover (%)", y = expression("Duration (s)")) +
   scale_color_brewer(palette = "Set1", name = "") +
-  scale_y_continuous(limits = c(0, 60)) +
+  scale_y_continuous(limits = c(0, NA)) +
   theme_bw() +
-  theme(legend.position = "none", legend.title = element_blank(), )
+  theme(legend.position = "none", legend.title = element_blank())
 
 p2 <- biomass %>%
   filter(response == "Vigilance") %>%
-  ggplot(aes(x = biomass * 100, y = value, col = guild)) +
-  geom_smooth(
-    aes(group = Draw),
+  ggplot(aes(x = biomass * 100, y = value, col = guild, group = interaction(Draw, guild))) +
+  # Raw posterior draws, colored by guild
+  geom_line(
+    stat = "smooth",
     method = "gam",
     formula = y ~ s(x),
-    se = FALSE,
-    alpha = 0.05,
-    color = "gray"
-  ) + # raw posterior draws
+    alpha = 0.15,
+  ) +
+  # Mean trend for each guild (one line per guild)
   geom_smooth(
+    aes(group = guild),
     method = "gam",
     formula = y ~ s(x),
     se = FALSE,
     linewidth = 1.2
-  ) + # mean trend
+  ) +
   facet_wrap(~response, ncol = 1, scale = "free_y") +
   labs(x = "Biomass Cover (%)", y = expression("Duration (s)")) +
   scale_color_brewer(palette = "Set1", name = "") +
-  scale_y_continuous(limits = c(0, 60)) +
+  scale_y_continuous(limits = c(0, NA)) +
   theme_bw() +
-  theme(legend.position = "none", legend.title = element_blank(), )
+  theme(legend.position = "none", legend.title = element_blank())
 
 p3 <- biomass %>%
   filter(response == "Movement") %>%
-  ggplot(aes(x = biomass * 100, y = value, col = guild)) +
-  geom_smooth(
-    aes(group = Draw),
+  ggplot(aes(x = biomass * 100, y = value, col = guild, group = interaction(Draw, guild))) +
+  # Raw posterior draws, colored by guild
+  geom_line(
+    stat = "smooth",
     method = "gam",
     formula = y ~ s(x),
-    se = FALSE,
-    alpha = 0.05,
-    color = "gray"
-  ) + # raw posterior draws
+    alpha = 0.15,
+  ) +
+  # Mean trend for each guild (one line per guild)
   geom_smooth(
+    aes(group = guild),
     method = "gam",
     formula = y ~ s(x),
     se = FALSE,
     linewidth = 1.2
-  ) + # mean trend
+  ) +
   facet_wrap(~response, ncol = 1, scale = "free_y") +
   labs(x = "Biomass Cover (%)", y = expression("Duration (s)")) +
   scale_color_brewer(palette = "Set1", name = "") +
-  scale_y_continuous(limits = c(0, 60)) +
+  scale_y_continuous(limits = c(0, NA)) +
   theme_bw() +
-  theme(legend.position = "none", legend.title = element_blank(), )
+  theme(legend.position = "none", legend.title = element_blank())
 
 p4 <- biomass %>%
   filter(response == "Bites") %>%
-  ggplot(aes(x = biomass * 100, y = value, col = guild)) +
-  geom_smooth(
-    aes(group = Draw),
+  ggplot(aes(x = biomass * 100, y = value, col = guild, group = interaction(Draw, guild))) +
+  # Raw posterior draws, colored by guild
+  geom_line(
+    stat = "smooth",
     method = "gam",
     formula = y ~ s(x),
-    se = FALSE,
-    alpha = 0.05,
-    color = "gray"
-  ) + # raw posterior draws
+    alpha = 0.15,
+  ) +
+  # Mean trend for each guild (one line per guild)
   geom_smooth(
+    aes(group = guild),
     method = "gam",
     formula = y ~ s(x),
     se = FALSE,
     linewidth = 1.2
-  ) + # mean trend
+  ) +
   facet_wrap(~response, ncol = 1, scale = "free_y") +
   labs(x = "Biomass Cover (%)", y = expression("Bite rate")) +
   scale_color_brewer(palette = "Set1", name = "") +
+  scale_y_continuous(limits = c(0, NA)) +
   theme_bw() +
-  theme(legend.position = "none", legend.title = element_blank(), )
+  theme(legend.position = "none", legend.title = element_blank())
 
 g1 <- (p1 + p2 + p3 + p4) +
   plot_layout(ncol = 2, guides = "collect") &
@@ -271,6 +278,7 @@ gc()
 
 setDT(rugosity)
 rugosity <- rugosity[Draw %in% sample]
+rugosity <- rugosity[value < 1000]
 rugosity[, variable := str_remove(variable, "D_pred_protection_rugosity\\[")]
 rugosity[, variable := str_remove(variable, "\\]")]
 rugosity[, c("protection", "sample", "individual", "response") := tstrsplit(variable, ",")]
@@ -340,98 +348,95 @@ tic()
 
 p1 <- rugosity %>%
   filter(response == "Foraging") %>%
-  ggplot(aes(x = rugosity, y = value, col = guild)) +
-  geom_smooth(
-    aes(group = Draw),
+  ggplot(aes(x = rugosity, y = value, col = guild, group = interaction(Draw, guild))) +
+  geom_line(
+    stat = "smooth",
     method = "gam",
     formula = y ~ s(x),
-    se = FALSE,
-    alpha = 0.05,
-    color = "gray"
-  ) + # raw posterior draws
+    alpha = 0.15
+  ) +
   geom_smooth(
+    aes(group = guild),
     method = "gam",
     formula = y ~ s(x),
     se = FALSE,
     linewidth = 1.2
-  ) + # mean trend
+  ) +
   facet_wrap(~response, ncol = 1, scale = "free_y") +
   labs(x = "Rugosity", y = expression("Duration (s)")) +
   scale_color_brewer(palette = "Set1", name = "") +
-  scale_y_continuous(limits = c(0, 60)) +
+  scale_y_continuous(limits = c(0, NA)) +
   theme_bw() +
-  theme(legend.position = "top", legend.title = element_blank(), )
+  theme(legend.position = "none", legend.title = element_blank())
 
 p2 <- rugosity %>%
   filter(response == "Vigilance") %>%
-  ggplot(aes(x = rugosity, y = value, col = guild)) +
-  geom_smooth(
-    aes(group = Draw),
+  ggplot(aes(x = rugosity, y = value, col = guild, group = interaction(Draw, guild))) +
+  geom_line(
+    stat = "smooth",
     method = "gam",
     formula = y ~ s(x),
-    se = FALSE,
-    alpha = 0.05,
-    color = "gray"
-  ) + # raw posterior draws
+    alpha = 0.15
+  ) +
   geom_smooth(
+    aes(group = guild),
     method = "gam",
     formula = y ~ s(x),
     se = FALSE,
     linewidth = 1.2
-  ) + # mean trend
+  ) +
   facet_wrap(~response, ncol = 1, scale = "free_y") +
   labs(x = "Rugosity", y = expression("Duration (s)")) +
   scale_color_brewer(palette = "Set1", name = "") +
-  scale_y_continuous(limits = c(0, 60)) +
+  scale_y_continuous(limits = c(0, NA)) +
   theme_bw() +
-  theme(legend.position = "none", legend.title = element_blank(), )
+  theme(legend.position = "none", legend.title = element_blank())
 
 p3 <- rugosity %>%
   filter(response == "Movement") %>%
-  ggplot(aes(x = rugosity, y = value, col = guild)) +
-  geom_smooth(
-    aes(group = Draw),
+  ggplot(aes(x = rugosity, y = value, col = guild, group = interaction(Draw, guild))) +
+  geom_line(
+    stat = "smooth",
     method = "gam",
     formula = y ~ s(x),
-    se = FALSE,
-    alpha = 0.05,
-    color = "gray"
-  ) + # raw posterior draws
+    alpha = 0.15
+  ) +
   geom_smooth(
+    aes(group = guild),
     method = "gam",
     formula = y ~ s(x),
     se = FALSE,
     linewidth = 1.2
-  ) + # mean trend
+  ) +
   facet_wrap(~response, ncol = 1, scale = "free_y") +
   labs(x = "Rugosity", y = expression("Duration (s)")) +
   scale_color_brewer(palette = "Set1", name = "") +
-  scale_y_continuous(limits = c(0, 60)) +
+  scale_y_continuous(limits = c(0, NA)) +
   theme_bw() +
-  theme(legend.position = "none", legend.title = element_blank(), )
+  theme(legend.position = "none", legend.title = element_blank())
 
 p4 <- rugosity %>%
   filter(response == "Bites") %>%
-  ggplot(aes(x = rugosity, y = value, col = guild)) +
-  geom_smooth(
-    aes(group = Draw),
+  ggplot(aes(x = rugosity, y = value, col = guild, group = interaction(Draw, guild))) +
+  geom_line(
+    stat = "smooth",
     method = "gam",
     formula = y ~ s(x),
-    se = FALSE,
-    alpha = 0.05,
-    color = "gray"
-  ) + # raw posterior draws
+    alpha = 0.15
+  ) +
   geom_smooth(
+    aes(group = guild),
     method = "gam",
     formula = y ~ s(x),
     se = FALSE,
     linewidth = 1.2
-  ) + # mean trend
+  ) +
   facet_wrap(~response, ncol = 1, scale = "free_y") +
   labs(x = "Rugosity", y = expression("Bite rate")) +
   scale_color_brewer(palette = "Set1", name = "") +
+  scale_y_continuous(limits = c(0, NA)) +
   theme_bw() +
-  theme(legend.position = "none", legend.title = element_blank(), )
+  theme(legend.position = "none", legend.title = element_blank())
 
 g2 <- (p1 + p2 + p3 + p4) +
   plot_layout(ncol = 2, guides = "collect") &
