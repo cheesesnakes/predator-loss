@@ -94,63 +94,56 @@ fit_model <- function(stan_data, model_file, run = "validation") {
 # function to extract posterior samples
 
 extract <- function(p) {
-# Load the fitted model
-fit <- readRDS(here("outputs/standardised_community_fit.rds"))
+  # Load the fitted model
+  fit <- readRDS(here("outputs/standardised_community_fit.rds"))
 
-models <- c("", "_psi")
-interactions <- c("", "_G", "_C")
+  interactions <- c("", "_G", "_C")
 
-data <- data.table()
+  data <- data.table()
 
-for (m in models){
-for (i in interactions) 
-{
-param <- paste0(p, m, i)
-# Extract draws 
-message("Extracting ", param)
+  for (i in interactions)
+  {
+    param <- paste0(p, i)
+    # Extract draws
+    message("Extracting ", param)
 
-draw <- fit$draws(param)
-df <- as.data.table(draw)
+    draw <- fit$draws(param)
+    df <- as.data.table(draw)
 
-# Create draw index
-df[, draw := as.numeric(iteration) * as.numeric(chain)]
-df[, c("iteration", "chain") := NULL]
+    # Create draw index
+    df[, draw := as.numeric(iteration) * as.numeric(chain)]
+    df[, c("iteration", "chain") := NULL]
 
-# strip variable name
+    # strip variable name
 
-if (i != ""){
-  df[, variable := str_remove_all(variable, paste0(param, "\\["))]
-  df[, variable := str_remove_all(variable, "\\]")]
-}else{
-  df[, variable := NA]
-}
+    if (i != "") {
+      df[, variable := str_remove_all(variable, paste0(param, "\\["))]
+      df[, variable := str_remove_all(variable, "\\]")]
+    } else {
+      df[, variable := NA]
+    }
 
-# add model name
-if (m == "_psi") {
-  df[, model := "zero-inflation"]
-} else {
-  df[, model := "abundance"]
-}
+    df[, model := "abundance"]
 
-# add interaction type
+    # add interaction type
 
-if (i == "_G") {
-  df[, interaction := "Foraging guild"]
-} else if (i == "_C") {
-  df[, interaction := "Size class"]
-} else {
-  df[, interaction := "Overall"]
-}
+    if (i == "_G") {
+      df[, interaction := "Foraging guild"]
+    } else if (i == "_C") {
+      df[, interaction := "Size class"]
+    } else {
+      df[, interaction := "Overall"]
+    }
 
-# save 
-data <- rbind(data, df, use.names = TRUE, fill = TRUE)
-rm(df)
-gc()}
-}
-# Clean up
-rm(fit)
-gc()
+    # save
+    data <- rbind(data, df, use.names = TRUE, fill = TRUE)
+    rm(df)
+    gc()
+  }
 
-return(data)
+  # Clean up
+  rm(fit)
+  gc()
 
+  return(data)
 }

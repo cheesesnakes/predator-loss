@@ -68,8 +68,6 @@ fish <- fish %>%
        group_by(transect, species, size) %>%
        summarise(count = sum(count, na.rm = TRUE)) %>%
        ungroup() %>%
-       replace_na(list(count = 0)) %>%
-       complete(transect, species, size, fill = list(count = 0)) %>%
        mutate_if(~ is.character(.), ~ str_trim(.))
 
 
