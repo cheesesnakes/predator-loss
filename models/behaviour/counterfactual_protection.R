@@ -73,7 +73,7 @@ dcast(protection_df,
   Draw + individual + response ~ protection,
   value.var = "value"
 ) -> protection_df
-protection_df[, Delta := log(Inside + 1) - log(Outside + 1)]
+protection_df[, Delta := log2(Inside + 1) - log2(Outside + 1)]
 protection_df[, P := Inside > Outside] # P(Inside > Outside)
 
 summary_protection <- protection_df[, .(
@@ -112,7 +112,7 @@ protection_bites[, variable := NULL]
 protection_bites <- protection_bites[value > 0] # filter out zero bites
 
 dcast(protection_bites, Draw + individual ~ protection, value.var = "value") -> protection_bites
-protection_bites[, Delta := log(Inside + 1) - log(Outside + 1)]
+protection_bites[, Delta := log2(Inside + 1) - log2(Outside + 1)]
 protection_bites[, P := Inside > Outside] # P(Inside > Outside)
 
 summary_protection_bites <- protection_bites[, .(

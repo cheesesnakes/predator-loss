@@ -178,7 +178,7 @@ dcast(predicted_counts_df, draw + transect + guild + size + N ~ protection, valu
 
 predicted_counts_df[, P := Protected > Unprotected]
 
-predicted_counts_df[, Delta := log(Protected + 1) - log(Unprotected + 1)]
+predicted_counts_df[, Delta := log2(Protected + 1) - log2(Unprotected + 1)]
 
 toc()
 

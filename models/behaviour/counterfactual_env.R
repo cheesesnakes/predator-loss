@@ -539,7 +539,7 @@ predator[, predator := factor(predator,
 )]
 
 dcast(predator, Draw + individual + response + protection ~ predator, value.var = "value") -> predator
-predator[, value := log(Present + 1) - log(Absent + 1)]
+predator[, value := log2(Present + 1) - log2(Absent + 1)]
 predator[, P := Present > Absent] # P(Present > Absent)
 
 predator <- predator %>%
