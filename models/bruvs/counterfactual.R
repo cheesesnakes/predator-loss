@@ -40,6 +40,7 @@ toc()
 # Extract predicted counts (lambda)
 tic("Extracting predicted counts...")
 
+print("Extracting from fit...")
 predicted_counts_raw <- fit$draws("abundance", format = "matrix")
 
 rm(fit)
@@ -52,12 +53,14 @@ gc()
 predicted_counts_df[, Draw := .I]
 
 # Melt to long format using data.table's melt (faster than pivot_longer)
+print("Metling data...")
 predicted_counts_df <- melt(predicted_counts_df,
   id.vars = "Draw",
   variable.name = "variable", value.name = "count"
 )
 
 # Remove prefix/suffix and split into multiple columns in one go
+print("Fixing variable names...")
 predicted_counts_df[, variable := str_remove_all(variable, "abundance\\[|\\]")]
 predicted_counts_df[, c("protection", "Transect", "Species", "Size") :=
   tstrsplit(variable, ",", type.convert = TRUE)]
@@ -94,6 +97,8 @@ species_df <- setDT(species_df)
 colnames(predicted_counts_df) <- str_to_lower(colnames(predicted_counts_df))
 
 predicted_counts_df[species_df, on = "species", guild := i.guild]
+
+# remove invertivores
 
 toc()
 # set factors
@@ -136,7 +141,7 @@ summary_count <- predicted_counts_df[, .(
 ), by = .(protection, guild, size)]
 
 p1 <- summary_count %>%
-  filter(guild != "Unknown") %>%
+  filter(guild == "Piscivore") %>%
   ggplot(aes(x = size, y = mean_count, color = protection)) +
   geom_point(size = 2, position = position_dodge(width = 0.5)) +
   geom_errorbar(
@@ -153,21 +158,22 @@ p1 <- summary_count %>%
   ) +
   geom_line(aes(group = protection), position = position_dodge(width = 0.5), linetype = "dashed") +
   scale_color_brewer(palette = "Set1", name = "Protection") +
-  scale_x_discrete(guide = guide_axis(n.dodge = 2)) +
   labs(x = "Size class", y = "Abundance") +
-  facet_wrap(~guild, ncol = 3, scale = "free_y") +
   theme_bw() +
   theme(
     legend.position = "top"
   )
 
-p2 <- ggplot(summary_dist, aes(x = guild, y = mean_count, fill = protection)) +
+p2 <- summary_dist %>%
+  filter(guild == "Piscivore") %>%
+  mutate(protection = ifelse(protection == "Unprotected", "Outside PA", "Inside PA")) %>%
+  ggplot(aes(x = protection, y = mean_count, fill = protection)) +
   geom_boxplot(alpha = 0.5, col = "black", outliers = FALSE, width = 0.5) +
-  labs(y = "Mean abundance", x = "Foraging Guild") +
+  labs(y = "Mean abundance", x = "Protection") +
   scale_fill_brewer(palette = "Set1", name = "Protection") +
   theme_bw() +
   theme(
-    legend.position = "top"
+    legend.position = "none"
   )
 
 ggsave(here("figures/predicted_bruvs_guild.png"), p2, width = 6, height = 4)
@@ -206,7 +212,7 @@ toc()
 tic("Plotting probability P(Protected > Unprotected)...")
 
 p <- summary_df %>%
-  filter(guild != "Unknown") %>%
+  filter(guild == "Piscivore") %>%
   ggplot(aes(y = size, x = P, fill = guild)) +
   geom_density_ridges(scale = 1, alpha = 0.5) +
   labs(x = "P(Protected > Unprotected)", y = "Size class") +
@@ -216,8 +222,7 @@ p <- summary_df %>%
   theme(
     legend.position = "none",
     text = element_text(size = 16),
-  ) +
-  facet_wrap(~guild, ncol = 3)
+  )
 
 ggsave(here("figures/counterfactual_bruvs_probability.png"), p, width = 8, height = 4)
 
@@ -233,7 +238,7 @@ summary_df[, .(
 ), by = .(guild, size)] -> summary_df
 
 p3 <- summary_df %>%
-  filter(guild != "Unknown") %>%
+  filter(guild == "Piscivore") %>%
   ggplot(aes(x = size, y = mean_count)) +
   geom_point(, size = 2, position = position_dodge(width = 0.5)) +
   geom_errorbar(
@@ -255,20 +260,19 @@ p3 <- summary_df %>%
   geom_line(aes(group = guild), position = position_dodge(width = 0.5), linetype = "dashed") +
   scale_x_discrete(guide = guide_axis(n.dodge = 2)) +
   labs(x = "Size class", y = "Log-fold change") +
-  facet_wrap(~guild, ncol = 3) +
   theme_bw() +
   theme(
     legend.position = "top"
   )
 
 # Save figure
-ggsave(here("figures/counterfactual_bruvs.png"), p3, width = 9, height = 4)
+ggsave(here("figures/counterfactual_bruvs.png"), p3, width = 10, height = 6)
 
 (p1 / p3) +
   plot_layout(guides = "collect") +
   theme(legend.position = "top")
 # Save figure
-ggsave(here("figures/figure2.png"), width = 8, height = 8)
+ggsave(here("figures/figure2.png"), width = 10, height = 8)
 
 toc()
 

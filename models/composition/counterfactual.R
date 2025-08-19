@@ -136,7 +136,7 @@ summary_count <- predicted_counts_df[, .(
 ), by = .(protection, guild, size)]
 
 p1 <- summary_count %>%
-  filter(guild != "Unknown") %>%
+  filter(guild != "Unknown" & guild != "Piscivore") %>%
   ggplot(aes(x = size, y = mean_count, color = protection)) +
   geom_point(size = 2, position = position_dodge(width = 0.5)) +
   geom_errorbar(
@@ -153,7 +153,6 @@ p1 <- summary_count %>%
   ) +
   geom_line(aes(group = protection), position = position_dodge(width = 0.5), linetype = "dashed") +
   scale_color_brewer(palette = "Set1", name = "Protection") +
-  scale_x_discrete(guide = guide_axis(n.dodge = 2)) +
   labs(x = "Size class", y = "Abundance") +
   facet_wrap(~guild, ncol = 3, scale = "free_y") +
   theme_bw() +
@@ -161,7 +160,9 @@ p1 <- summary_count %>%
     legend.position = "top"
   )
 
-p2 <- ggplot(summary_dist, aes(x = guild, y = mean_count, fill = protection)) +
+p2 <- summary_dist %>%
+  filter(guild != "Unknown" & guild != "Piscivore") %>%
+  ggplot(aes(x = guild, y = mean_count, fill = protection)) +
   geom_boxplot(alpha = 0.5, col = "black", outliers = FALSE, width = 0.5) +
   labs(y = "Mean abundance", x = "Foraging Guild") +
   scale_fill_brewer(palette = "Set1", name = "Protection") +
@@ -206,7 +207,7 @@ toc()
 tic("Plotting probability P(Protected > Unprotected)...")
 
 p <- summary_df %>%
-  filter(guild != "Unknown") %>%
+  filter(guild != "Unknown" & guild != "Piscivore") %>%
   ggplot(aes(y = size, x = P, fill = guild)) +
   geom_density_ridges(scale = 1, alpha = 0.5) +
   labs(x = "P(Protected > Unprotected)", y = "Size class") +
@@ -233,7 +234,7 @@ summary_df[, .(
 ), by = .(guild, size)] -> summary_df
 
 p3 <- summary_df %>%
-  filter(guild != "Unknown") %>%
+  filter(guild != "Unknown" & guild != "Piscivore") %>%
   ggplot(aes(x = size, y = mean_count)) +
   geom_point(, size = 2, position = position_dodge(width = 0.5)) +
   geom_errorbar(
@@ -253,7 +254,6 @@ p3 <- summary_df %>%
     linetype = "dashed", color = "black", linewidth = 0.5, alpha = 0.5
   ) +
   geom_line(aes(group = guild), position = position_dodge(width = 0.5), linetype = "dashed") +
-  scale_x_discrete(guide = guide_axis(n.dodge = 2)) +
   labs(x = "Size class", y = "Log-fold change") +
   facet_wrap(~guild, ncol = 3) +
   theme_bw() +
