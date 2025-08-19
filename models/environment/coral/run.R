@@ -1,4 +1,4 @@
-pacman::p_load(here, bayesplot, ggplot2)
+pacman::p_load(here, bayesplot, ggplot2, dplyr, tidyr)
 
 source(here("models/environment/coral", "functions.R"))
 
@@ -17,7 +17,7 @@ figure_dir <- here("figures", "environment")
 # test
 data <- load_data()
 
-stan_data <- prep_stan(data$predictors)
+stan_data <- prep_stan(data$benthic, data$transects)
 
 fit_result <- fit_model(stan_data, here("models/environment/coral", "model.stan"))
 
@@ -46,14 +46,15 @@ ppc <- fit_result$draws("coral_pred", format = "draws_matrix")
 ppc <- ppc[complete.cases(ppc), ] # Remove rows with NA values
 
 # Create matrix of observed durations
-predictors <- data$predictors
-coral <- predictors$coral
-data <- as.matrix(data.frame(
-  coral = coral
-))
+raw <- data$benthic
+
+coral <- raw %>%
+group_by(transect_id)%>%
+summarise(coral = mean(coral))
+
 
 # Posterior predictive check for foraging durations
-ppc_dens_overlay(y = data[, 1], yrep = ppc) +
+ppc_dens_overlay(y = coral$coral, yrep = ppc) +
   labs(x = "Coral cover", y = "Density")
 
 ggsave(here(figure_dir, "ppc.png"), width = 10, height = 8)

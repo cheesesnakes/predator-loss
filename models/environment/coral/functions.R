@@ -4,25 +4,27 @@ pacman::p_load(cmdstanr, here)
 
 load_data <- function(run) {
   data_dir <- "outputs/standardised_data"
-  predictors <- read.csv(here(data_dir, "predictors.csv"))
-  return(list(predictors = predictors))
+  transects <- read.csv(here(data_dir, "transects.csv"))
+  benthic <- read.csv(here(data_dir, "transect_benthic.csv"))
+  return(list(benthic = benthic, transects = transects))
 }
 
 # prepare the data for Stan
 
-prep_stan <- function(predictors) {
+prep_stan <- function(benthic, transects) {
   # Prepare the data for Stan
   # response: data frame with response variables
   # individuals: data frame with individual IDs
-  # predictors: data frame with predictor variables
+  # benthic: data frame with predictor variables
   stan_data <- list(
-    P = length(unique(predictors$protected)),
-    S = nrow(predictors),
-    L = length(unique(predictors$site)),
-    location = predictors$site,
-    plot = predictors$plot_id,
-    protection = predictors$protected,
-    coral = (predictors$coral + 1e-6)
+    P = length(unique(transects$protection)),
+    S = nrow(transects),
+    L = length(unique(transects$site)),
+    Q = nrow(benthic),
+    location = transects$site,
+    protection = transects$protection,
+    coral = benthic$coral,
+    transect_quadrat = benthic$quadrat
   )
 
   return(stan_data)

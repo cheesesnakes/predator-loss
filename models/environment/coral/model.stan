@@ -1,14 +1,16 @@
 data {
   int<lower=0> P; // number of protection levels
-  int<lower=0> S; // number of plots
+  int<lower=0> S; // number of transects
   int<lower=0> L; // number of locations
-  
+  int<lower=0> Q; // total number of quadrats sampled
+
   // response
-  array[S] real<lower=0, upper=1> coral; // coral cover of plot
+  array[Q] real<lower=0, upper=1> coral; // coral cover of plot
   
   // index variables
   array[S] int<lower=1, upper=L> location; // location index
-
+  array[Q] int<lower=1, upper=S> transect_quadrat; // transect index for quadrats
+ 
   // plot-level predictors
   array[S] int<lower=1, upper=2> protection; // protection level (0 or 1)
   
@@ -20,6 +22,9 @@ parameters {
   array[P] real beta; // effect of protection on coral cover
   real<lower=1e-6> psi; // standard deviation of coral cover in each protection level
 
+  // sample estimation
+  array[S] real<lower=1e-6, upper=1 - 1e-6> R; // coral cover estimate
+  array[S] real<lower=1e-6> pi_R; // precision of coral cover
 }
 transformed parameters {
   // transformed parameters for protection model
@@ -41,11 +46,21 @@ model {
   beta[2] ~ normal(0.5, 1);
   psi ~ exponential(1);
 
+  // Priors for habitat complexity and resource availability
+  R ~ beta(1, 1); // uniform prior for resource availability
+  pi_R ~ exponential(1);
+  
+  // estimate habitat complexity and resource availability
+  for (q in 1 : Q) {
+    coral[q] ~ beta(R[transect_quadrat[q]] * pi_R[transect_quadrat[q]],
+                      (1 - R[transect_quadrat[q]])
+                      * pi_R[transect_quadrat[q]]);
+  }
   
   // Likelihood
   
   for (s in 1 : S) {
-    coral[s] ~ beta(mu[s]*psi, (1-mu[s])*psi);
+    R[s] ~ beta(mu[s]*psi, (1-mu[s])*psi);
 }
 }
 

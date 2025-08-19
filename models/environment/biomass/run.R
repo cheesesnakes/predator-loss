@@ -1,4 +1,4 @@
-pacman::p_load(here, bayesplot, ggplot2)
+pacman::p_load(here, bayesplot, ggplot2, dplyr, tidyr)
 
 source(here("models/environment/biomass", "functions.R"))
 
@@ -17,7 +17,7 @@ figure_dir <- here("figures", "environment")
 # test
 data <- load_data()
 
-stan_data <- prep_stan(data$predictors)
+stan_data <- prep_stan(data$benthic, data$transects)
 
 fit_result <- fit_model(stan_data, here("models/environment/biomass", "model.stan"))
 
@@ -46,14 +46,14 @@ ppc <- fit_result$draws("biomass_pred", format = "draws_matrix")
 ppc <- ppc[complete.cases(ppc), ] # Remove rows with NA values
 
 # Create matrix of observed durations
-predictors <- data$predictors
-biomass <- predictors$biomass
-data <- as.matrix(data.frame(
-  biomass = biomass
-))
+raw <- data$benthic
+
+biomass <- raw %>%
+group_by(transect_id)%>%
+summarise(biomass = mean(resource))
 
 # Posterior predictive check for foraging durations
-ppc_dens_overlay(y = data[, 1], yrep = ppc) +
+ppc_dens_overlay(y = biomass$biomass, yrep = ppc) +
   labs(x = "biomass cover", y = "Density")
 
 ggsave(here(figure_dir, "ppc.png"), width = 10, height = 8)
