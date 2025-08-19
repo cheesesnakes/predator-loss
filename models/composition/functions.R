@@ -29,7 +29,7 @@ prep_stan <- function(fish, transects, species, guild, benthic) {
     T = nrow(transects), # number of transects
     S = length(unique(species$species)), # number of species
     P = length(unique(transects$protection)), # number of protection levels
-    L = length(unique(transects$location)), # number of locations
+    L = length(unique(transects$site)), # number of locations
     G = ncol(guild) - 1, # number of feeding guilds
     C = length(unique(fish$size)), # number of size classes
     Q = length(benthic$quadrat), # number of quadrats
@@ -39,7 +39,7 @@ prep_stan <- function(fish, transects, species, guild, benthic) {
     guild = as.matrix(guild[-1]), # feeding guild IDs
     count = fish$abundance, # abundance data
     protection = as.integer(transects$protection), # protection level IDs
-    location = as.integer(transects$location), # location IDs
+    location = as.integer(transects$site), # location IDs
 
     transect_quadrat = benthic$transect_id, # transect index for benthic data
     coral = benthic$coral, # coral cover data
