@@ -80,7 +80,7 @@ fish <- fish %>%
 
 # species data
 
-traits <- read.csv(here("data", "transect-fish-traits.csv"))
+traits <- read.csv(here("data", "fish-traits.csv"))
 
 phylo <- traits %>%
        select(c(Order, Family, Genus)) %>%

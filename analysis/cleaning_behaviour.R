@@ -148,7 +148,7 @@ colnames(fish) <- str_to_lower(colnames(fish))
 
 # attach foraging guild information
 
-traits <- read.csv(here("data", "transect-fish-traits.csv"))
+traits <- read.csv(here("data", "fish-traits.csv"))
 
 phylo <- traits %>%
   select(c(Order, Family, Genus)) %>%

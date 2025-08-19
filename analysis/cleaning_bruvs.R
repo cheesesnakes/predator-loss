@@ -1,92 +1,20 @@
 pacman::p_load(here, dplyr, tidyr, stringr)
-#
-# bruvs <- read.csv(here("data/chapter-3_bruvs.csv"))
-#
-# head(bruvs)
-# colnames(bruvs)
-#
-# metadata <- bruvs %>%
-#     select(Date, deployments, region, Site, status) %>%
-#     mutate_if(is.character, str_trim) %>%
-#     distinct() %>%
-#     rename(deployment_id = deployments)
-#
-# colnames(metadata) <- tolower(colnames(metadata))
-#
-# head(metadata)
-#
-# write.csv(metadata, here("data/chapter-3_bruvs_metadata.csv"), row.names = FALSE)
-#
-# fish <- bruvs %>%
-#     select(deployments, Fish.spp, Media.Code, T1st, MaxN, MaxN.Time, MxMC, total_fish) %>%
-#     mutate_if(is.character, str_trim) %>%
-#     rename(
-#         deployment_id = deployments,
-#         fish_spp = Fish.spp,
-#         media_code = Media.Code,
-#         time_first = T1st,
-#         max_n = MaxN,
-#         max_n_time = MaxN.Time,
-#     )
-#
-# colnames(fish) <- tolower(colnames(fish))
-#
-# head(fish)
-#
-# write.csv(fish, here("data/chapter-3_bruvs_fish.csv"), row.names = FALSE)
-#
-# traits <- bruvs %>%
-#     select(genus, Fish.spp, guild) %>%
-#     mutate_if(is.character, str_trim) %>%
-#     distinct() %>%
-#     rename(
-#         fish_spp = Fish.spp,
-#         genus = genus,
-#         guild = guild
-#     )
-#
-# colnames(traits) <- tolower(colnames(traits))
-# head(traits)
-#
-# write.csv(traits, here("data/chapter-3_bruvs_traits.csv"), row.names = FALSE)
-#
-# size <- bruvs %>%
-#     select(-c(Date, region, Site, status, genus, guild, Media.Code, T1st, MaxN, MaxN.Time, total_fish, MxMC)) %>%
-#     select(-starts_with("X")) %>%
-#     rename(
-#         deployment_id = deployments,
-#         fish_spp = Fish.spp
-#     ) %>%
-#     pivot_longer(
-#         cols = starts_with("Fish."),
-#         names_to = "Fish",
-#         values_to = "size"
-#     ) %>%
-#     select(-Fish) %>%
-#     filter(!is.na(size) & size != "" & size != " ") %>%
-#     group_by(deployment_id, fish_spp, size) %>%
-#     summarise(
-#         count = n(),
-#         .groups = "drop"
-#     ) %>%
-#     mutate_if(is.character, str_trim)
-#
-# colnames(size) <- tolower(colnames(size))
-# head(size)
-#
-# write.csv(size, here("data/chapter-3_bruvs_size.csv"), row.names = FALSE)
-#
 
 # Load data
 
 metadata <- read.csv(here("data/chapter-3_bruvs_metadata.csv"))
 fish <- read.csv(here("data/chapter-3_bruvs_fish.csv"))
-traits <- read.csv(here("data/chapter-3_bruvs_traits.csv"))
+traits <- read.csv(here("data/fish-traits.csv"))
 individuals <- read.csv(here("data/chapter-3_bruvs_size.csv"))
 
 # guild matrix
 
+colnames(traits) <- str_to_lower(colnames(traits))
+
 guild <- traits %>%
+    mutate_if(is.character, str_trim) %>%
+    mutate(fish_spp = paste(genus, species, sep = " ")) %>%
+    rename(guild = feeding.guild) %>%
     select(fish_spp, guild) %>%
     mutate(
         FG1 = str_split(guild, ", ", simplify = T)[, 1],
@@ -122,14 +50,15 @@ fish <- fish %>%
 individuals <- individuals %>%
     filter(fish_spp %in% guild$fish_spp)
 
+# filter out extra species from guild data
+guild <- guild %>%
+filter(fish_spp %in% fish$fish_spp)%>%
+select(fish_spp, Invertivore, Piscivore)
+
 # predictors data
 
 predictors <- metadata %>%
-    select(deployment_id, region, site, status) %>%
-    rename(
-        location = region,
-        protection = status
-    )
+    select(deployment_id, location, site, protection)
 
 # final data
 
