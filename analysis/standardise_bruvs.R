@@ -1,5 +1,5 @@
 pacman::p_load(
-       here
+    here
 )
 
 source(here("analysis", "cleaning_bruvs.R"))
@@ -12,10 +12,12 @@ protection_levels <- c("Unprotected", "Protected")
 site_levels <- sort(unique(predictors$site))
 species_levels <- sort(unique(guild$fish_spp))
 
+# fix size
 
 size_levels <- sort(unique(individuals$size))
 starts <- as.numeric(sub("-.*", "", size_levels))
 size_levels <- size_levels[order(starts)]
+
 
 # make colnames lower case
 colnames(predictors) <- tolower(colnames(predictors))
@@ -44,7 +46,7 @@ individuals <- individuals %>%
         deployment_id = as.numeric(factor(deployment_id, levels = deployment_levels)),
         fish_spp = as.numeric(factor(fish_spp, levels = species_levels)),
         size = as.numeric(factor(size, levels = size_levels))
-    )%>%
+    ) %>%
     rename(
         abundance = count,
     )
