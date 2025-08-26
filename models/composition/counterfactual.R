@@ -113,8 +113,7 @@ toc()
 tic("Summarising predicted counts...")
 
 predicted_counts_df <- predicted_counts_df[, .(
-  count = sum(count),
-  N = uniqueN(species)
+  count = sum(count)
 ), by = .(draw, protection, transect, guild, size)]
 
 toc()
@@ -137,6 +136,7 @@ summary_count <- predicted_counts_df[, .(
 
 p1 <- summary_count %>%
   filter(guild != "Unknown" & guild != "Piscivore") %>%
+  mutate(protection = ifelse(protection == "Unprotected", "Outside PA", "Inside PA")) %>%
   ggplot(aes(x = size, y = mean_count, color = protection)) +
   geom_point(size = 2, position = position_dodge(width = 0.5)) +
   geom_errorbar(
@@ -162,6 +162,7 @@ p1 <- summary_count %>%
 
 p2 <- summary_dist %>%
   filter(guild != "Unknown" & guild != "Piscivore") %>%
+  mutate(protection = ifelse(protection == "Unprotected", "Outside PA", "Inside PA")) %>%
   ggplot(aes(x = guild, y = mean_count, fill = protection)) +
   geom_boxplot(alpha = 0.5, col = "black", outliers = FALSE, width = 0.5) +
   labs(y = "Mean abundance", x = "Foraging Guild") +
