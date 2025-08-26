@@ -98,10 +98,11 @@ generated quantities {
           
           real log_lambda = alpha[l] + dot_product(gamma, guild[s])
                             + delta[p] + dot_product(beta[p], guild[s])
-                            + phi[p, c] + dot_product(epsilon[c], guild[s]);
+                            + phi[p, c] + dot_product(epsilon[c], guild[s])
+                            + theta[c];
           
           // Non-zero expected abundance
-          abundance[p, t, s, c] = neg_binomial_2_rng(exp(log_lambda), phi_nb); // non-zero case
+          abundance[p, t, s, c] = exp(log_lambda); // non-zero case
         }
       }
     }
