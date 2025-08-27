@@ -25,8 +25,7 @@ data <- load_data(run)
 
 stan_data <- prep_stan(
   fish = data$fish,
-  predictors = data$predictors,
-  guild = data$guild
+  predictors = data$predictors
 )
 
 fit_result <- fit_model(stan_data, here("models", "bruvs/model.stan"), run = run)

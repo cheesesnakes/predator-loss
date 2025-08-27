@@ -1,17 +1,15 @@
 data {
   int N; // number of observations
-  int S; // number of species
   int L; // number of locations
   int T; // number of deployments
   int P; // number of protection levels
   int G; // number of feeding guilds
   int C; // number of size classes
   
-  array[N] int<lower=1, upper=S> species; // species index
   array[T] int<lower=1, upper=L> location; // location index
   array[N] int<lower=1, upper=T> transect; // transect index
   array[T] int<lower=1, upper=P> protection; // protection level index
-  array[S, G] real<lower=0, upper=1> guild; // feeding guild membership matrix
+  array[N] int<lower=1, upper=G> guild; // feeding guild membership matrix
   array[N] int<lower=1, upper=C> size; // size class index
   array[N] int<lower=0> count; // count of individuals
 }
@@ -23,6 +21,7 @@ parameters {
   array[C] real theta; // size class effects
   array[P, C] real phi; // interaction between protection and size class
   array[C, G] real epsilon; // interaction between size class and guild
+  array[P, C, G] real zeta; // interaction between protection, size class, and guild
   real<lower=0> phi_nb; // dispersion parameters for negative binomial
 }
 model {
@@ -43,20 +42,22 @@ model {
     theta[c] ~ normal(0, 0.5);
     for (g in 1 : G) {
       epsilon[c, g] ~ normal(0, 0.5);
+      for (p in 1 : P) {
+        zeta[p, c, g] ~ normal(0, 0.5);
+      }
     }
   }
   
   // Likelihood
   for (n in 1 : N) {
     int t = transect[n];
-    int s = species[n];
     int c = size[n];
     int p = protection[t];
     int l = location[t];
+    int g = guild[n];
     
-    real log_lambda = alpha[l] + dot_product(gamma, guild[s]) + delta[p]
-                      + dot_product(beta[p], guild[s]) + phi[p, c]
-                      + dot_product(epsilon[c], guild[s]) + theta[c];
+    real log_lambda = alpha[l] + gamma[g] + delta[p] + beta[p, g] + phi[p, c]
+                      + epsilon[c, g] + theta[c] + zeta[p, c, g];
     
     real lambda_n = exp(log_lambda);
     
@@ -66,19 +67,18 @@ model {
 generated quantities {
   array[N] real log_lik;
   array[N] real pred_count;
-  array[P, T, S, C] real abundance;
+  array[P, T, G, C] real abundance;
   
   // log likelihood and predicted counts
   for (n in 1 : N) {
     int t = transect[n];
-    int s = species[n];
+    int g = guild[n];
     int c = size[n];
     int p = protection[t];
     int l = location[t];
     
-    real log_lambda = alpha[l] + dot_product(gamma, guild[s]) + delta[p]
-                      + dot_product(beta[p], guild[s]) + phi[p, c]
-                      + dot_product(epsilon[c], guild[s]) + theta[c];
+    real log_lambda = alpha[l] + gamma[g] + delta[p] + beta[p, g] + phi[p, c]
+                      + epsilon[c, g] + theta[c] + zeta[p, c, g];
     
     real lambda_n = exp(log_lambda);
     
@@ -91,18 +91,17 @@ generated quantities {
   
   for (pr in 1 : P) {
     for (t in 1 : T) {
-      for (s in 1 : S) {
+      for (g in 1 : G) {
         for (c in 1 : C) {
           int p = pr;
           int l = location[t];
           
-          real log_lambda = alpha[l] + dot_product(gamma, guild[s])
-                            + delta[p] + dot_product(beta[p], guild[s])
-                            + phi[p, c] + dot_product(epsilon[c], guild[s])
-                            + theta[c];
+          real log_lambda = alpha[l] + gamma[g] + delta[p] + beta[p, g]
+                            + phi[p, c] + epsilon[c, g] + theta[c]
+                            + zeta[p, c, g];
           
           // Non-zero expected abundance
-          abundance[p, t, s, c] = exp(log_lambda); // non-zero case
+          abundance[p, t, g, c] = exp(log_lambda); // non-zero case
         }
       }
     }

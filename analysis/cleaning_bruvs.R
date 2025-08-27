@@ -30,11 +30,10 @@ guild <- traits %>%
     complete(fish_spp, guild, fill = list(value = 0)) %>%
     group_by(fish_spp) %>%
     mutate(value = value / sum(value)) %>%
-    pivot_wider(names_from = guild, values_from = value) %>%
-    mutate(
-        Invertivore = ifelse(Invertivore < 1, 0, Invertivore),
-        Piscivore = ifelse(Piscivore > 0, 1, Piscivore)
-    )
+    mutate(value = ifelse(guild == "Piscivore" & value > 0, 1,
+        ifelse(guild == "Invertivore" & value < 1, 0, value)
+    )) %>%
+    filter(value > 0)
 
 # species with no guild information
 
@@ -68,15 +67,24 @@ individuals <- individuals %>%
 # filter out extra species from guild data
 guild <- guild %>%
     filter(fish_spp %in% fish$fish_spp) %>%
-    select(fish_spp, Invertivore, Piscivore)
+    select(fish_spp, guild)
 
 # predictors data
 
 predictors <- metadata %>%
     select(deployment_id, location, site, protection)
 
+# Aggregate counts by guild
+
+individuals %>%
+    left_join(guild, by = "fish_spp") %>%
+    group_by(deployment_id, guild, size) %>%
+    summarise(count = sum(count)) %>%
+    ungroup() -> counts
+
 # final data
 
+head(counts)
 head(individuals)
 head(guild)
 head(predictors)

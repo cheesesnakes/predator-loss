@@ -125,14 +125,16 @@ summary_guild_size <- posterior_guild_size[, .(
 
 ## Plot 2: posterior distribution of counts across protection and size
 
-p2 <- ggplot(posterior_guild_size %>% filter(guild == "Piscivore"), aes(x = protection, y = mean_count, fill = protection)) +
+p2 <- posterior_guild_size %>%
+  filter(guild == "Piscivore") %>%
+  mutate(protection = ifelse(protection == "Protected", "Inside PA", "Outside PA")) %>%
+  ggplot(aes(x = size, y = mean_count, fill = protection)) +
   geom_boxplot(alpha = 0.5, outlier.shape = NA) +
-  facet_wrap(~size, scales = "free") +
-  labs(x = "Protection", y = "Predicted abundance") +
+  labs(x = "Size class", y = "Predicted abundance") +
   scale_fill_brewer(palette = "Set1", name = "Protection") +
-  theme(legend.position = "none")
+  theme(legend.position = "top")
 
-ggsave(here("figures/bruvs_predicted_guild_size.png"), p2, width = 10, height = 6)
+ggsave(here("figures/bruvs_predicted_guild_size.png"), p2, width = 8, height = 6)
 
 ## Table 2: summary statistics
 
@@ -165,9 +167,3 @@ print(table_2)
 save_as_docx(table_2, path = here("figures/bruvs_predicted_guild_size.docx"))
 
 toc()
-
-# Effect of protection on species richness of predators
-
-cat("\rEffect of protection on species richness of predators")
-
-tic()

@@ -52,7 +52,7 @@ print(paste("Number of rows:", nrow(predicted_counts_df)))
 cat("\nFixing variable names...")
 
 predicted_counts_df[, variable := gsub("abundance\\[|\\]", "", variable, perl = TRUE)]
-predicted_counts_df[, c("protection", "transect", "species", "size") := tstrsplit(variable, ",", type.convert = TRUE)]
+predicted_counts_df[, c("protection", "transect", "guild", "size") := tstrsplit(variable, ",", type.convert = TRUE)]
 predicted_counts_df[, variable := NULL]
 
 gc()
@@ -67,7 +67,7 @@ tic()
 
 source(here("analysis/standardise_bruvs.R"))
 
-rm(fish, individuals, metadata, no_guild, predictors, traits)
+rm(fish, guild, individuals, metadata, no_guild, predictors, traits)
 
 gc()
 
@@ -75,32 +75,8 @@ toc()
 
 # Join metadata
 
-cat("\rJoining metadata...")
-
-tic()
-
-guild <- guild %>%
-    pivot_longer(
-        cols = -fish_spp,
-        names_to = "guild",
-        values_to = "value"
-    ) %>%
-    filter(value > 0) %>%
-    select(-value) %>%
-    mutate(guild = str_to_sentence(str_trim(guild))) %>%
-    group_by(fish_spp) %>%
-    mutate(species = as.integer(fish_spp))
-
-guild <- guild %>%
-    select(c(species, guild))
-
-guild <- setDT(guild)
-
 colnames(predicted_counts_df) <- str_to_lower(colnames(predicted_counts_df))
 
-predicted_counts_df[guild, on = "species", guild := i.guild]
-
-toc()
 
 # set factors
 
@@ -108,7 +84,7 @@ cat("\rSetting factors...")
 
 tic()
 
-predicted_counts_df[, guild := as.factor(guild)]
+predicted_counts_df[, guild := factor(guild, levels = 1:length(guild_levels), labels = guild_levels)]
 
 predicted_counts_df[, protection := factor(protection, levels = c(1, 2), labels = c("Unprotected", "Protected"))]
 

@@ -167,10 +167,9 @@ table_2 <- summary_guild_size %>%
     CI75 = round(CI75, 3),
     CI95 = round(CI95, 3)
   ) %>%
-  arrange(guild, protection, size) %>%
+  arrange(guild, size) %>%
   flextable() %>%
   set_header_labels(
-    protection = "Protection",
     guild = "Feeding guild",
     size = "Size class",
     mean_effect = "Effect",
@@ -188,9 +187,3 @@ print(table_2)
 save_as_docx(table_2, path = here("figures/bruvs_effect_guild_size.docx"))
 
 toc()
-
-# Effect of protection on species richness of predators
-
-cat("\rEffect of protection on species richness of predators")
-
-tic()

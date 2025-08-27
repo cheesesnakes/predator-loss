@@ -8,16 +8,15 @@ load_data <- function(run) {
   } else {
     data_dir <- "outputs/standardised_data"
   }
-  fish <- read.csv(here(data_dir, "individuals_bruvs.csv"))
+  fish <- read.csv(here(data_dir, "counts_bruvs.csv"))
   predictors <- read.csv(here(data_dir, "predictors_bruvs.csv"))
-  guild <- read.csv(here(data_dir, "traits_bruvs.csv"))
 
-  return(list(fish = fish, predictors = predictors, guild = guild))
+  return(list(fish = fish, predictors = predictors))
 }
 
 # prepare the data for Stan
 
-prep_stan <- function(fish, predictors, guild) {
+prep_stan <- function(fish, predictors) {
   # Prepare the data for Stan
   # fish: data frame with fish data
   # predictors: data frame with transect data
@@ -25,15 +24,13 @@ prep_stan <- function(fish, predictors, guild) {
   stan_data <- list(
     N = nrow(fish), # number of fish
     T = nrow(predictors), # number of deployments
-    S = length(unique(guild$fish_spp)), # number of species
     P = length(unique(predictors$protection)), # number of protection levels
     L = length(unique(predictors$site)), # number of sites
-    G = ncol(guild) - 1, # number of feeding guilds
+    G = length(unique(fish$guild)), # number of feeding guilds
     C = length(unique(fish$size)), # number of size classes
     transect = as.integer(fish$deployment_id), # transect IDs
-    species = as.integer(fish$fish_spp), # species IDs
     size = as.integer(fish$size), # size class IDs
-    guild = as.matrix(guild[-1]), # feeding guild IDs
+    guild = as.integer(fish$guild), # feeding guild IDs
     count = fish$abundance, # abundance data
     protection = as.integer(predictors$protection), # protection level IDs
     location = as.integer(predictors$site) # location IDs

@@ -11,6 +11,7 @@ location_levels <- sort(unique(predictors$location))
 protection_levels <- c("Unprotected", "Protected")
 site_levels <- sort(unique(predictors$site))
 species_levels <- sort(unique(guild$fish_spp))
+guild_levels <- sort(unique(counts$guild))
 
 # fix size
 
@@ -23,6 +24,7 @@ size_levels <- size_levels[order(starts)]
 colnames(predictors) <- tolower(colnames(predictors))
 colnames(guild) <- tolower(colnames(guild))
 colnames(individuals) <- tolower(colnames(individuals))
+colnames(counts) <- tolower(colnames(counts))
 
 # standardise predictors
 predictors <- predictors %>%
@@ -51,14 +53,26 @@ individuals <- individuals %>%
         abundance = count,
     )
 
+# standardise counts
+
+counts <- counts %>%
+    mutate(
+        deployment_id = as.numeric(factor(deployment_id, levels = deployment_levels)),
+        guild = as.numeric(factor(guild, levels = guild_levels)),
+        size = as.numeric(factor(size, levels = size_levels))
+    ) %>%
+    rename(
+        abundance = count,
+    )
 # summary
 
 summary(predictors)
 summary(guild)
 summary(individuals)
-
+summary(counts)
 
 # save data
 write.csv(predictors, here("outputs/standardised_data/predictors_bruvs.csv"), row.names = FALSE)
 write.csv(guild, here("outputs/standardised_data/traits_bruvs.csv"), row.names = FALSE)
 write.csv(individuals, here("outputs/standardised_data/individuals_bruvs.csv"), row.names = FALSE)
+write.csv(counts, here("outputs/standardised_data/counts_bruvs.csv"), row.names = FALSE)
