@@ -12,7 +12,7 @@ aspect_levels <- sort(unique(transects$aspect))
 site_levels <- sort(unique(transects$site))
 species_levels <- sort(unique(species_df$species))
 size_levels <- sort(unique(fish$size))
-guild_levels <- sort(colnames(guild)[-1]) # Exclude 'species' column
+guild_levels <- sort(unique(counts$guild)) # Exclude 'species' column
 column_levels <- sort(unique(species_df$column))
 habitat_levels <- sort(unique(species_df$habitat))
 protection_levels <- c("unprotected", "protected")
@@ -61,6 +61,15 @@ benthic <- benthic %>%
               transect_id = as.numeric(factor(transect_id, levels = transect_levels))
        )
 
+counts <- counts %>%
+       mutate(
+              transect = as.numeric(factor(transect, levels = transect_levels)),
+              guild = as.numeric(factor(guild, levels = guild_levels)),
+              size = as.numeric(factor(size, levels = size_levels))
+       ) %>%
+       filter(!is.na(guild))
+
+
 colnames(transects) <- str_to_lower(colnames(transects))
 colnames(fish) <- str_to_lower(colnames(fish))
 colnames(species_df) <- str_to_lower(colnames(species_df))
@@ -72,6 +81,7 @@ summary(fish)
 summary(species_df)
 summary(guild)
 summary(benthic)
+summary(counts)
 
 # nudge 0 or 1 values in benthic data
 benthic$coral <- pmin(pmax(benthic$coral, 1e-6), 1 - 1e-6)
@@ -83,3 +93,4 @@ write.csv(fish, here("outputs/standardised_data/fish.csv"), row.names = FALSE)
 write.csv(species_df, here("outputs/standardised_data/species.csv"), row.names = FALSE)
 write.csv(guild, here("outputs/standardised_data/transect_guild.csv"), row.names = FALSE)
 write.csv(benthic, here("outputs/standardised_data/transect_benthic.csv"), row.names = FALSE)
+write.csv(counts, here("outputs/standardised_data/counts_fish.csv"), row.names = FALSE)

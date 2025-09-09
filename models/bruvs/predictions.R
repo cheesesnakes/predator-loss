@@ -132,6 +132,7 @@ p2 <- posterior_guild_size %>%
   geom_boxplot(alpha = 0.5, outlier.shape = NA) +
   labs(x = "Size class", y = "Predicted abundance") +
   scale_fill_brewer(palette = "Set1", name = "Protection") +
+  scale_y_continuous(limits = c(0, 750)) +
   theme(legend.position = "top")
 
 ggsave(here("figures/bruvs_predicted_guild_size.png"), p2, width = 8, height = 6)

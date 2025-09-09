@@ -57,7 +57,7 @@ ppc <- ppc[sample, ]
 
 # Create matrix of observed durations
 response <- data$fish
-counts <- response$abundance
+counts <- response$count
 
 # Posterior predictive check for foraging durations
 ppc_dens_overlay(y = counts, yrep = ppc) +

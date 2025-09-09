@@ -81,7 +81,7 @@ fish <- fish %>%
 # species data
 
 traits <- read.csv(here("data", "fish-traits.csv"))
-
+head(count)
 phylo <- traits %>%
        select(c(Order, Family, Genus)) %>%
        filter(Family != "") %>%
@@ -223,9 +223,22 @@ guild <- guild %>%
        ) %>%
        select(-c(Planktivore))
 
+# make counts data
+
+guild <- guild %>%
+       pivot_longer(-species, names_to = "guild", values_to = "value") %>%
+       filter(value > 0) %>%
+       select(-c(value))
+
+counts <- fish %>%
+       left_join(guild, by = "species") %>%
+       group_by(transect, guild, size) %>%
+       summarise(count = sum(count, na.rm = TRUE)) %>%
+       ungroup()
 
 head(fish)
 head(species_df)
 head(transects)
 head(benthic)
 head(guild)
+head(counts)
