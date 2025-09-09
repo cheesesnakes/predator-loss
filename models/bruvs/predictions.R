@@ -116,23 +116,24 @@ posterior_guild_size <- predicted_counts_df[guild %in% c("Piscivore", "Invertivo
 ## Summarize posterior distribution
 
 summary_guild_size <- posterior_guild_size[, .(
-  mean_count = mean(mean_count),
-  CI5 = quantile(mean_count, 0.025),
+  mean_count = median(mean_count),
+  CI5 = quantile(mean_count, 0.10),
   CI25 = quantile(mean_count, 0.25),
   CI75 = quantile(mean_count, 0.75),
-  CI95 = quantile(mean_count, 0.975)
+  CI95 = quantile(mean_count, 0.90)
 ), by = .(protection, guild, size)]
 
 ## Plot 2: posterior distribution of counts across protection and size
 
-p2 <- posterior_guild_size %>%
+p2 <- summary_guild_size %>%
   filter(guild == "Piscivore") %>%
   mutate(protection = ifelse(protection == "Protected", "Inside PA", "Outside PA")) %>%
-  ggplot(aes(x = size, y = mean_count, fill = protection)) +
-  geom_boxplot(alpha = 0.5, outlier.shape = NA) +
+  ggplot(aes(x = size, y = mean_count, col = protection)) +
+  geom_point(size = 4, position = position_dodge(width = 0.5)) +
+  geom_errorbar(aes(ymin = CI5, ymax = CI95), linewidth = 1, position = position_dodge(width = 0.5), width = 0.25) +
+  geom_errorbar(aes(ymin = CI25, ymax = CI75), width = 0, position = position_dodge(width = 0.5), linewidth = 2) +
   labs(x = "Size class", y = "Predicted abundance") +
-  scale_fill_brewer(palette = "Set1", name = "Protection") +
-  scale_y_continuous(limits = c(0, 750)) +
+  scale_color_brewer(palette = "Set1", name = "Protection") +
   theme(legend.position = "top")
 
 ggsave(here("figures/bruvs_predicted_guild_size.png"), p2, width = 8, height = 6)
