@@ -74,11 +74,15 @@ summary_family <- posterior_family[, .(
 
 cat("\rPlotting posterior distribution of counts across protection...")
 
-p1 <- ggplot(summary_family %>% filter(guild != "Invertivore"), aes(x = reorder(family, mean_count), y = mean_count, col = protection)) +
+p1 <- summary_family %>%
+  filter(guild != "Invertivore") %>%
+  mutate(protection = factor(protection, levels = c("Protected", "Unprotected"))) %>%
+  ggplot(aes(x = reorder(family, mean_count), y = mean_count, col = protection)) +
   geom_point(position = position_dodge(width = 0.5), size = 4) +
   geom_errorbar(aes(ymin = CI5, ymax = CI95), linewidth = 1, width = 0.5) +
   geom_errorbar(aes(ymin = CI25, ymax = CI75), linewidth = 2, width = 0) +
   scale_y_continuous(expand = c(0, 1)) +
+  scale_color_brewer(palette = "Set1", name = "Protection") +
   labs(x = "Family", y = "Predicted abundance") +
   theme(legend.position = "none") +
   coord_flip() +
