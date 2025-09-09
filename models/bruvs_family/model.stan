@@ -3,25 +3,25 @@ data {
   int L; // number of locations
   int T; // number of deployments
   int P; // number of protection levels
-  int G; // number of feeding guilds
+  int G; // number of families
   int C; // number of size classes
   
   array[T] int<lower=1, upper=L> location; // location index
   array[N] int<lower=1, upper=T> transect; // transect index
   array[T] int<lower=1, upper=P> protection; // protection level index
-  array[N] int<lower=1, upper=G> guild; // feeding guild membership matrix
+  array[N] int<lower=1, upper=G> family; // families membership matrix
   array[N] int<lower=1, upper=C> size; // size class index
   array[N] int<lower=0> count; // count of individuals
 }
 parameters {
   array[L] real alpha; // intercepts for locations
-  array[G] real gamma; // effect of feeding guilds
+  array[G] real gamma; // effect of families
   array[P] real delta; // effect of protection levels
-  array[P, G] real beta; // interaction between protection and guild
+  array[P, G] real beta; // interaction between protection and families
   array[C] real theta; // size class effects
   array[P, C] real phi; // interaction between protection and size class
-  array[C, G] real epsilon; // interaction between size class and guild
-  array[P, C, G] real zeta; // interaction between protection, size class, and guild
+  array[C, G] real epsilon; // interaction between size class and families
+  array[P, C, G] real zeta; // interaction between protection, size class, and families
   real<lower=0> phi_nb; // dispersion parameters for negative binomial
 }
 model {
@@ -54,7 +54,7 @@ model {
     int c = size[n];
     int p = protection[t];
     int l = location[t];
-    int g = guild[n];
+    int g = family[n];
     
     real log_lambda = alpha[l] + gamma[g] + delta[p] + beta[p, g] + phi[p, c]
                       + epsilon[c, g] + theta[c] + zeta[p, c, g];
@@ -72,7 +72,7 @@ generated quantities {
   // log likelihood and predicted counts
   for (n in 1 : N) {
     int t = transect[n];
-    int g = guild[n];
+    int g = family[n];
     int c = size[n];
     int p = protection[t];
     int l = location[t];

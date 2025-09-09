@@ -11,11 +11,13 @@ individuals <- read.csv(here("data/chapter-3_bruvs_size.csv"))
 
 colnames(traits) <- str_to_lower(colnames(traits))
 
-guild <- traits %>%
+traits %>%
     mutate_if(is.character, str_trim) %>%
-    mutate(fish_spp = paste(genus, species, sep = " ")) %>%
+    mutate(fish_spp = paste(genus, species, sep = " ")) -> traits
+
+guild <- traits %>%
     rename(guild = feeding.guild) %>%
-    select(fish_spp, guild) %>%
+    select(family, fish_spp, guild) %>%
     mutate(
         FG1 = str_split(guild, ", ", simplify = T)[, 1],
         FG2 = str_split(guild, ", ", simplify = T)[, 2]
@@ -28,7 +30,7 @@ guild <- traits %>%
     filter(guild != "", guild != "#N/a", guild != "Plankivore", guild != "Planktivore") %>%
     mutate(value = 1) %>%
     complete(fish_spp, guild, fill = list(value = 0)) %>%
-    group_by(fish_spp) %>%
+    group_by(family, fish_spp) %>%
     mutate(value = value / sum(value)) %>%
     mutate(value = ifelse(guild == "Piscivore" & value > 0, 1,
         ifelse(guild == "Invertivore" & value < 1, 0, value)
@@ -67,7 +69,7 @@ individuals <- individuals %>%
 # filter out extra species from guild data
 guild <- guild %>%
     filter(fish_spp %in% fish$fish_spp) %>%
-    select(fish_spp, guild)
+    select(fish_spp, guild, family)
 
 # predictors data
 
@@ -82,8 +84,17 @@ individuals %>%
     summarise(count = sum(count)) %>%
     ungroup() -> counts
 
+# Aggregate counts by family
+
+individuals %>%
+    left_join(traits, by = "fish_spp") %>%
+    group_by(deployment_id, family, size) %>%
+    summarise(count = sum(count)) %>%
+    ungroup() -> family_counts
+
 # final data
 
+head(family_counts)
 head(counts)
 head(individuals)
 head(guild)

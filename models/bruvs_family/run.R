@@ -1,6 +1,6 @@
 pacman::p_load(here, bayesplot, ggplot2)
 
-source(here("models", "bruvs/functions.R"))
+source(here("models", "bruvs_family/functions.R"))
 
 theme_set(
   theme_bw() +
@@ -14,8 +14,8 @@ theme_set(
 run <- "standardised" # "validation" or "standardised"
 
 figure_dir <- switch(run,
-  validation = here("figures", "simulated_data/bruvs"),
-  standardised = here("figures/bruvs")
+  validation = here("figures", "simulated_data/bruvs_family"),
+  standardised = here("figures/bruvs_family")
 )
 
 dir.create(figure_dir, recursive = TRUE)
@@ -28,7 +28,7 @@ stan_data <- prep_stan(
   predictors = data$predictors
 )
 
-fit_result <- fit_model(stan_data, here("models", "bruvs/model.stan"), run = run)
+fit_result <- fit_model(stan_data, here("models", "bruvs_family/model.stan"), run = run)
 
 # summary of the model fit
 # Retrieve all variable names from the fitted model

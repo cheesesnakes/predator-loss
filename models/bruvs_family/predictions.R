@@ -22,16 +22,31 @@ cat("Loading posteriors...")
 tic()
 
 predicted_counts_df <- read.fst(
-  here("outputs/bruvs_posteriors.fst")
+  here("outputs/bruvs-family_posteriors.fst")
 )
 
 setDT(predicted_counts_df)
 
 toc()
 
-# Effect of protection on abundance across guilds
+# Get family guild information
 
-cat("\rEffect of protection on abundance across guilds")
+guilds <- read.csv(here("outputs/standardised_data/traits_bruvs.csv"))
+
+guilds %>%
+  select(family, guild) %>%
+  filter(
+    guild != "Unknown",
+    !(family == "Lethrinidae" & guild == "Invertivore"),
+    !(family == "Labridae" & guild == "Piscivore")
+  ) %>%
+  distinct() -> guilds
+
+predicted_counts_df <- predicted_counts_df[guilds, on = .(family)]
+
+# Effect of protection on abundance across families
+
+cat("\rEffect of protection on abundance across families")
 
 tic()
 
@@ -39,40 +54,41 @@ tic()
 
 cat("\rCalculating posterior distribution of counts in each deployment...")
 
-posterior_guild <- predicted_counts_df[guild %in% c("Piscivore", "Invertivore"), .(
+posterior_family <- predicted_counts_df[, .(
   mean_count = sum(count)
-), by = .(draw, protection, transect, guild)]
+), by = .(draw, protection, transect, family, guild)]
 
 ## Summarize posterior distribution
 
 cat("\rSummarizing posterior distribution...")
 
-summary_guild <- posterior_guild[, .(
+summary_family <- posterior_family[, .(
   mean_count = mean(mean_count),
   CI5 = quantile(mean_count, 0.025),
   CI25 = quantile(mean_count, 0.25),
   CI75 = quantile(mean_count, 0.75),
   CI95 = quantile(mean_count, 0.975)
-), by = .(protection, guild)]
+), by = .(protection, family)]
 
 ## Plot 1: posterior distribution of counts across protection
 
 cat("\rPlotting posterior distribution of counts across protection...")
 
-p1 <- ggplot(posterior_guild, aes(x = protection, y = mean_count, fill = protection)) +
+p1 <- ggplot(posterior_family %>% filter(guild != "Invertivore"), aes(x = reorder(family, mean_count), y = mean_count, fill = protection)) +
   geom_boxplot(alpha = 0.5, outlier.shape = NA) +
-  facet_wrap(~guild, scales = "free") +
-  labs(x = "Protection", y = "Predicted abundance") +
-  scale_fill_brewer(palette = "Set1", name = "Protection") +
-  theme(legend.position = "none")
+  labs(x = "Family", y = "Predicted abundance") +
+  scale_y_continuous(limits = c(0, 80)) +
+  theme(legend.position = "none") +
+  coord_flip() +
+  facet_wrap(~protection, labeller = as_labeller(c("Protected" = "Inside PA", "Unprotected" = "Outside PA")))
 
-ggsave(here("figures/bruvs_predicted_guild.png"), p1, width = 8, height = 4)
+ggsave(here("figures/bruvs_predicted_family.png"), p1, width = 8, height = 4)
 
 ## Table 1: summary statistics
 
 cat("\rCreating summary table...")
 
-table_1 <- summary_guild %>%
+table_1 <- summary_family %>%
   mutate(
     mean_count = round(mean_count, 3),
     CI5 = round(CI5, 3),
@@ -80,11 +96,11 @@ table_1 <- summary_guild %>%
     CI75 = round(CI75, 3),
     CI95 = round(CI95, 3)
   ) %>%
-  arrange(guild, protection) %>%
+  arrange(family, protection) %>%
   flextable() %>%
   set_header_labels(
     protection = "Protection",
-    guild = "Feeding guild",
+    family = "Family",
     mean_count = "Mean",
     CI5 = "2.5%",
     CI25 = "25%",
@@ -97,49 +113,49 @@ table_1 <- summary_guild %>%
 
 print(table_1)
 
-save_as_docx(table_1, path = here("figures/bruvs_predicted_guild.docx"))
+save_as_docx(table_1, path = here("figures/bruvs_predicted_family.docx"))
 
 toc()
 
-# Effect of protection on abundance with size classes across guilds
+# Effect of protection on abundance with size classes across families
 
-cat("\rEffect of protection on abundance with size classes across guilds")
+cat("\rEffect of protection on abundance with size classes across families")
 
 tic()
 
 ## Calculate posterior distribution of counts in each deployment
 
-posterior_guild_size <- predicted_counts_df[guild %in% c("Piscivore", "Invertivore"), .(
+posterior_family_size <- predicted_counts_df[, .(
   mean_count = sum(count)
-), by = .(draw, protection, guild, size)]
+), by = .(draw, protection, family, size)]
 
 ## Summarize posterior distribution
 
-summary_guild_size <- posterior_guild_size[, .(
+summary_family_size <- posterior_family_size[, .(
   mean_count = mean(mean_count),
   CI5 = quantile(mean_count, 0.025),
   CI25 = quantile(mean_count, 0.25),
   CI75 = quantile(mean_count, 0.75),
   CI95 = quantile(mean_count, 0.975)
-), by = .(protection, guild, size)]
+), by = .(protection, family, size)]
 
 ## Plot 2: posterior distribution of counts across protection and size
 
-p2 <- posterior_guild_size %>%
-  filter(guild == "Piscivore") %>%
+p2 <- posterior_family_size %>%
   mutate(protection = ifelse(protection == "Protected", "Inside PA", "Outside PA")) %>%
   ggplot(aes(x = size, y = mean_count, fill = protection)) +
   geom_boxplot(alpha = 0.5, outlier.shape = NA) +
   labs(x = "Size class", y = "Predicted abundance") +
   scale_fill_brewer(palette = "Set1", name = "Protection") +
   scale_y_continuous(limits = c(0, 750)) +
-  theme(legend.position = "top")
+  theme(legend.position = "top") +
+  facet_wrap(~family, ncol = 4, scales = "free_y")
 
-ggsave(here("figures/bruvs_predicted_guild_size.png"), p2, width = 8, height = 6)
+ggsave(here("figures/bruvs_predicted_family_size.png"), p2, width = 8, height = 6)
 
 ## Table 2: summary statistics
 
-table_2 <- summary_guild_size %>%
+table_2 <- summary_family_size %>%
   mutate(
     mean_count = round(mean_count, 3),
     CI5 = round(CI5, 3),
@@ -147,11 +163,11 @@ table_2 <- summary_guild_size %>%
     CI75 = round(CI75, 3),
     CI95 = round(CI95, 3)
   ) %>%
-  arrange(guild, protection, size) %>%
+  arrange(family, protection, size) %>%
   flextable() %>%
   set_header_labels(
     protection = "Protection",
-    guild = "Feeding guild",
+    family = "Family",
     size = "Size class",
     mean_count = "Mean",
     CI5 = "2.5%",
@@ -165,6 +181,6 @@ table_2 <- summary_guild_size %>%
 
 print(table_2)
 
-save_as_docx(table_2, path = here("figures/bruvs_predicted_guild_size.docx"))
+save_as_docx(table_2, path = here("figures/bruvs_predicted_family_size.docx"))
 
 toc()

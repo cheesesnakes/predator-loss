@@ -12,6 +12,7 @@ protection_levels <- c("Unprotected", "Protected")
 site_levels <- sort(unique(predictors$site))
 species_levels <- sort(unique(guild$fish_spp))
 guild_levels <- sort(unique(counts$guild))
+family_levels <- sort(unique(family_counts$family))
 
 # fix size
 
@@ -25,6 +26,7 @@ colnames(predictors) <- tolower(colnames(predictors))
 colnames(guild) <- tolower(colnames(guild))
 colnames(individuals) <- tolower(colnames(individuals))
 colnames(counts) <- tolower(colnames(counts))
+colnames(family_counts) <- tolower(colnames(family_counts))
 
 # standardise predictors
 predictors <- predictors %>%
@@ -33,12 +35,6 @@ predictors <- predictors %>%
         location = as.numeric(factor(location, levels = location_levels)),
         protection = as.numeric(factor(protection, levels = protection_levels)),
         site = as.numeric(factor(site, levels = site_levels))
-    )
-
-# standardise guild
-guild <- guild %>%
-    mutate(
-        fish_spp = as.numeric(factor(fish_spp, levels = species_levels))
     )
 
 # standardise individuals
@@ -64,15 +60,30 @@ counts <- counts %>%
     rename(
         abundance = count,
     )
+
+# standarise family level counts
+
+family_counts <- family_counts %>%
+    mutate(
+        deployment_id = as.numeric(factor(deployment_id, levels = deployment_levels)),
+        family = as.numeric(factor(family, levels = family_levels)),
+        size = as.numeric(factor(size, levels = size_levels))
+    ) %>%
+    rename(
+        abundance = count,
+    )
+
 # summary
 
 summary(predictors)
 summary(guild)
 summary(individuals)
 summary(counts)
+summary(family_counts)
 
 # save data
 write.csv(predictors, here("outputs/standardised_data/predictors_bruvs.csv"), row.names = FALSE)
 write.csv(guild, here("outputs/standardised_data/traits_bruvs.csv"), row.names = FALSE)
 write.csv(individuals, here("outputs/standardised_data/individuals_bruvs.csv"), row.names = FALSE)
 write.csv(counts, here("outputs/standardised_data/counts_bruvs.csv"), row.names = FALSE)
+write.csv(family_counts, here("outputs/standardised_data/family_counts_bruvs.csv"), row.names = FALSE)

@@ -16,7 +16,7 @@ cat("\rLoading counterfactual abundance model...")
 
 tic()
 
-fit <- readRDS(here("outputs/standardised_bruvs_fit.rds"))
+fit <- readRDS(here("outputs/standardised_bruvs-family_fit.rds"))
 
 toc()
 
@@ -52,7 +52,7 @@ print(paste("Number of rows:", nrow(predicted_counts_df)))
 cat("\nFixing variable names...")
 
 predicted_counts_df[, variable := gsub("abundance\\[|\\]", "", variable, perl = TRUE)]
-predicted_counts_df[, c("protection", "transect", "guild", "size") := tstrsplit(variable, ",", type.convert = TRUE)]
+predicted_counts_df[, c("protection", "transect", "family", "size") := tstrsplit(variable, ",", type.convert = TRUE)]
 predicted_counts_df[, variable := NULL]
 
 gc()
@@ -84,7 +84,7 @@ cat("\rSetting factors...")
 
 tic()
 
-predicted_counts_df[, guild := factor(guild, levels = 1:length(guild_levels), labels = guild_levels)]
+predicted_counts_df[, family := factor(family, levels = 1:length(family_levels), labels = family_levels)]
 
 predicted_counts_df[, protection := factor(protection, levels = c(1, 2), labels = c("Unprotected", "Protected"))]
 
@@ -100,5 +100,5 @@ cat("Saving predicted counts...")
 
 write.fst(
     predicted_counts_df,
-    here("outputs/bruvs_posteriors.fst")
+    here("outputs/bruvs-family_posteriors.fst")
 )
