@@ -26,24 +26,24 @@ parameters {
 }
 model {
   // Priors for count
-  alpha ~ normal(0, 0.5);
-  gamma ~ normal(0, 0.5);
-  delta ~ normal(0, 0.5);
-  phi_nb ~ exponential(1); // dispersion prior
+  alpha ~ normal(0, 0.1);
+  gamma ~ normal(0, 0.1);
+  delta ~ normal(0, 0.1);
+  phi_nb ~ exponential(0.5); // dispersion prior
   
   for (p in 1 : P) {
-    phi[p] ~ normal(0, 0.5);
+    phi[p] ~ normal(0, 0.1);
     for (g in 1 : G) {
-      beta[p, g] ~ normal(0, 0.5);
+      beta[p, g] ~ normal(0, 0.1);
     }
   }
   
   for (c in 1 : C) {
-    theta[c] ~ normal(0, 0.5);
+    theta[c] ~ normal(0, 0.1);
     for (g in 1 : G) {
-      epsilon[c, g] ~ normal(0, 0.5);
+      epsilon[c, g] ~ normal(0, 0.1);
       for (p in 1 : P) {
-        zeta[p, c, g] ~ normal(0, 0.5);
+        zeta[p, c, g] ~ normal(0, 0.01);
       }
     }
   }

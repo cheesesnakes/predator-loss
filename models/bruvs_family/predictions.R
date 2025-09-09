@@ -63,21 +63,23 @@ posterior_family <- predicted_counts_df[, .(
 cat("\rSummarizing posterior distribution...")
 
 summary_family <- posterior_family[, .(
-  mean_count = mean(mean_count),
-  CI5 = quantile(mean_count, 0.025),
+  mean_count = median(mean_count),
+  CI5 = quantile(mean_count, 0.10),
   CI25 = quantile(mean_count, 0.25),
   CI75 = quantile(mean_count, 0.75),
-  CI95 = quantile(mean_count, 0.975)
-), by = .(protection, family)]
+  CI95 = quantile(mean_count, 0.90)
+), by = .(protection, family, guild)]
 
 ## Plot 1: posterior distribution of counts across protection
 
 cat("\rPlotting posterior distribution of counts across protection...")
 
-p1 <- ggplot(posterior_family %>% filter(guild != "Invertivore"), aes(x = reorder(family, mean_count), y = mean_count, fill = protection)) +
-  geom_boxplot(alpha = 0.5, outlier.shape = NA) +
+p1 <- ggplot(summary_family %>% filter(guild != "Invertivore"), aes(x = reorder(family, mean_count), y = mean_count, col = protection)) +
+  geom_point(position = position_dodge(width = 0.5), size = 4) +
+  geom_errorbar(aes(ymin = CI5, ymax = CI95), linewidth = 1, width = 0.5) +
+  geom_errorbar(aes(ymin = CI25, ymax = CI75), linewidth = 2, width = 0) +
+  scale_y_continuous(expand = c(0, 1)) +
   labs(x = "Family", y = "Predicted abundance") +
-  scale_y_continuous(limits = c(0, 80)) +
   theme(legend.position = "none") +
   coord_flip() +
   facet_wrap(~protection, labeller = as_labeller(c("Protected" = "Inside PA", "Unprotected" = "Outside PA")))
