@@ -86,8 +86,12 @@ individuals %>%
 
 # Aggregate counts by family
 
+families <- traits %>%
+    select(family, fish_spp) %>%
+    distinct()
+
 individuals %>%
-    left_join(traits, by = "fish_spp") %>%
+    left_join(families, by = "fish_spp") %>%
     group_by(deployment_id, family, size) %>%
     summarise(count = sum(count)) %>%
     ungroup() -> family_counts

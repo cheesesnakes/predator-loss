@@ -155,7 +155,8 @@ species_noinfo <- species_df %>%
        select(species) %>%
        distinct()
 
-write.csv(species_noinfo, here("outputs/standardised_data/species_noinfo.csv"), row.names = FALSE)
+dir.create(here("outputs/errors"), showWarnings = FALSE)
+write.csv(species_noinfo, here("outputs/errors/species_noinfo.csv"), row.names = FALSE)
 
 species_df <- species_df %>%
        filter(!is.na(guild)) %>%
@@ -202,8 +203,6 @@ print(paste0("Number of species with multiple guilds: ", nrow(multiguild)))
 multiguild <- multiguild %>%
        flextable() %>%
        autofit()
-
-print(multiguild)
 
 save_as_image(
        multiguild,

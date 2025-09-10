@@ -15,6 +15,11 @@ groups <- read.csv(here("data/chapter-3_groups.csv"))
 behaviors <- read.csv(here("data/chapter-3_behaviors.csv"))
 boris <- read.csv(here("data/chapter-3_behaviors_boris.tsv"), sep = "\t", header = TRUE)
 
+# Check and create directories
+
+dir.create(here("outputs"), showWarnings = FALSE)
+dir.create(here("outputs/errors"), showWarnings = FALSE)
+
 # PREDICTORS -------------------------------------------------------------
 
 # site metadata
@@ -177,7 +182,7 @@ get_mode <- function(x) {
   tbl <- table(x)
   max_freq <- max(tbl)
   mode_candidates <- names(tbl)[tbl == max_freq]
-  return(mode_candidates[1]) # return the first if there's a tie
+  return(mode_candidates[1]) # return the first if there's a tie # nolint: return_linter.
 }
 
 # Trait imputation function
@@ -352,11 +357,11 @@ responses <- responses %>%
 
 fish %>%
   filter(!ind_id %in% responses$ind_id) %>%
-  write.csv(here("outputs/standardised_data/individuals_missing_behaviour.csv"), row.names = FALSE)
+  write.csv(here("outputs/errors/individuals_missing_behaviour.csv"), row.names = FALSE)
 
 responses %>%
   filter(!ind_id %in% fish$ind_id) %>%
-  write.csv(here("outputs/standardised_data/behaviour_missing_individuals.csv"), row.names = FALSE)
+  write.csv(here("outputs/errors/behaviour_missing_individuals.csv"), row.names = FALSE)
 
 fish <- fish %>%
   # remove individuals with no responses
@@ -401,8 +406,6 @@ print(paste0("Number of species with multiple guilds: ", nrow(multiguild)))
 multiguild <- multiguild %>%
   flextable() %>%
   autofit()
-
-print(multiguild)
 
 save_as_image(
   multiguild,

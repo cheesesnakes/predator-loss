@@ -4,6 +4,10 @@ pacman::p_load(
 
 source(here("analysis", "cleaning_bruvs.R"))
 
+# Create directory
+
+dir.create(here("outputs/standardised_data"), showWarnings = FALSE)
+
 # code factors
 
 deployment_levels <- sort(unique(predictors$deployment_id))

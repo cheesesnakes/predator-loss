@@ -2,6 +2,10 @@ pacman::p_load(here)
 
 source(here("analysis", "cleaning_behaviour.R"))
 
+# Create directory
+
+dir.create(here("outputs/standardised_data"), showWarnings = FALSE)
+
 # standardise data
 species_levels <- sort(unique(fish$spp))
 size_levels <- sort(unique(fish$size))

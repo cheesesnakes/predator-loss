@@ -45,58 +45,11 @@ print(assemblage)
 
 save_as_docx(assemblage, path = here("outputs/bruvs_summary.docx"))
 
-# traits
-
-guild_n <- guild %>%
-  ungroup() %>%
-  select(-c(fish_spp)) %>%
-  summarise_all(~ sum(. == 1, na.rm = TRUE)) %>%
-  pivot_longer(
-    cols = everything(),
-    names_to = "Trait",
-    values_to = "Count"
-  )
-
-guild_n <- guild_n %>%
-  flextable() %>%
-  set_table_properties(width = .95, layout = "fixed") %>%
-  colformat_double(
-    j = c("Count"),
-    digits = 0, na_str = "-"
-  ) %>%
-  align(align = "center", part = "header") %>%
-  align(j = 2, align = "right", part = "body") %>%
-  bold(part = "header") %>%
-  autofit() %>%
-  theme_box()
-
-print(guild_n)
-
-save_as_docx(guild_n, path = here("outputs", "bruvs_guild_n.docx"))
-save_as_image(
-  guild_n,
-  path = here("figures", "bruvs_guild_n.png"),
-  type = "png",
-  width = 12,
-  height = 8
-)
-
 # Calculate guild wise abundance
 
-
-guild_long <- guild %>%
-  pivot_longer(
-    cols = -fish_spp,
-    names_to = "Trait",
-    values_to = "Value"
-  ) %>%
-  filter(Value == 1) %>%
-  select(-Value)
-
-
 individuals %>%
-  left_join(guild_long) %>%
-  group_by(Trait) %>%
+  left_join(guild) %>%
+  group_by(guild) %>%
   summarise(Richness = length(unique(fish_spp)), Abundance = sum(count), .groups = "drop") %>%
-  mutate(Trait = ifelse(is.na(Trait), "Unknown", Trait)) %>%
+  mutate(guild = ifelse(is.na(guild), "Unknown", guild)) %>%
   print(.)

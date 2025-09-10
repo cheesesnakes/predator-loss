@@ -4,6 +4,10 @@ pacman::p_load(
 
 source(here("analysis", "cleaning_fish.R"))
 
+# Create directory
+
+dir.create(here("outputs/standardised_data"), showWarnings = FALSE)
+
 # code factors
 
 transect_levels <- sort(unique(transects$transect))

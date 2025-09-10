@@ -95,19 +95,9 @@ save_as_image(
 
 colnames(fish) <- str_to_lower(colnames(fish))
 
-guild_long <- guild %>%
-  pivot_longer(
-    cols = -species,
-    names_to = "Trait",
-    values_to = "Value"
-  ) %>%
-  filter(Value == 1) %>%
-  select(-Value)
-
 fish %>%
-  left_join(guild_long) %>%
+  left_join(guild) %>%
   rename(Species = species) %>%
-  filter(is.na(Trait)) %>%
   select(Species) %>%
   distinct() %>%
   arrange(Species) %>%
@@ -116,8 +106,8 @@ fish %>%
   print(.)
 
 fish %>%
-  left_join(guild_long) %>%
-  group_by(Trait) %>%
+  left_join(guild) %>%
+  group_by(guild) %>%
   summarise(Richness = length(unique(species)), Abundance = sum(count), .groups = "drop") %>%
-  mutate(Trait = ifelse(is.na(Trait), "Unknown", Trait)) %>%
+  mutate(guild = ifelse(is.na(guild), "Unknown", guild)) %>%
   print(.)
