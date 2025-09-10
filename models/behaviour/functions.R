@@ -35,11 +35,13 @@ prep_stan <- function(response, individuals, predictors, rugosity, guild) {
     C = length(unique(individuals$size_class)),
     size = individuals$size_class,
     G = ncol(guild[-1]),
+    L = length(unique(predictors$location)),
     guild = as.matrix(guild[-1]),
     species = individuals$species,
     bites = response$bites,
     predator = predictors$predator,
     plot = individuals$plot_id,
+    location = predictors$location,
     rugosity_raw = matrix(c(rugosity$sample_1, rugosity$sample_2, rugosity$sample_3), ncol = 3),
     protection = predictors$protected,
     biomass = predictors$biomass,
@@ -94,21 +96,21 @@ fit_model <- function(stan_data, model_file, run = "validation") {
 # function to extract posterior samples
 
 extract <- function(p) {
-# Load the fitted model
-fit <- readRDS(here("outputs/standardised_behaviour_fit.rds"))
+  # Load the fitted model
+  fit <- readRDS(here("outputs/standardised_behaviour_fit.rds"))
 
-# set type of model
-responses <- c("pi", "D", "bites")
+  # set type of model
+  responses <- c("pi", "D", "bites")
 
-if (p == "sigma"){
-  responses <- "D"
-}
+  if (p == "sigma") {
+    responses <- "D"
+  }
 
-# Extract draws for each response
-data = data.table()
+  # Extract draws for each response
+  data <- data.table()
 
-for (r in responses) {
-    param <- paste0(p,"_", r)
+  for (r in responses) {
+    param <- paste0(p, "_", r)
     message("Extracting ", param)
 
     draw <- fit$draws(param)
@@ -122,20 +124,19 @@ for (r in responses) {
     df[, variable := str_remove(variable, paste0(param, "\\["))]
     df[, variable := str_remove(variable, "\\]")]
 
-    if (r == "pi"){
-        df[, model := "Zero-inflated"]
+    if (r == "pi") {
+      df[, model := "Zero-inflated"]
     } else {
-        df[, model := "Behaviour"]
+      df[, model := "Behaviour"]
     }
 
     data <- rbind(data, df, use.names = TRUE, fill = TRUE)
     rm(df)
     gc()
-}
+  }
 
-rm(fit)
-gc()
+  rm(fit)
+  gc()
 
-return(data)
-
+  return(data)
 }
