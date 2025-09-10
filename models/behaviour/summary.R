@@ -12,11 +12,11 @@ model_summary <- data.table()
 
 # Protection
 
-data = extract(p = "beta")
+data <- extract(p = "beta")
 
 data[, c("protection", "response") := tstrsplit(variable, ",")]
 data[, protection := factor(protection, levels = c(1, 2), label = c("Unprotected", "Protected"))]
-data[, response := factor(response, levels =c(1, 2, 3), label = c("Foraging", "Vigilance", "Movement"))]
+data[, response := factor(response, levels = c(1, 2, 3), label = c("Foraging", "Vigilance", "Movement"))]
 data[is.na(response), response := "Bite rate"]
 
 ## calculate effect
@@ -28,7 +28,7 @@ data[, `:=`(Protected = NULL, Unprotected = NULL)]
 data[, response := str_to_title(response)]
 data[, model := str_to_title(model)]
 
-## Plot 
+## Plot
 
 p <- ggplot(data, aes(x = value)) +
     geom_density(aes(fill = response), alpha = 0.5) +
@@ -52,7 +52,7 @@ gc()
 
 # Rugosity
 
-data = extract(p = "gamma")
+data <- extract(p = "gamma")
 
 head(data)
 
@@ -80,7 +80,7 @@ gc()
 
 # Biomass
 
-data = extract(p = "zeta")
+data <- extract(p = "zeta")
 data[, response := factor(variable, levels = c(1, 2, 3), labels = c("Foraging", "Vigilance", "Movement"))]
 data[is.na(response), response := "Bite rate"]
 data[, variable := NULL]
@@ -106,7 +106,7 @@ gc()
 
 # Predator presence
 
-data = extract(p = "eta")
+data <- extract(p = "eta")
 
 data[, c("predator", "response") := tstrsplit(variable, ",")]
 data[, predator := factor(predator, levels = c(1, 2), label = c("Absent", "Present"))]
@@ -137,9 +137,9 @@ model_summary <- rbind(model_summary, summary, use.names = TRUE, fill = TRUE)
 rm(data, p, summary)
 gc()
 
-# Effect of grouping 
+# Effect of grouping
 
-data = extract(p = "delta")
+data <- extract(p = "delta")
 
 data[, c("grouping", "response") := tstrsplit(variable, ",")]
 data[, grouping := factor(grouping, levels = c(1, 2), label = c("Solitary", "Grouped"))]
@@ -165,7 +165,15 @@ ggsave(here("figures/behaviour/summary/delta_D.png"), p, width = 12, height = 8,
 
 # Save summary table
 
-summary <- data[, .(mean = mean(value), q025 = quantile(value, 0.025), q975 = quantile(value, 0.975), P = mean(value > 0, na.rm = TRUE)), by = c("response", "model")]
+summary <- data[,
+    .(
+        mean = mean(value),
+        q025 = quantile(value, 0.025),
+        q975 = quantile(value, 0.975),
+        P = mean(value > 0, na.rm = TRUE)
+    ),
+    by = c("response", "model")
+]
 summary[, Variable := "Grouping"]
 model_summary <- rbind(model_summary, summary, use.names = TRUE, fill = TRUE)
 rm(data, p, summary)
@@ -173,17 +181,17 @@ gc()
 
 # Size class
 
-data = extract(p = "omega")
+data <- extract(p = "omega")
 
 data[, c("size_class", "response") := tstrsplit(variable, ",")]
-data[, size_class := factor(size_class, levels = 1:length(size_levels), labels = size_levels)]
+data[, size_class := factor(size_class, levels = seq_along(size_levels), labels = size_levels)]
 data[, response := factor(response, levels = c(1, 2, 3), labels = c("Foraging", "Vigilance", "Movement"))]
 data[is.na(response), response := "Bite rate"]
 
 summary <- data[, .(mean = mean(value), q025 = quantile(value, 0.025), q975 = quantile(value, 0.975), P = mean(value > 0, na.rm = TRUE)), by = c("size_class", "response", "model")]
 
-summary_table <- summary%>%
-select(size_class, response, model, mean, q025, q975, P) %>%
+summary_table <- summary %>%
+    select(size_class, response, model, mean, q025, q975, P) %>%
     arrange(size_class, response, desc(model)) %>%
     mutate_if(is.numeric, round, 3) %>%
     flextable() %>%
@@ -194,12 +202,12 @@ select(size_class, response, model, mean, q025, q975, P) %>%
 
 print(summary_table)
 
-#save_as_docx(summary_table, path = here("outputs/behaviour_summary_size.docx"))
+# save_as_docx(summary_table, path = here("outputs/behaviour_summary_size.docx"))
 save_as_image(summary_table, path = here("outputs/behaviour_summary_size.png"))
 
 # Guild
 
-data = extract(p = "epsilon")
+data <- extract(p = "epsilon")
 
 data[, c("guild", "response") := tstrsplit(variable, ",")]
 data[, guild := factor(guild, levels = 1:length(guild_levels), labels = guild_levels)]
@@ -218,11 +226,11 @@ summary_table <- summary %>%
     theme_box()
 
 print(summary_table)
-#save_as_docx(summary_table, path = here("outputs/behaviour_summary_guild.docx"))
+# save_as_docx(summary_table, path = here("outputs/behaviour_summary_guild.docx"))
 save_as_image(summary_table, path = here("outputs/behaviour_summary_guild.png"))
 
 # SD duration
-data = extract(p = "sigma")
+data <- extract(p = "sigma")
 data[, response := factor(variable, levels = c(1, 2, 3), labels = c("Foraging", "Vigilance", "Movement"))]
 data[, variable := NULL]
 
@@ -246,5 +254,5 @@ summary_table <- model_summary %>%
 
 print(summary_table)
 
-#save_as_docx(summary, path = here("outputs/behaviour_summary.docx"))
+# save_as_docx(summary, path = here("outputs/behaviour_summary.docx"))
 save_as_image(summary_table, path = here("outputs/behaviour_summary.png"))

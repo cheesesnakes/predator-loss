@@ -44,7 +44,7 @@ fit <- readRDS(here("outputs", "standardised_behaviour_fit.rds"))
 protection <- fit$draws("D_pred_protection", format = "matrix")
 
 protection_df <- as.data.table(protection) %>%
-  mutate(Draw = 1:nrow(protection)) %>%
+  mutate(Draw = seq_len(nrow(protection))) %>%
   pivot_longer(
     cols = -c(Draw),
     names_to = "variable",
@@ -76,7 +76,7 @@ dcast(protection_df,
 protection_df[, Delta := log2(Inside + 1) - log2(Outside + 1)]
 protection_df[, P := Inside > Outside] # P(Inside > Outside)
 
-summary_protection <- protection_df[, .(
+posterior_protection <- protection_df[, .(
   mean = mean(Delta, na.rm = TRUE),
   median = median(Delta, na.rm = TRUE),
   q025 = quantile(Delta, 0.025, na.rm = TRUE),
@@ -90,7 +90,7 @@ summary_protection <- protection_df[, .(
 fit <- readRDS(here("outputs", "standardised_behaviour_fit.rds"))
 protection_bites <- fit$draws("bites_pred_protection", format = "matrix")
 protection_bites <- as.data.table(protection_bites) %>%
-  mutate(Draw = 1:nrow(protection_bites)) %>%
+  mutate(Draw = seq_len(nrow(protection_bites))) %>%
   pivot_longer(
     cols = -c(Draw),
     names_to = "variable",
@@ -115,7 +115,7 @@ dcast(protection_bites, Draw + individual ~ protection, value.var = "value") -> 
 protection_bites[, Delta := log2(Inside + 1) - log2(Outside + 1)]
 protection_bites[, P := Inside > Outside] # P(Inside > Outside)
 
-summary_protection_bites <- protection_bites[, .(
+posterior_protection_bites <- protection_bites[, .(
   mean = mean(Delta, na.rm = TRUE),
   median = median(Delta, na.rm = TRUE),
   q025 = quantile(Delta, 0.025, na.rm = TRUE),
@@ -125,28 +125,32 @@ summary_protection_bites <- protection_bites[, .(
   P = sum(P, na.rm = TRUE) / .N
 ), by = Draw]
 
-summary_protection_bites[, response := "Bites"] # add response column for bites
+posterior_protection_bites[, response := "Bites"] # add response column for bites
 
-summary_protection <- full_join(summary_protection, summary_protection_bites)
+posterior_protection <- full_join(posterior_protection, posterior_protection_bites)
 
-summary_protection_table <- summary_protection %>%  
+
+# Summarise posteriors
+summary_protection <- posterior_protection %>%
   group_by(response) %>%
   summarise(
     Mean = mean(mean, na.rm = TRUE),
     Median = median(mean, na.rm = TRUE),
-    Q025 = quantile(mean, 0.025, na.rm = TRUE),
+    Q025 = quantile(mean, 0.10, na.rm = TRUE),
     Q250 = quantile(mean, 0.25, na.rm = TRUE),
     Q750 = quantile(mean, 0.75, na.rm = TRUE),
-    Q975 = quantile(mean, 0.975, na.rm = TRUE),
+    Q975 = quantile(mean, 0.90, na.rm = TRUE),
     P = mean(P, na.rm = TRUE)
-  ) %>%
+  )
+
+summary_protection_table <- summary_protection %>%
   mutate(across(where(is.numeric), ~ round(.x, 3))) %>%
   rename(Behaviour = response) %>%
   flextable() %>%
   set_table_properties(width = .95, layout = "fixed") %>%
   colformat_double(
     j = c("Mean", "Median", "Q025", "Q250", "Q750", "Q975"),
-    digits = 2,
+    digits = 3,
     na_str = "-"
   ) %>%
   align(align = "center", part = "header") %>%
@@ -163,25 +167,25 @@ save_as_docx(
 
 # plot counterfactual protection
 
-ggplot(summary_protection, aes(y = mean, x = response, fill = response))+
-geom_boxplot(
-  width = 0.25,
-  alpha = 0.5,
-  col = "black",
-  outlier.shape = NA
-) +
-geom_hline(
-  aes(yintercept = 0),
-  linetype = "dashed",
-  color = "black"
-) +
-labs(y = "Log-fold change", 
-     x = "Density") +
-theme_bw() +
-theme(
-  legend.position = "none",
-  text = element_text(size = 16),
-) -> p1
+ggplot(summary_protection, aes(y = Median, x = response, col = response)) +
+  geom_errorbar(aes(ymin = Q025, ymax = Q975), width = 0.1, linewidth = 1) +
+  geom_errorbar(aes(ymin = Q250, ymax = Q750), width = 0, linewidth = 2) +
+  geom_point(size = 4) +
+  geom_hline(
+    aes(yintercept = 0),
+    linetype = "dashed",
+    color = "black"
+  ) +
+  labs(
+    y = "Log-fold change",
+    x = "Density"
+  ) +
+  scale_color_brewer(palette = "Dark2") +
+  theme_bw() +
+  theme(
+    legend.position = "none",
+    text = element_text(size = 16),
+  ) -> p1
 
 ggsave(
   here("figures", "counterfactual_protection.png"),
@@ -192,10 +196,10 @@ ggsave(
 
 rm(
   p1,
-  summary_protection,
-  summary_protection_bites,
+  posterior_protection,
+  posterior_protection_bites,
   summary_protection_table,
-  summary_protection_bites_table
+  posterior_protection_bites_table
 )
 gc()
 
@@ -214,7 +218,7 @@ protection <- protection %>%
 
 setDT(protection)
 protection[, size_class := factor(size_class,
-  levels = 1:length(size_levels),
+  levels = seq_along(size_levels),
   labels = size_levels
 )]
 
@@ -253,7 +257,7 @@ p <- summary_protection %>%
     alpha = 0.5
   ) +
   geom_line(aes(group = guild), linewidth = 0.5, position = position_dodge(width = 0.5), linetype = "dashed") +
-  facet_wrap(~interaction(guild, response, sep = " | "), scales = "free", ncol = 2) +
+  facet_wrap(~ interaction(guild, response, sep = " | "), scales = "free", ncol = 2) +
   labs(
     x = "Size Class",
     y = "Log-fold change",
@@ -288,6 +292,11 @@ summary_protection_guild <- summary_protection_guild %>%
   group_by(response, guild) %>%
   summarise(
     Mean = mean(mean, na.rm = TRUE),
+    Median = median(mean, na.rm = TRUE),
+    q025 = quantile(mean, 0.025, na.rm = TRUE),
+    q250 = quantile(mean, 0.25, na.rm = TRUE),
+    q750 = quantile(mean, 0.75, na.rm = TRUE),
+    q975 = quantile(mean, 0.975, na.rm = TRUE),
     P = mean(P, na.rm = TRUE)
   ) %>%
   mutate(across(where(is.numeric), ~ round(.x, 3))) %>%
@@ -295,12 +304,13 @@ summary_protection_guild <- summary_protection_guild %>%
   flextable() %>%
   set_table_properties(width = .95, layout = "fixed") %>%
   colformat_double(
-    j = c("Mean", "P"),
-    digits = 2,
+    j = c("Mean", "Median", "q025", "q250", "q750", "q975", "P"),
+    digits = 3,
     na_str = "-"
   ) %>%
   align(align = "center", part = "header") %>%
   align(j = 2:3, align = "right", part = "body") %>%
+  merge_v(j = 1) %>%
   bold(part = "header") %>%
   theme_box()
 
@@ -327,6 +337,11 @@ summary_protection_size <- summary_protection_size %>%
   group_by(response, size_class) %>%
   summarise(
     Mean = mean(mean, na.rm = TRUE),
+    Median = median(mean, na.rm = TRUE),
+    q025 = quantile(mean, 0.025, na.rm = TRUE),
+    q250 = quantile(mean, 0.25, na.rm = TRUE),
+    q750 = quantile(mean, 0.75, na.rm = TRUE),
+    q975 = quantile(mean, 0.975, na.rm = TRUE),
     P = mean(P, na.rm = TRUE)
   ) %>%
   mutate(across(where(is.numeric), ~ round(.x, 3))) %>%
@@ -334,13 +349,14 @@ summary_protection_size <- summary_protection_size %>%
   flextable() %>%
   set_table_properties(width = .95, layout = "fixed") %>%
   colformat_double(
-    j = c("Mean", "P"),
-    digits = 2,
+    j = c("Mean", "Median", "q025", "q250", "q750", "q975", "P"),
+    digits = 3,
     na_str = "-"
   ) %>%
   align(align = "center", part = "header") %>%
   align(j = 2:3, align = "right", part = "body") %>%
   bold(part = "header") %>%
+  merge_v(j = 1) %>%
   theme_box()
 
 print(summary_protection_size)
