@@ -13,6 +13,7 @@ pacman::p_load(
 theme_set(theme_bw() +
   theme(legend.position = "top", legend.text = element_text(size = 20)))
 
+
 # extract counterfactual draws
 
 # predictive checks
@@ -21,7 +22,7 @@ fit <- readRDS(here("outputs/standardised_behaviour_fit.rds"))
 D_pred <- fit$draws("D_pred", format = "matrix")
 
 D_pred_df <- as.data.table(D_pred) %>%
-  mutate(Draw = 1:nrow(D_pred)) %>%
+  mutate(Draw = seq_len(nrow(D_pred))) %>%
   pivot_longer(
     cols = -c(Draw),
     names_to = "variable",
@@ -91,7 +92,7 @@ fit <- readRDS(here("outputs/standardised_behaviour_fit.rds"))
 bites_pred <- fit$draws("bites_pred", format = "matrix")
 
 bites_pred_df <- as.data.table(bites_pred) %>%
-  mutate(Draw = 1:nrow(bites_pred)) %>%
+  mutate(Draw = seq_len(nrow(bites_pred))) %>%
   pivot_longer(
     cols = -c(Draw),
     names_to = "variable",
@@ -157,5 +158,3 @@ rm(
   p2
 )
 gc()
-
-
