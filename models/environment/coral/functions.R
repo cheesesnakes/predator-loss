@@ -22,7 +22,7 @@ prep_stan <- function(benthic, transects) {
     L = length(unique(transects$site)),
     Q = nrow(benthic),
     location = transects$site,
-    protection = transects$protection,
+    protection = transects$protection - 1,
     coral = benthic$coral,
     transect_quadrat = benthic$quadrat
   )

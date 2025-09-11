@@ -179,7 +179,7 @@ model {
   
   for (s in 1 : S) {
     for (b in 1 : B) {
-      alpha_pi_plot_nc[s, b] ~ normal(0, 0.3); // non-centered
+      alpha_pi_plot_nc[s, b] ~ normal(0, 1); // non-centered
     }
   }
   
@@ -200,13 +200,13 @@ model {
   
   for (l in 1 : L) {
     for (b in 1 : B) {
-      alpha_D_loc[l, b] ~ normal(0, 0.3);
+      alpha_D_loc[l, b] ~ normal(0, 1);
     }
   }
   
   for (s in 1 : S) {
     for (b in 1 : B) {
-      alpha_D_plot_nc[s, b] ~ normal(0, 0.3); //non-centered
+      alpha_D_plot_nc[s, b] ~ normal(0, 1); //non-centered
     }
   }
   
@@ -225,7 +225,7 @@ model {
   }
   
   for (s in 1 : S) {
-    alpha_bites_plot_nc[s] ~ normal(0, 0.3);
+    alpha_bites_plot_nc[s] ~ normal(0, 1);
   }
   
   // rugosity estimation

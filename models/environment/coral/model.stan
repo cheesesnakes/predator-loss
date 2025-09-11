@@ -3,96 +3,81 @@ data {
   int<lower=0> S; // number of transects
   int<lower=0> L; // number of locations
   int<lower=0> Q; // total number of quadrats sampled
-
+  
   // response
   array[Q] real<lower=0, upper=1> coral; // coral cover of plot
   
   // index variables
-  array[S] int<lower=1, upper=L> location; // location index
+  array[S] int<lower=1, upper=L> location; // site index
   array[Q] int<lower=1, upper=S> transect_quadrat; // transect index for quadrats
- 
-  // plot-level predictors
-  array[S] int<lower=1, upper=2> protection; // protection level (0 or 1)
   
+  // plot-level predictors
+  array[S] int<lower=0, upper=1> protection; // protection level (0 or 1)
 }
 parameters {
   // parameters for effect of protection on coral cover
-
-  array[L] real alpha; // random intercepts for each location
-  array[P] real beta; // effect of protection on coral cover
+  
+  array[S] real alpha_s; // random intercepts for each transect
+  real<lower=0> sigma_s; // standard deviation of transect intercepts
+  real beta; // effect of protection on coral cover
   real<lower=1e-6> psi; // standard deviation of coral cover in each protection level
-
-  // sample estimation
-  array[S] real<lower=1e-6, upper=1 - 1e-6> R; // coral cover estimate
-  array[S] real<lower=1e-6> pi_R; // precision of coral cover
 }
 transformed parameters {
   // transformed parameters for protection model
-
-  array[S] real mu; // location specific mean coral cover
-
-  for (s in 1:S){
-    int l = location[s];
-
-    mu[s] = inv_logit(alpha[l] + beta[protection[s]]); // mean coral cover for each location
+  
+  array[Q] real mu; // location specific mean coral cover
+  array[S] real a_s; // non-centered alpha_s
+  
+  for (q in 1 : Q) {
+    int t = transect_quadrat[q];
+    int l = location[t];
+    
+    a_s[t] = alpha_s[t] * sigma_s;
+    
+    mu[q] = inv_logit(alpha_s[t] + beta * protection[t]); // mean coral cover for each location
   }
-
 }
 model {
   // Priors
   
-  alpha ~ normal(0, 1);
-  beta[1] ~ normal(0, 1);
-  beta[2] ~ normal(0.5, 1);
+  alpha_s ~ normal(0, 1);
+  sigma_s ~ exponential(1);
+  beta ~ normal(0, 1);
   psi ~ exponential(1);
-
-  // Priors for habitat complexity and resource availability
-  R ~ beta(1, 1); // uniform prior for resource availability
-  pi_R ~ exponential(1);
-  
-  // estimate habitat complexity and resource availability
-  for (q in 1 : Q) {
-    coral[q] ~ beta(R[transect_quadrat[q]] * pi_R[transect_quadrat[q]],
-                      (1 - R[transect_quadrat[q]])
-                      * pi_R[transect_quadrat[q]]);
-  }
   
   // Likelihood
   
-  for (s in 1 : S) {
-    R[s] ~ beta(mu[s]*psi, (1-mu[s])*psi);
+  for (q in 1 : Q) {
+    coral[q] ~ beta(mu[q] * psi, (1 - mu[q]) * psi);
+  }
 }
-}
-
 generated quantities {
   // posterior predictive checks
-  array[S] real coral_pred;
-  for (s in 1:S) {
-
+  array[Q] real coral_pred;
+  for (q in 1 : Q) {
+    int s = transect_quadrat[q];
     int l = location[s];
-    real a = alpha[l];
+    real as = a_s[s];
     int p = protection[s];
-    real b = beta[p];
-
-    real m = inv_logit(a + b);
-
-    coral_pred[s] = beta_rng(m * psi, (1 - m) * psi);
+    
+    real m = inv_logit(as + beta * p);
+    
+    coral_pred[q] = beta_rng(m * psi, (1 - m) * psi);
   }
-
+  
   // counterfactual coral by protection
-
-  array[P, S] real coral_cf;
-
-  for (p in 1:P) {
-    for (s in 1:S) {
+  
+  array[P, Q] real coral_cf;
+  
+  for (p in 1 : P) {
+    for (q in 1 : Q) {
+      int s = transect_quadrat[q];
+      int l = location[s];
+      real as = a_s[s];
       
-    int l = location[s];
-    real a = alpha[l];
-    real b = beta[p];
-
-    real m = inv_logit(a + b);
-
-    coral_cf[p, s] = beta_rng(m * psi, (1 - m) * psi);
+      real m = inv_logit(as + beta * (p - 1));
+      
+      coral_cf[p, q] = beta_rng(m * psi, (1 - m) * psi);
+    }
   }
-}
 }

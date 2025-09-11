@@ -47,14 +47,10 @@ ppc <- ppc[complete.cases(ppc), ] # Remove rows with NA values
 
 # Create matrix of observed durations
 raw <- data$benthic
-
-coral <- raw %>%
-group_by(transect_id)%>%
-summarise(coral = mean(coral))
-
+coral <- raw$coral
 
 # Posterior predictive check for foraging durations
-ppc_dens_overlay(y = coral$coral, yrep = ppc) +
+ppc_dens_overlay(y = coral, yrep = ppc) +
   labs(x = "Coral cover", y = "Density")
 
 ggsave(here(figure_dir, "ppc.png"), width = 10, height = 8)

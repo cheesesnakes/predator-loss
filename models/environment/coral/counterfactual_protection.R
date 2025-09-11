@@ -87,6 +87,7 @@ ggsave(
 
 # save summary
 head(summary_protection)
+
 summary_protection %>%
   summarise(
     median = median(mean),
@@ -96,4 +97,5 @@ summary_protection %>%
     q975 = quantile(mean, 0.975),
     mean = mean(mean),
     P = mean(P, na.rm = TRUE)
-  )
+  )%>%
+  print(.)
