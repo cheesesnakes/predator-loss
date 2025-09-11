@@ -33,6 +33,25 @@ data {
   int<lower=0> R; // number of simulations for counterfactuals
   array[R] real sim_var; // standarised values for counterfactuals
 }
+transformed data {
+  // standardize rugosity and biomass
+  array[S, 3] real rugosity_std; // standardized rugosity
+  array[S] real biomass_std; // standardized biomass
+  
+  // standarised rugosity and biomass
+  
+  real mean_rugosity_raw = mean(to_array_1d(rugosity_raw));
+  real sd_rugosity_raw = sd(to_array_1d(rugosity_raw));
+  
+  for (s in 1 : S) {
+    biomass_std[s] = (biomass[s] - mean(biomass)) / sd(biomass);
+    
+    for (i in 1 : 3) {
+      rugosity_std[s, i] = (rugosity_raw[s, i] - mean_rugosity_raw)
+                           / sd_rugosity_raw;
+    }
+  }
+}
 parameters {
   // Parameters to estimate rugosity
   
@@ -40,11 +59,10 @@ parameters {
   array[S] real<lower=1e-6> phi_rug; // standard deviation of rugosity in each plot
   
   // parameters for zero-inflation
-  array[S, B] real alpha_pi_plot; // plot-level random intercepts for zero-inflation
+  array[S, B] real alpha_pi_plot_nc; // non-centered 
   array[B] real<lower=1e-6> sd_alpha_pi_plot; // standard deviation of random intercepts for zero-inflation
   
-  array[L, B] real alpha_pi_loc; // location-level random intercepts for zero-inflation
-  array[B] real<lower=1e-6> sd_alpha_pi_loc; // standard deviation of random intercepts for zero-inflation
+  array[L, B] real alpha_pi_loc; // non-centered location-level random intercepts for zero-inflation
   
   array[P, B] real beta_pi; // effect of protection on zero-inflation
   array[B] real gamma_pi; //effect of rugosity on zero-inflation
@@ -55,11 +73,10 @@ parameters {
   array[2, B] real delta_pi; // effect of group on zero-inflation
   
   // parameters for duration model
-  array[S, B] real alpha_D_plot; // plot-level random intercepts for duration
+  array[S, B] real alpha_D_plot_nc; // non-centered
   array[B] real<lower=1e-6> sd_alpha_D_plot; // standard deviation of random intercepts for duration
   
-  array[L, B] real alpha_D_loc; // location-level random intercepts for duration
-  array[B] real<lower=1e-6> sd_alpha_D_loc; // standard deviation of random intercepts for duration
+  array[L, B] real alpha_D_loc; // non-centered location-level random intercepts for duration
   
   array[P, B] real beta_D; // effect of protection on duration
   array[B] real gamma_D; // effect of rugosity on duration
@@ -72,9 +89,8 @@ parameters {
   
   // parameters for bites model
   array[L] real alpha_bites_loc; // location-level random intercepts for bites
-  real<lower=1e-6> sd_alpha_bites_loc; // standard deviation of random intercepts for bites
   
-  array[S] real alpha_bites_plot; // plot-level random intercepts for bites
+  array[S] real alpha_bites_plot_nc; // non-centered plot-level random intercepts for bites
   real<lower=1e-6> sd_alpha_bites_plot; // standard deviation of random intercepts for bites
   
   array[P] real beta_bites; // effect of protection on bites
@@ -86,38 +102,38 @@ parameters {
   array[2] real delta_bites; // effect of group on bites
 }
 transformed parameters {
-  // standardize rugosity and biomass
-  array[S] real rugosity_std; // standardized rugosity
-  array[S] real biomass_std; // standardized biomass
-  
   array[N] real log_lambda; // expected number of bites
   array[N, B] real log_mu; // expected duration
   array[N, B] real pi; // probability of non-zero duration
   
-  for (s in 1 : S) {
-    rugosity_std[s] = (rugosity[s] - mean(rugosity)) / sd(rugosity);
-    biomass_std[s] = (biomass[s] - mean(biomass)) / sd(biomass);
-  }
+  // centered intercepts
+  
+  array[S] real alpha_bites_plot; // plot-level random intercepts for bites
+  array[S, B] real alpha_pi_plot; // plot-level random intercepts for zero-inflation
+  array[S, B] real alpha_D_plot; // plot-level random intercepts for duration
   
   for (n in 1 : N) {
+    int s = plot[n];
+    int l = location[s];
     for (b in 1 : B) {
-      log_mu[n, b] = alpha_D_plot[plot[n], b]
-                     + beta_D[protection[plot[n]], b]
-                     + gamma_D[b] * rugosity_std[plot[n]]
-                     + zeta_D[b] * biomass_std[plot[n]]
-                     + eta_D[predator[plot[n]], b] + omega_D[size[n], b]
+      alpha_D_plot[s, b] = alpha_D_plot_nc[s, b] * sd_alpha_D_plot[b]
+                           + alpha_D_loc[l, b];
+      
+      log_mu[n, b] = alpha_D_plot[s, b] + beta_D[protection[s], b]
+                     + gamma_D[b] * rugosity[s] + zeta_D[b] * biomass_std[s]
+                     + eta_D[predator[s], b] + omega_D[size[n], b]
                      + dot_product(epsilon_D[ : , b], guild[species[n]])
                      + delta_D[group[n], b];
       
       // calculate probability of non-zero duration
       
-      pi[n, b] = inv_logit(
-                           alpha_pi_plot[plot[n], b]
-                           + beta_pi[protection[plot[n]], b]
-                           + gamma_pi[b] * rugosity_std[plot[n]]
-                           + zeta_pi[b] * biomass_std[plot[n]]
-                           + eta_pi[predator[plot[n]], b]
-                           + omega_pi[size[n], b]
+      alpha_pi_plot[s, b] = alpha_pi_plot_nc[s, b] * sd_alpha_pi_plot[b]
+                            + alpha_pi_loc[l, b];
+      
+      pi[n, b] = inv_logit(alpha_pi_plot[s, b] + beta_pi[protection[s], b]
+                           + gamma_pi[b] * rugosity[s]
+                           + zeta_pi[b] * biomass_std[s]
+                           + eta_pi[predator[s], b] + omega_pi[size[n], b]
                            + dot_product(epsilon_pi[ : , b],
                                          guild[species[n]])
                            + delta_pi[group[n], b]);
@@ -125,11 +141,12 @@ transformed parameters {
     
     // calculate expected number of bites
     
-    log_lambda[n] = alpha_bites_plot[plot[n]]
-                    + beta_bites[protection[plot[n]]]
-                    + gamma_bites * rugosity_std[plot[n]]
-                    + zeta_bites * biomass_std[plot[n]]
-                    + eta_bites[predator[plot[n]]] + omega_bites[size[n]]
+    alpha_bites_plot[s] = alpha_bites_plot_nc[s] * sd_alpha_bites_plot
+                          + alpha_bites_loc[l];
+    
+    log_lambda[n] = alpha_bites_plot[s] + beta_bites[protection[s]]
+                    + gamma_bites * rugosity[s] + zeta_bites * biomass_std[s]
+                    + eta_bites[predator[s]] + omega_bites[size[n]]
                     + dot_product(epsilon_bites, guild[species[n]])
                     + delta_bites[group[n]];
   }
@@ -137,95 +154,86 @@ transformed parameters {
 model {
   // Priors
   for (s in 1 : S) {
-    rugosity[s] ~ beta(1, 1);
-    phi_rug[s] ~ exponential(1);
+    rugosity[s] ~ normal(0, 0.3);
+    phi_rug[s] ~ exponential(2);
   }
   
   // Zero-inflation parameters
   for (b in 1 : B) {
-    sd_alpha_pi_loc[b] ~ exponential(1);
-    sd_alpha_pi_plot[b] ~ exponential(1);
+    sd_alpha_pi_plot[b] ~ exponential(2);
     
-    beta_pi[ : , b] ~ normal(0, 1);
-    gamma_pi[b] ~ normal(0, 1);
-    zeta_pi[b] ~ normal(0, 1);
-    eta_pi[ : , b] ~ normal(0, 1);
-    omega_pi[ : , b] ~ normal(0, 1);
-    epsilon_pi[ : , b] ~ normal(0, 1);
-    delta_pi[ : , b] ~ normal(0, 1);
+    beta_pi[ : , b] ~ normal(0, 0.3);
+    gamma_pi[b] ~ normal(0, 0.3);
+    zeta_pi[b] ~ normal(0, 0.3);
+    eta_pi[ : , b] ~ normal(0, 0.3);
+    omega_pi[ : , b] ~ normal(0, 0.3);
+    epsilon_pi[ : , b] ~ normal(0, 0.3);
+    delta_pi[ : , b] ~ normal(0, 0.3);
   }
   
   for (l in 1 : L) {
     for (b in 1 : B) {
-      alpha_pi_loc[l, b] ~ normal(0, sd_alpha_pi_loc[b]);
+      alpha_pi_loc[l, b] ~ normal(0, 0.3);
     }
   }
   
   for (s in 1 : S) {
     for (b in 1 : B) {
-      alpha_pi_plot[s, b] ~ normal(alpha_pi_loc[location[s], b],
-                                   sd_alpha_pi_plot[b]);
+      alpha_pi_plot_nc[s, b] ~ normal(0, 0.3); // non-centered
     }
   }
   
   // Duration parameters
   
   for (b in 1 : B) {
-    sd_alpha_D_loc[b] ~ exponential(1);
-    sd_alpha_D_plot[b] ~ exponential(1);
+    sd_alpha_D_plot[b] ~ exponential(2);
     
-    beta_D[ : , b] ~ normal(0, 1);
-    gamma_D[b] ~ normal(0, 1);
-    zeta_D[b] ~ normal(0, 1);
-    eta_D[ : , b] ~ normal(0, 1);
-    omega_D[ : , b] ~ normal(0, 1);
-    epsilon_D[ : , b] ~ normal(0, 1);
-    delta_D[ : , b] ~ normal(0, 1);
-    sigma_D[b] ~ cauchy(0, 1); // using Cauchy prior for scale
+    beta_D[ : , b] ~ normal(0, 0.3);
+    gamma_D[b] ~ normal(0, 0.3);
+    zeta_D[b] ~ normal(0, 0.3);
+    eta_D[ : , b] ~ normal(0, 0.3);
+    omega_D[ : , b] ~ normal(0, 0.3);
+    epsilon_D[ : , b] ~ normal(0, 0.3);
+    delta_D[ : , b] ~ normal(0, 0.3);
+    sigma_D[b] ~ exponential(2);
   }
   
   for (l in 1 : L) {
     for (b in 1 : B) {
-      alpha_D_loc[l, b] ~ normal(0, sd_alpha_D_loc[b]);
+      alpha_D_loc[l, b] ~ normal(0, 0.3);
     }
   }
   
   for (s in 1 : S) {
     for (b in 1 : B) {
-      alpha_D_plot[s, b] ~ normal(alpha_D_loc[location[s], b],
-                                  sd_alpha_D_plot[b]);
+      alpha_D_plot_nc[s, b] ~ normal(0, 0.3); //non-centered
     }
   }
   
   // Bites parameters
-  sd_alpha_bites_loc ~ exponential(1);
-  sd_alpha_bites_plot ~ exponential(1);
-  beta_bites ~ normal(0, 1);
-  gamma_bites ~ normal(0, 1);
-  zeta_bites ~ normal(0, 1);
-  eta_bites ~ normal(0, 1);
-  omega_bites ~ normal(0, 1);
-  epsilon_bites ~ normal(0, 1);
-  delta_bites ~ normal(0, 1);
+  sd_alpha_bites_plot ~ exponential(2);
+  beta_bites ~ normal(0, 0.3);
+  gamma_bites ~ normal(0, 0.3);
+  zeta_bites ~ normal(0, 0.3);
+  eta_bites ~ normal(0, 0.3);
+  omega_bites ~ normal(0, 0.3);
+  epsilon_bites ~ normal(0, 0.3);
+  delta_bites ~ normal(0, 0.3);
   
   for (l in 1 : L) {
-    alpha_bites_loc[l] ~ normal(0, sd_alpha_bites_loc);
+    alpha_bites_loc[l] ~ normal(0, 0.3);
   }
   
   for (s in 1 : S) {
-    alpha_bites_plot[s] ~ normal(alpha_bites_loc[location[s]],
-                                 sd_alpha_bites_plot);
+    alpha_bites_plot_nc[s] ~ normal(0, 0.3);
   }
   
   // rugosity estimation
   
   for (s in 1 : S) {
-    rugosity_raw[s, 1] ~ beta(rugosity[s] * phi_rug[s],
-                              (1 - rugosity[s]) * phi_rug[s]);
-    rugosity_raw[s, 2] ~ beta(rugosity[s] * phi_rug[s],
-                              (1 - rugosity[s]) * phi_rug[s]);
-    rugosity_raw[s, 3] ~ beta(rugosity[s] * phi_rug[s],
-                              (1 - rugosity[s]) * phi_rug[s]);
+    rugosity_std[s, 1] ~ normal(rugosity[s], phi_rug[s]);
+    rugosity_std[s, 2] ~ normal(rugosity[s], phi_rug[s]);
+    rugosity_std[s, 3] ~ normal(rugosity[s], phi_rug[s]);
   }
   
   // Likelihood
@@ -275,8 +283,8 @@ generated quantities {
   
   for (p in 1 : P) {
     for (n in 1 : N) {
-      real rug_std = mean(rugosity_std);
-      real bio_std = mean(biomass_std);
+      real rug_std = 0;
+      real bio_std = 0;
       for (b in 1 : B) {
         real mu_cf = alpha_D_plot[plot[n], b] + beta_D[p, b]
                      + gamma_D[b] * rug_std + zeta_D[b] * bio_std
@@ -286,8 +294,7 @@ generated quantities {
                      + dot_product(epsilon_D[ : , b], guild[species[n]])
                      + delta_D[group[n], b];
         
-        real pi_cf = inv_logit(
-                               alpha_pi_plot[plot[n], b] + beta_pi[p, b]
+        real pi_cf = inv_logit(alpha_pi_plot[plot[n], b] + beta_pi[p, b]
                                + gamma_pi[b] * rug_std + zeta_pi[b] * bio_std
                                + eta_pi[1, b] + omega_pi[size[n], b]
                                + dot_product(epsilon_pi[ : , b],
@@ -301,8 +308,7 @@ generated quantities {
         }
       }
       
-      real lambda_cf = exp(
-                           alpha_bites_plot[plot[n]] + beta_bites[p]
+      real lambda_cf = exp(alpha_bites_plot[plot[n]] + beta_bites[p]
                            + gamma_bites * rug_std + zeta_bites * bio_std
                            + eta_bites[1] + omega_bites[size[n]]
                            + dot_product(epsilon_bites, guild[species[n]])
@@ -318,7 +324,7 @@ generated quantities {
   
   for (p in 1 : P) {
     for (n in 1 : N) {
-      real bio_std = mean(biomass_std);
+      real bio_std = 0;
       for (r in 1 : R) {
         real rug_std = sim_var[r];
         for (b in 1 : B) {
@@ -328,8 +334,7 @@ generated quantities {
                        + dot_product(epsilon_D[ : , b], guild[species[n]])
                        + delta_D[group[n], b];
           
-          real pi_cf = inv_logit(
-                                 alpha_pi_plot[plot[n], b] + beta_pi[p, b]
+          real pi_cf = inv_logit(alpha_pi_plot[plot[n], b] + beta_pi[p, b]
                                  + gamma_pi[b] * rug_std
                                  + zeta_pi[b] * bio_std + eta_pi[1, b]
                                  + omega_pi[size[n], b]
@@ -344,8 +349,7 @@ generated quantities {
                                                                    sigma_D[b]);
           }
         }
-        real lambda_cf = exp(
-                             alpha_bites_plot[plot[n]] + beta_bites[p]
+        real lambda_cf = exp(alpha_bites_plot[plot[n]] + beta_bites[p]
                              + gamma_bites * rug_std + zeta_bites * bio_std
                              + eta_bites[1] + omega_bites[size[n]]
                              + dot_product(epsilon_bites, guild[species[n]])
@@ -362,7 +366,7 @@ generated quantities {
   
   for (p in 1 : P) {
     for (n in 1 : N) {
-      real rug_std = mean(rugosity_std);
+      real rug_std = 0;
       for (r in 1 : R) {
         real bio_std = sim_var[r];
         for (b in 1 : B) {
@@ -372,8 +376,7 @@ generated quantities {
                        + dot_product(epsilon_D[ : , b], guild[species[n]])
                        + delta_D[group[n], b];
           
-          real pi_cf = inv_logit(
-                                 alpha_pi_plot[plot[n], b] + beta_pi[p, b]
+          real pi_cf = inv_logit(alpha_pi_plot[plot[n], b] + beta_pi[p, b]
                                  + gamma_pi[b] * rug_std
                                  + zeta_pi[b] * bio_std + eta_pi[1, b]
                                  + omega_pi[size[n], b]
@@ -388,8 +391,7 @@ generated quantities {
                                                                   sigma_D[b]);
           }
         }
-        real lambda_cf = exp(
-                             alpha_bites_plot[plot[n]] + beta_bites[p]
+        real lambda_cf = exp(alpha_bites_plot[plot[n]] + beta_bites[p]
                              + gamma_bites * rug_std + zeta_bites * bio_std
                              + eta_bites[1] + omega_bites[size[n]]
                              + dot_product(epsilon_bites, guild[species[n]])
@@ -405,8 +407,8 @@ generated quantities {
   
   for (p in 1 : P) {
     for (n in 1 : N) {
-      real rug_std = mean(rugosity_std);
-      real bio_std = mean(biomass_std);
+      real rug_std = 0;
+      real bio_std = 0;
       for (g in 1 : 2) {
         for (b in 1 : B) {
           real mu_cf = alpha_D_plot[plot[n], b] + beta_D[p, b]
@@ -417,8 +419,7 @@ generated quantities {
                        + dot_product(epsilon_D[ : , b], guild[species[n]])
                        + delta_D[group[n], b];
           
-          real pi_cf = inv_logit(
-                                 alpha_pi_plot[plot[n], b] + beta_pi[p, b]
+          real pi_cf = inv_logit(alpha_pi_plot[plot[n], b] + beta_pi[p, b]
                                  + gamma_pi[b] * rug_std
                                  + zeta_pi[b] * bio_std + eta_pi[g, b]
                                  + omega_pi[size[n], b]
@@ -433,8 +434,7 @@ generated quantities {
                                                                    sigma_D[b]);
           }
         }
-        real lambda_cf = exp(
-                             alpha_bites_plot[plot[n]] + beta_bites[p]
+        real lambda_cf = exp(alpha_bites_plot[plot[n]] + beta_bites[p]
                              + gamma_bites * rug_std + zeta_bites * bio_std
                              + eta_bites[g]
                              // assuming predator absent

@@ -38,6 +38,8 @@ fish <- fish %>%
 predictors <- predictors %>%
   select(c(plot_id, biomass, rugosity, predator))
 
+rugosity_raw <- rugosity
+
 rm(rugosity, responses, traits)
 gc()
 
@@ -115,7 +117,7 @@ biomass <- full_join(biomass, biomass_bites)
 
 mean <- mean(predictors$biomass)
 sd <- sd(predictors$biomass)
-std_var <- seq(-1, 1, length.out = max(as.integer(biomass$sample)))
+std_var <- seq(-2, 2, length.out = max(as.integer(biomass$sample))) # standarised variables 
 
 biomass <- biomass %>%
   mutate(
@@ -323,8 +325,8 @@ gc()
 
 head(rugosity)
 
-mean <- mean(predictors$rugosity)
-sd <- sd(predictors$rugosity)
+mean <- mean(c(rugosity_raw$sample_1, rugosity_raw$sample_2, rugosity_raw$sample_3))
+sd <- sd(c(rugosity_raw$sample_1, rugosity_raw$sample_2, rugosity_raw$sample_3))
 
 rugosity <- rugosity %>%
   mutate(
@@ -628,17 +630,6 @@ ggsave(
   height = 5
 )
 
-rm(
-  protection_predator,
-  protection_predator_bites,
-  predator,
-  p1,
-  p2,
-  p3,
-  p4,
-  summary_predator,
-  summary_predator_table
-)
 gc()
 
 toc()
@@ -655,7 +646,7 @@ ggsave(
   here("figures", "figure5.png"),
   g,
   width = 12,
-  height = 12
+  height = 16
 )
 
 toc()
