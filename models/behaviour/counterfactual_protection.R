@@ -13,8 +13,35 @@ pacman::p_load(
 theme_set(theme_bw() +
   theme(legend.position = "top", legend.text = element_text(size = 20)))
 
-# load data
+# set and create directories
+
+run <- "validation"
+
+figure_dir <- switch(run,
+  validation = here("figures", "simulated_data"),
+  standardised = here("figures")
+)
+
+output_dir <- switch(run,
+  validation = here("outputs", "validation"),
+  standardised = here("outputs")
+)
+
+dir.create(figure_dir, recursive = TRUE, showWarnings = FALSE)
+dir.create(output_dir, recursive = TRUE, showWarnings = FALSE)
+
+# load raw data
+
+if (run == "standardised"){
 source(here("analysis", "standardise_behaviour.R"))
+}else{
+  source(here("simulation", "generate_behaviour.R"))
+  fish <- individuals
+  predictors <- predictors %>%
+  rename(rugosity = mean_rugosity)
+  
+}
+
 
 traits <- guild %>%
   pivot_longer(
@@ -39,7 +66,7 @@ gc()
 
 ## counterfactual protection
 
-fit <- readRDS(here("outputs", "standardised_behaviour_fit.rds"))
+fit <- readRDS(here("outputs", paste0(run, "_behaviour_fit.rds")))
 
 protection <- fit$draws("D_pred_protection", format = "matrix")
 
@@ -87,7 +114,7 @@ posterior_protection <- protection_df[, .(
 ), by = .(Draw, response)]
 
 # counterfactual protection bites
-fit <- readRDS(here("outputs", "standardised_behaviour_fit.rds"))
+fit <- readRDS(here("outputs", paste0(run, "_behaviour_fit.rds")))
 protection_bites <- fit$draws("bites_pred_protection", format = "matrix")
 protection_bites <- as.data.table(protection_bites) %>%
   mutate(Draw = seq_len(nrow(protection_bites))) %>%
@@ -162,7 +189,7 @@ print(summary_protection_table)
 
 save_as_docx(
   summary_protection_table,
-  path = here("outputs", "counterfactual_protection_summary.docx")
+  path = here(output_dir, "counterfactual_protection_summary.docx")
 )
 
 # plot counterfactual protection
@@ -188,7 +215,7 @@ ggplot(summary_protection, aes(y = Median, x = response, col = response)) +
   ) -> p1
 
 ggsave(
-  here("figures", "counterfactual_protection.png"),
+  here(figure_dir, "counterfactual_protection.png"),
   plot = p1,
   width = 5,
   height = 5
@@ -270,7 +297,7 @@ p <- summary_protection_individual %>%
   )
 
 ggsave(
-  here("figures", "counterfactual_protection_summary.png"),
+  here(figure_dir, "counterfactual_protection_summary.png"),
   plot = p,
   width = 6,
   height = 8
@@ -318,7 +345,7 @@ print(summary_protection_guild)
 
 save_as_docx(
   summary_protection_guild,
-  path = here("outputs", "counterfactual_protection_guild_summary.docx")
+  path = here(output_dir, "counterfactual_protection_guild_summary.docx")
 )
 
 # summary across size classes only
@@ -363,5 +390,5 @@ print(summary_protection_size)
 
 save_as_docx(
   summary_protection_size,
-  path = here("outputs", "counterfactual_protection_size_summary.docx")
+  path = here(output_dir, "counterfactual_protection_size_summary.docx")
 )

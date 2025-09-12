@@ -12,7 +12,7 @@ theme_set(
 
 # import data
 
-run <- "standardised"
+run <- "validation"
 
 figure_dir <- switch(run,
   validation = here("figures", "simulated_data"),

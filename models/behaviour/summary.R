@@ -1,9 +1,37 @@
 pacman::p_load(here, data.table, dplyr, tidyr, flextable, ggplot2, stringr)
 
 source(here("models/behaviour/functions.R"))
-source(here("analysis/standardise_behaviour.R"))
 
-guild_levels <- colnames(guild)[-1]
+# set and create directories
+
+run <- "validation"
+
+figure_dir <- switch(run,
+    validation = here("figures", "simulated_data", "summary"),
+    standardised = here("figures", "behaviour", "summary")
+)
+
+output_dir <- switch(run,
+    validation = here("outputs", "validation"),
+    standardised = here("outputs")
+)
+
+dir.create(figure_dir, recursive = TRUE, showWarnings = FALSE)
+dir.create(output_dir, recursive = TRUE, showWarnings = FALSE)
+
+# load raw data
+
+if (run == "standardised") {
+    source(here("analysis", "standardise_behaviour.R"))
+    guild_levels <- colnames(guild)[-1]
+} else {
+    source(here("simulation", "generate_behaviour.R"))
+    fish <- individuals
+    predictors <- predictors %>%
+        rename(rugosity = mean_rugosity)
+}
+
+
 rm(fish, predictors, responses, traits, rugosity)
 
 # Extract summary of parameters
@@ -39,7 +67,7 @@ p <- ggplot(data, aes(x = value)) +
     theme_bw() +
     theme(legend.position = "none", text = element_text(size = 16))
 
-ggsave(here("figures/behaviour/summary/beta_D.png"), p, width = 12, height = 8, dpi = 300)
+ggsave(here(figure_dir, "beta_D.png"), p, width = 12, height = 8, dpi = 300)
 
 ## Save summary table
 
@@ -69,7 +97,7 @@ p <- ggplot(data, aes(x = value)) +
     theme_bw() +
     theme(legend.position = "none", text = element_text(size = 16))
 
-ggsave(here("figures/behaviour/summary/gamma_D.png"), p, width = 12, height = 8, dpi = 300)
+ggsave(here(figure_dir, "gamma_D.png"), p, width = 12, height = 8, dpi = 300)
 
 # Save summary table
 summary <- data[, .(mean = mean(value), q025 = quantile(value, 0.025), q975 = quantile(value, 0.975), P = mean(value > 0, na.rm = TRUE)), by = c("response", "model")]
@@ -94,7 +122,7 @@ p <- ggplot(data, aes(x = value)) +
     theme_bw() +
     theme(legend.position = "none", text = element_text(size = 16))
 
-ggsave(here("figures/behaviour/summary/zeta_D.png"), p, width = 12, height = 8, dpi = 300)
+ggsave(here(figure_dir, "zeta_D.png"), p, width = 12, height = 8, dpi = 300)
 
 # Save summary table
 
@@ -128,7 +156,7 @@ p <- ggplot(data, aes(x = value)) +
     theme_bw() +
     theme(legend.position = "none", text = element_text(size = 16))
 
-ggsave(here("figures/behaviour/summary/eta_D.png"), p, width = 12, height = 8, dpi = 300)
+ggsave(here(figure_dir, "eta_D.png"), p, width = 12, height = 8, dpi = 300)
 
 # Save summary table
 summary <- data[, .(mean = mean(value), q025 = quantile(value, 0.025), q975 = quantile(value, 0.975), P = mean(value > 0, na.rm = TRUE)), by = c("response", "model")]
@@ -161,7 +189,7 @@ p <- ggplot(data, aes(x = value)) +
     theme_bw() +
     theme(legend.position = "none", text = element_text(size = 16))
 
-ggsave(here("figures/behaviour/summary/delta_D.png"), p, width = 12, height = 8, dpi = 300)
+ggsave(here(figure_dir, "delta_D.png"), p, width = 12, height = 8, dpi = 300)
 
 # Save summary table
 
@@ -202,8 +230,8 @@ summary_table <- summary %>%
 
 print(summary_table)
 
-# save_as_docx(summary_table, path = here("outputs/behaviour_summary_size.docx"))
-save_as_image(summary_table, path = here("outputs/behaviour_summary_size.png"))
+# save_as_docx(summary_table, path = here(output_dir, "behaviour_summary_size.docx"))
+save_as_image(summary_table, path = here(output_dir, "behaviour_summary_size.png"))
 
 # Guild
 
@@ -226,8 +254,8 @@ summary_table <- summary %>%
     theme_box()
 
 print(summary_table)
-# save_as_docx(summary_table, path = here("outputs/behaviour_summary_guild.docx"))
-save_as_image(summary_table, path = here("outputs/behaviour_summary_guild.png"))
+# save_as_docx(summary_table, path = here(output_dir, "behaviour_summary_guild.docx"))
+save_as_image(summary_table, path = here(output_dir, "behaviour_summary_guild.png"))
 
 # SD duration
 data <- extract(p = "sigma")
@@ -254,5 +282,5 @@ summary_table <- model_summary %>%
 
 print(summary_table)
 
-# save_as_docx(summary, path = here("outputs/behaviour_summary.docx"))
-save_as_image(summary_table, path = here("outputs/behaviour_summary.png"))
+# save_as_docx(summary, path = here(output_dir, "behaviour_summary.docx"))
+save_as_image(summary_table, path = here(output_dir, "behaviour_summary.png"))

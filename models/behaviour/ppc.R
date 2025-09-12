@@ -13,11 +13,19 @@ pacman::p_load(
 theme_set(theme_bw() +
   theme(legend.position = "top", legend.text = element_text(size = 20)))
 
+# import data
+
+run <- "validation"
+
+figure_dir <- switch(run,
+  validation = here("figures", "simulated_data"),
+  standardised = here("figures")
+)
 
 # extract counterfactual draws
 
 # predictive checks
-fit <- readRDS(here("outputs/standardised_behaviour_fit.rds"))
+fit <- readRDS(here(paste0("outputs/", run, "_behaviour_fit.rds")))
 
 D_pred <- fit$draws("D_pred", format = "matrix")
 
@@ -67,7 +75,7 @@ p1 <- summary_Dpred %>%
   ggplot(aes(x = value, y = statistic, fill = response)) +
   geom_density_ridges(alpha = 0.5, scale = 1) +
   labs(y = "Probability Density", x = "Duration (s)") +
-  scale_x_continuous(limits = c(0, 60)) +
+  scale_x_continuous(limits = c(0, NA)) +
   scale_fill_brewer(palette = "Set1", name = "Behaviour") +
   theme_bw() +
   theme(legend.position = "top")
@@ -76,13 +84,13 @@ p2 <- summary_Dpred %>%
   ggplot(aes(x = mean, fill = response)) +
   geom_density(alpha = 0.5) +
   labs(y = "Probability Density", x = "Mean Duration (s)") +
-  scale_x_continuous(limits = c(0, 60)) +
+  scale_x_continuous(limits = c(0, NA)) +
   scale_fill_brewer(palette = "Set1") +
   theme_bw() +
   theme(legend.position = "none")
 p1 / p2
 
-ggsave(here("figures", "D_pred.png"),
+ggsave(here(figure_dir, "D_pred.png"),
   width = 6,
   height = 6
 )
@@ -127,7 +135,7 @@ p1 <- summary_bites %>%
   filter(statistic != "Mean" & statistic != "Median") %>%
   ggplot(aes(x = value, y = statistic)) +
   geom_density_ridges(alpha = 0.5, scale = 1) +
-  scale_x_continuous(limits = c(0, 5)) +
+  scale_x_continuous(limits = c(0, NA)) +
   labs(y = "Probability Density", x = "Bite rate") +
   scale_fill_brewer(palette = "Set1") +
   theme_bw()
@@ -137,12 +145,12 @@ p2 <- summary_bites %>%
   geom_density(alpha = 0.5) +
   labs(y = "Probability Density", x = "Mean Bite rate") +
   scale_fill_brewer(palette = "Set1") +
-  scale_x_continuous(limits = c(0, 5)) +
+  scale_x_continuous(limits = c(0, NA)) +
   theme_bw()
 
 p1 / p2
 
-ggsave(here("figures", "bites_pred.png"),
+ggsave(here(figure_dir, "bites_pred.png"),
   width = 6,
   height = 6
 )

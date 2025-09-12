@@ -27,18 +27,22 @@ set.seed(123) # set seed for random number generation
 
 plot_id <- 1:M # plot IDs
 protected <- rep(c(1, 2), each = M / 2) # protected or unprotected
+protected <- protected - 1 # scale 0..1
+
+site <- rep(1:L, each = M / L) # assign sites to plots
 
 ## simulate predator presence
 
 # fewer predators outside of protected areas
 
-predator <- sapply(protected, predator_presence) # generate predator presence for each plot
+predator <- sapply(protected + 1, predator_presence) # generate predator presence for each plot
+predator <- predator - 1 # scale 0..1
 
 ## simulate rugosity
 
 # higher rugosity inside protected areas
 
-plot_rugosity <- sapply(protected, rugosity) # generate rugosity for each plot
+plot_rugosity <- sapply(protected + 1, rugosity) # generate rugosity for each plot
 plot_rugosity <- t(plot_rugosity) # transpose the matrix to have plots as rows and rugosity as columns
 
 mean_rugosity <- apply(plot_rugosity, 1, mean) # calculate mean rugosity for each plot
@@ -50,12 +54,12 @@ write.csv(plot_rugosity, here(data_dir, "rugosity.csv"), row.names = F) # write 
 
 ## simulate resource availability
 
-plot_biomass <- sapply(protected, biomass) # generate resource availability for each plot
+plot_biomass <- sapply(protected + 1, biomass) # generate resource availability for each plot
 
 # make data frame of predictors
 
-predictors <- data.frame(plot_id, protected, predator, mean_rugosity, plot_biomass) # create data frame of predictors
-colnames(predictors) <- c("plot_id", "protected", "predator", "mean_rugosity", "biomass") # rename columns
+predictors <- data.frame(plot_id, protected, predator, mean_rugosity, plot_biomass, site) # create data frame of predictors
+colnames(predictors) <- c("plot_id", "protected", "predator", "mean_rugosity", "biomass", "location") # rename columns
 write.csv(predictors, here(data_dir, "predictors.csv"), row.names = F) # write predictors to CSV file
 
 # invidiual level predictors
@@ -84,7 +88,7 @@ for (s in 1:length(size_classes)) {
 size_individual <- rep(0, N) # sample size classes for inside PA and outside PA
 
 for (i in 1:N) {
-    size_individual[i] <- sample(size_classes, size = 1, replace = TRUE, prob = prob_size[, individual_protected[i]]) # sample size class for each individual
+    size_individual[i] <- sample(size_classes, size = 1, replace = TRUE, prob = prob_size[, individual_protected[i]+1]) # sample size class for each individual
 }
 
 # foraging guilds
@@ -111,15 +115,6 @@ colnames(individuals) <- c("ind_id", "species", "plot_id", "size_class", "group"
 
 write.csv(individuals, here(data_dir, "individuals.csv"), row.names = F) # write individual level predictors to CSV file
 
-# Calculate risk per individual
-
-# baseline risk by protection level
-
-individual_risk <- sapply(1:N, function(x) risk(x)) # generate risk for each individual
-
-plot_risk()
-
-ggsave(here(plot_dir, "plots_risk.png"), width = 12, height = 9) # save plots to file
 
 # create data frame of individual level behaviours
 response <- data.frame(individual_id) %>%

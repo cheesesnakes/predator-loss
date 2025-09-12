@@ -1,26 +1,3 @@
-plot_risk <- function(){
-
-    # box plot risk by protection level
-p1 <- ggplot(individuals, aes(x = as.factor(individual_protected), y = individual_risk)) + # create box plot of risk by protection level
-    geom_boxplot() +
-    labs(x = "Protection Level", y = "Risk") 
-
-# box plot risk by size class
-p2 <- ggplot(individuals, aes(x = as.factor(size_individual), y = individual_risk)) + # create box plot of risk by size class
-    geom_boxplot() +
-    labs(x = "Size Class", y = "Risk") 
-
-
-# historgram of risk
-
-p4 <- ggplot(individuals, aes(x = individual_risk)) + # create histogram of risk
-    geom_density() +
-    labs(x = "Risk", y = "Count") 
-
-(p1 + p2  )/ p4# combine plots
-
-}
-
 # plot behaviours
 
 plot_beh <- function(){
