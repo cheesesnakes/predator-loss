@@ -19,9 +19,9 @@ guild_levels <- sort(colnames(guild)[-1]) # Exclude 'species' column
 responses <- responses %>%
   mutate(
     ind_id = as.numeric(factor(ind_id, levels = individual_levels)),
-    foraging_time = as.numeric(foraging_time),
-    vigilance_time = as.numeric(vigilance_time),
-    move_time = as.numeric(move_time),
+    foraging = as.numeric(foraging),
+    vigilance = as.numeric(vigilance),
+    move = as.numeric(move),
     bites = as.numeric(bites),
     escape = as.numeric(escape),
     aggression = as.numeric(aggression)
@@ -65,14 +65,6 @@ rugosity <- rugosity %>%
   filter(!is.na(plot_id))
 
 # rename columns
-
-
-responses <- responses %>%
-  rename(
-    foraging = foraging_time,
-    vigilance = vigilance_time,
-    movement = move_time,
-  )
 
 fish <- fish %>%
   rename(

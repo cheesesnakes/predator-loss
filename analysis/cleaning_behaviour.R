@@ -323,37 +323,28 @@ responses <- responses %>%
   # fill all numeric columns with 0
   mutate_if(is.numeric, ~ replace_na(., 0))
 
-# fix foraging time errors
-
-errors_f_t <- responses %>%
-  filter(foraging_time == 0 | is.na(foraging_time) | foraging_time < 1, bites > 0)
-
-corrected_f_t <- boris %>%
-  filter(observationid %in% errors_f_t$ind_id) %>%
-  filter(behavior == "Bite") %>%
-  group_by(observationid) %>%
-  # filter first and last bite
-  filter(row_number() == 1 | row_number() == n()) %>%
-  # calculate total foraging time
-  reframe(foraging_time = starts - lag(starts)) %>%
-  ungroup() %>%
-  filter(!is.na(foraging_time))
-
-## add corrected foraging time
-
-responses <- responses %>%
-  left_join(corrected_f_t, by = c("ind_id" = "observationid")) %>%
-  mutate(foraging_time = ifelse(foraging_time.x == 0 | foraging_time.x < 1, foraging_time.y, foraging_time.x)) %>%
-  select(-foraging_time.y, -foraging_time.x) %>%
-  # single bites
-  mutate(foraging_time = ifelse(bites == 1 & is.na(foraging_time), 1, foraging_time)) %>%
-  mutate_if(~ is.numeric(.), ~ replace_na(., 0))
-
 responses <- responses %>%
   select(-c(obs_id, modifier)) %>%
   group_by(ind_id) %>%
   summarise(across(everything(), sum, na.rm = TRUE)) %>%
   ungroup()
+
+# Fix coding duration erros from boris
+
+responses <- responses %>%
+  mutate(codingduration = foraging_time + vigilance_time + move_time)
+
+# Calculate proportion of time in each behavioural state
+
+responses <- responses %>%
+  mutate(
+    foraging = foraging_time / codingduration,
+    vigilance = vigilance_time / codingduration,
+    move = move_time / codingduration
+  ) %>%
+  select(-c(codingduration, foraging_time, vigilance_time, move_time))
+
+## check for errors
 
 fish %>%
   filter(!ind_id %in% responses$ind_id) %>%
@@ -371,6 +362,7 @@ responses <- responses %>%
   # remove individuals with no fish
   filter(ind_id %in% fish$ind_id)
 
+## make
 # Guild membership
 
 guild <- fish_traits %>%
@@ -426,10 +418,10 @@ guild <- guild %>%
 
 # remove temporary objects
 
-rm(
-  benthic, boris_point, boris, boris_state, category_names, corrected_f_t, damsels, errors_f_t,
-  mean_rugosity, predator, sites, aggression, behaviors, groups, plots, responses_boris, samples
-)
+# rm(
+# benthic, boris_point, boris, boris_state, category_names, corrected_f_t, damsels,
+# mean_rugosity, predator, sites, aggression, behaviors, groups, plots, responses_boris, samples
+# )
 
 # final data
 

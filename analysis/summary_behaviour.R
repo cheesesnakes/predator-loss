@@ -94,7 +94,7 @@ save_as_image(
 
 # responses
 
-ggpairs(responses[2:ncol(responses)],
+p <- ggpairs(responses[2:ncol(responses)],
   lower = list(continuous = wrap("points", alpha = 0.2, size = 0.5)),
   upper = list(continuous = wrap("cor", size = 3))
 ) +
@@ -107,7 +107,7 @@ ggpairs(responses[2:ncol(responses)],
     axis.text = element_text(size = 12)
   )
 
-ggsave(here("figures", "behaviour-responses.png"), width = 12, height = 12)
+ggsave(p, filename = here("figures", "behaviour-responses.png"), width = 12, height = 12)
 
 responses_summary <- responses %>%
   select(-c(ind_id)) %>%
