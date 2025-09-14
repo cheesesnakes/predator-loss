@@ -360,7 +360,8 @@ fish <- fish %>%
 
 responses <- responses %>%
   # remove individuals with no fish
-  filter(ind_id %in% fish$ind_id)
+  filter(ind_id %in% fish$ind_id)%>%
+  filter(!is.na(foraging) & !is.na(vigilance) & !is.na(move))
 
 ## make
 # Guild membership
@@ -414,14 +415,17 @@ guild <- guild %>%
     Herbivore = ifelse(Herbivore > 0, 1, 0),
     Piscivore = ifelse(Piscivore > 0, 1, 0),
     Invertivore = ifelse(Invertivore == 1, 1, 0),
-  )
+  )%>%
+  pivot_longer(cols = c(Herbivore, Piscivore, Invertivore), names_to = "guild", values_to = "value") %>%
+  filter(value > 0) %>%
+  select(-c(value)) 
 
 # remove temporary objects
 
-# rm(
-# benthic, boris_point, boris, boris_state, category_names, corrected_f_t, damsels,
-# mean_rugosity, predator, sites, aggression, behaviors, groups, plots, responses_boris, samples
-# )
+ rm(
+ benthic, boris_point, boris, boris_state, category_names, damsels,
+ mean_rugosity, predator, sites, aggression, behaviors, groups, plots, responses_boris, samples
+ )
 
 # final data
 

@@ -32,7 +32,7 @@ predictors <- predictors %>%
     plot_id = as.numeric(factor(plot_id, levels = plot_levels)),
     location = as.numeric(factor(location, levels = location_levels)),
     site = as.numeric(factor(site, levels = site_levels)),
-    protection = as.numeric(factor(protection, levels = protection_levels)),
+    protection = as.numeric(factor(protection, levels = protection_levels)) - 1,
     damsel = as.numeric(damsel),
     predator = as.numeric(predator + 1),
     rugosity = as.numeric(rugosity),
@@ -54,11 +54,7 @@ fish <- fish %>%
 guild <- guild %>%
   ungroup() %>%
   filter(species %in% species_levels) %>%
-  mutate(species = factor(species, levels = species_levels)) %>%
-  complete(species) %>%
-  mutate(across(-species, ~ replace_na(., 0))) %>% # Fill NAs with 0
-  mutate(species = as.numeric(species)) # Convert spp to numeric index
-
+  mutate(species = as.numeric(factor(species, levels = species_levels)))
 
 rugosity <- rugosity %>%
   mutate(plot_id = as.numeric(factor(plot_id, levels = plot_levels))) %>%
