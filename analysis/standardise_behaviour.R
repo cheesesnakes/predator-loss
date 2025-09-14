@@ -89,3 +89,17 @@ write.csv(predictors, here("outputs/standardised_data/predictors.csv"), row.name
 write.csv(fish, here("outputs/standardised_data/individuals.csv"), row.names = FALSE)
 write.csv(guild, here("outputs/standardised_data/guild.csv"), row.names = FALSE)
 write.csv(rugosity, here("outputs/standardised_data/rugosity.csv"), row.names = FALSE)
+
+# make data frame
+
+data <- responses %>%
+  select(ind_id, foraging, vigilance, move) %>%
+  left_join(fish, by = c("ind_id" = "ind_id")) %>%
+  left_join(predictors, by = c("plot_id" = "plot_id")) %>%
+  left_join(guild, by = c("species" = "species")) %>%
+  select(-c(sponge, damsel)) %>%
+  mutate(
+    predator = predator - 1,
+    group = group - 1,
+    size_class = as.factor(size_class)
+  )
