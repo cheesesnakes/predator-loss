@@ -51,21 +51,6 @@ fish <- fish %>%
 individuals <- individuals %>%
     filter(fish_spp %in% guild$fish_spp)
 
-# Make size classes 10cm instead of 5cm, truncated at 80cm
-
-individuals <- individuals %>%
-    mutate(size = case_when(
-        size %in% c("0-5", "5-10") ~ "0-10",
-        size %in% c("10-15", "15-20") ~ "10-20",
-        size %in% c("20-25", "25-30") ~ "20-30",
-        size %in% c("30-35", "35-40") ~ "30-40",
-        size %in% c("40-45", "45-50") ~ "40-50",
-        size %in% c("50-55", "55-60") ~ "50-60",
-        size %in% c("60-65", "65-70") ~ "60-70",
-        size %in% c("70-75", "75-80") ~ "70-80",
-        TRUE ~ ">80"
-    ))
-
 # filter out extra species from guild data
 guild <- guild %>%
     filter(fish_spp %in% fish$fish_spp) %>%
