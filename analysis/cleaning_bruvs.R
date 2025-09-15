@@ -87,7 +87,7 @@ families <- traits %>%
     distinct()
 
 individuals %>%
-filter(!fish_spp %in% piscivores) %>%
+filter(fish_spp %in% piscivores) %>%
     left_join(families, by = "fish_spp") %>%
     group_by(deployment_id, family, size) %>%
     summarise(count = sum(count)) %>%
