@@ -337,12 +337,13 @@ responses <- responses %>%
 # Calculate proportion of time in each behavioural state
 
 responses <- responses %>%
+filter(codingduration > 10) %>%
   mutate(
     foraging = foraging_time / codingduration,
     vigilance = vigilance_time / codingduration,
     move = move_time / codingduration
   ) %>%
-  select(-c(codingduration, foraging_time, vigilance_time, move_time))
+  select(-c(foraging_time, vigilance_time, move_time))
 
 ## check for errors
 

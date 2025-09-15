@@ -38,15 +38,14 @@ for (b in behaviours) {
     # Random effects
 
     random_effects <- model %>%
-        spread_draws(`r_site:plot_id`[l_s, ]) %>%
+        spread_draws(`r_site`[l_s, ]) %>%
         summarise_draws() %>%
         ungroup() %>%
         mutate(
-            Site = str_split(l_s, "_", simplify = TRUE)[, 1],
-            Plot = str_split(l_s, "_", simplify = TRUE)[, 2]
+            Site = l_s
         ) %>%
         select(-c(l_s, variable)) %>%
-        select(Site, Plot, mean, median, sd, q5, q95)
+        select(Site,  mean, median, sd, q5, q95)
 
     print(random_effects)
 

@@ -93,7 +93,7 @@ write.csv(rugosity, here("outputs/standardised_data/rugosity.csv"), row.names = 
 # make data frame
 
 data <- responses %>%
-  select(ind_id, foraging, vigilance, move) %>%
+  select(ind_id, foraging, vigilance, move, codingduration) %>%
   left_join(fish, by = c("ind_id" = "ind_id")) %>%
   left_join(predictors, by = c("plot_id" = "plot_id")) %>%
   left_join(guild, by = c("species" = "species")) %>%
@@ -102,4 +102,10 @@ data <- responses %>%
     predator = predator - 1,
     group = group - 1,
     size_class = as.factor(size_class)
-  )
+  ) %>%
+  filter(guild != "Piscivore") 
+
+# Time series data
+
+data_ts <- data %>%
+filter(codingduration > 60)

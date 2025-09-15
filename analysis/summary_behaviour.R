@@ -219,3 +219,33 @@ fish %>%
   summarise(Richness = length(unique(spp)), Abundance = n(), .groups = "drop") %>%
   mutate(Trait = ifelse(is.na(Trait), "Unknown", Trait)) %>%
   print(.)
+
+source(here("analysis", "standardise_behaviour.R"))
+
+# number of observations 
+
+data %>%
+  filter(codingduration > 100) %>%
+  group_by(protected) %>%
+  tally()
+  
+
+data_ts %>%
+  select(species) %>%
+mutate(species = species_levels[species])%>%
+group_by(species) %>%
+  tally() %>%
+  arrange(desc(n)) %>%
+  flextable() %>%
+  italic(j = 1) %>%
+  set_table_properties(width = .5, layout = "fixed") %>%
+  colformat_double(
+    j = c("n"),
+    digits = 0, na_str = "-"
+  ) %>%
+  align(align = "center", part = "header") %>%
+  align(j = 2, align = "right", part = "body") %>%
+  bold(part = "header") %>%
+  autofit() %>%
+  theme_box() %>%
+  print(.)

@@ -150,3 +150,61 @@ counterfactual_protection %>%
     facet_wrap(~behaviour)
 
 ggsave(here("models", "behaviour", "effect_plot_guild_size.png"), plot = last_plot(), height = 6, width = 8)
+
+# Effect of rugosity
+
+counterfactual_rugosity %>%
+    filter(!is.na(guild), guild != "Piscivore") %>%
+    group_by(behaviour, rugosity) %>%
+    median_qi(prop, .width = c(0.5)) %>%
+    ggplot(aes(x = rugosity, y = prop)) +
+    geom_lineribbon(aes(ymin = .lower, ymax = .upper), alpha = 0.5) +
+    labs(x = "Rugosity", y = "Proportion of time") +
+    facet_wrap(~behaviour, ncol = 1) +
+    theme(legend.position = "none")
+
+ggsave(here("models", "behaviour", "counterfactual_rugosity.png"), plot = last_plot(), height = 12, width = 8)
+
+# Effect of biomass
+
+counterfactual_biomass %>%
+    filter(!is.na(guild), guild != "Piscivore") %>%
+    group_by(behaviour, biomass) %>%
+    median_qi(prop, .width = c(0.5)) %>%
+    ggplot(aes(x = biomass, y = prop)) +
+    geom_lineribbon(aes(ymin = .lower, ymax = .upper), alpha = 0.5) +
+    labs(x = "Biomass Cover (%)", y = "Proportion of time") +
+    facet_wrap(~behaviour, ncol = 1)
+
+ggsave(here("models", "behaviour", "counterfactual_biomass.png"), plot = last_plot(), height = 12, width = 8)
+
+# Effect of predator presence
+
+counterfactual_predator %>%
+    filter(!is.na(guild), guild != "Piscivore") %>%
+    group_by(behaviour, predator) %>%
+    median_qi(prop, .width = c(0.5, 0.9)) %>%
+    ggplot(aes(x = as.factor(predator), y = prop)) +
+    geom_pointinterval(aes(ymin = .lower, ymax = .upper)) +
+    labs(x = "Predator presence", y = "Proportion of time") +
+    facet_wrap(~behaviour, ncol = 1) +
+    scale_x_discrete(labels = c("0" = "Absent", "1" = "Present")) +
+    theme(legend.position = "none")
+
+ggsave(here("models", "behaviour", "counterfactual_predator.png"), plot = last_plot(), height = 12, width = 8)
+
+
+# Effect of grouping 
+
+counterfactual_group %>%
+    filter(!is.na(guild), guild != "Piscivore") %>%
+    group_by(behaviour, group) %>%
+    median_qi(prop, .width = c(0.5, 0.9)) %>%
+    ggplot(aes(x = as.factor(group), y = prop)) +
+    geom_pointinterval(aes(ymin = .lower, ymax = .upper)) +
+    labs(x = "Grouping", y = "Proportion of time") +
+    facet_wrap(~behaviour, ncol = 1) +
+    scale_x_discrete(labels = c("0" = "Solitary", "1" = "Grouped")) +
+    theme(legend.position = "none")
+
+ggsave(here("models", "behaviour", "counterfactual_group.png"), plot = last_plot(), height = 12, width = 8)

@@ -19,16 +19,24 @@ behaviours <- c("foraging", "vigilance", "move")
 for (b in behaviours) {
   # define model formula
   if (b == "foraging") {
-    formula <- bf(foraging ~ protected + rugosity + biomass + predator + group + guild + size_class + (1 | site:plot_id))
+    formula <- bf(foraging ~ protected + rugosity + biomass + predator + group + guild + size_class + (1 | site))
   } else if (b == "vigilance") {
-    formula <- bf(vigilance ~ protected + rugosity + biomass + predator + group + guild + size_class + (1 | site:plot_id))
+    formula <- bf(vigilance ~ protected + rugosity + biomass + predator + group + guild + size_class + (1 | site))
   } else if (b == "move") {
-    formula <- bf(move ~ protected + rugosity + biomass + predator + group + guild + size_class + (1 | site:plot_id))
+    formula <- bf(move ~ protected + rugosity + biomass + predator + group + guild + size_class + (1 | site))
   }
+
+  # priors
+
+  priors <- c(set_prior("normal(0,0.5)", class = "Intercept"),
+            set_prior("normal(0,0.5)", class = "b"),
+            set_prior("exponential(1)", class = "sd"),
+            set_prior("exponential(1)", class = "phi"))
 
   # run model
   model <- ordbetareg(
     formula = formula,
+    manual_prior = priors,
     data = data,
     chains = 4,
     cores = 4,
@@ -36,7 +44,7 @@ for (b in behaviours) {
   )
 
   # generate stan code from formula, not fitted model
-  stan_code <- make_stancode(formula, data = data)
+  stan_code <- make_stancode(formula, data = data_ts)
   writeLines(stan_code, con = here("models", "behaviour", paste0("model_", b, ".stan")))
 
   # save model

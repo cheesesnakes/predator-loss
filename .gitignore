@@ -2,6 +2,8 @@ outputs/
 figures/
 renv/
 *.png
+*.pdf
+*.rds
 models/model
 .Rproj.user
 alt_analysis.Rproj
