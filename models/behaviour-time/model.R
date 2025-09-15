@@ -2,6 +2,7 @@ pacman::p_load(brms, here, ordbetareg, tidybayes, ggplot2, marginaleffects)
 
 source(here("analysis", "standardise_behaviour.R"))
 
+dir.create(here("outputs", "behaviour-time"), showWarnings = FALSE)
 # Set default ggplot theme
 theme_set(
   theme_bw() +
