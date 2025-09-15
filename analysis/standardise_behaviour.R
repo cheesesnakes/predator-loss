@@ -108,4 +108,4 @@ data <- responses %>%
 # Time series data
 
 data_ts <- data %>%
-filter(codingduration > 60)
+filter(codingduration > 45)

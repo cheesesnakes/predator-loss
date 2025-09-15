@@ -28,18 +28,18 @@ behaviours <- c("foraging", "vigilance", "move")
 for (b in behaviours) {
   # define model formula
   if (b == "foraging") {
-    formula <- bf(foraging ~ protected + rugosity + biomass + predator + group + guild + size_class + (1 | site:plot_id))
+    formula <- bf(foraging ~ protected + rugosity + group + guild + size_class + (1 | site:plot_id))
   } else if (b == "vigilance") {
-    formula <- bf(vigilance ~ protected + rugosity + biomass + predator + group + guild + size_class + (1 | site:plot_id))
+    formula <- bf(vigilance ~ protected + rugosity + group + guild + size_class + (1 | site:plot_id))
   } else if (b == "move") {
-    formula <- bf(move ~ protected + rugosity + biomass + predator + group + guild + size_class + (1 | site:plot_id))
+    formula <- bf(move ~ protected + rugosity + group + guild + size_class + (1 | site:plot_id))
   }
 
   # priors
 
   priors <- c(set_prior("normal(0,0.5)", class = "Intercept"),
             set_prior("normal(0,0.5)", class = "b"),
-            set_prior("exponential(1)", class = "sd"))
+            set_prior("exponential(2)", class = "sd"))
 
   # run model
   model <- brm(

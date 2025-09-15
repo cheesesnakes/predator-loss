@@ -30,8 +30,8 @@ for (b in behaviours) {
 
   priors <- c(set_prior("normal(0,0.5)", class = "Intercept"),
             set_prior("normal(0,0.5)", class = "b"),
-            set_prior("exponential(1)", class = "sd"),
-            set_prior("exponential(1)", class = "phi"))
+            set_prior("exponential(2)", class = "sd"),
+            set_prior("exponential(2)", class = "phi"))
 
   # run model
   model <- ordbetareg(
@@ -45,18 +45,18 @@ for (b in behaviours) {
 
   # generate stan code from formula, not fitted model
   stan_code <- make_stancode(formula, data = data_ts)
-  writeLines(stan_code, con = here("models", "behaviour", paste0("model_", b, ".stan")))
+  writeLines(stan_code, con = here("models", "behaviour-time", paste0("model_", b, ".stan")))
 
   # save model
-  saveRDS(model, here("outputs", "behaviour", paste0("model_", b, ".rds")))
+  saveRDS(model, here("outputs", "behaviour-time", paste0("model_", b, ".rds")))
 
   # summarise model
   # p1 <- plot(model)
-  # ggsave(here("figures", "behaviour", paste0("model_plot_", b, ".png")), plot = p1)
+  # ggsave(here("figures", "behaviour-time", paste0("model_plot_", b, ".png")), plot = p1)
 
   # posterior predictive check
   p2 <- pp_check(model)
-  ggsave(here("figures", "behaviour", paste0("pp_check_", b, ".png")), plot = p2)
+  ggsave(here("figures", "behaviour-time", paste0("pp_check_", b, ".png")), plot = p2)
 
   print(summary(model))
 }
