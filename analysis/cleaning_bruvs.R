@@ -71,16 +71,27 @@ guild <- guild %>%
     filter(fish_spp %in% fish$fish_spp) %>%
     select(fish_spp, guild, family)
 
+piscivores <- guild %>%
+filter(guild == "Piscivore") %>%
+    select(fish_spp) %>%
+    distinct()%>%
+    pull()
+
 # predictors data
 
 predictors <- metadata %>%
     select(deployment_id, location, site, protection)
 
+# Keep only piscivorous fish
+
+fish <- fish %>%
+    filter(fish_spp %in% piscivores)
+
 # Aggregate counts by guild
 
 individuals %>%
-    left_join(guild, by = "fish_spp") %>%
-    group_by(deployment_id, guild, size) %>%
+filter(fish_spp %in% piscivores) %>%
+    group_by(deployment_id, size) %>%
     summarise(count = sum(count)) %>%
     ungroup() -> counts
 
@@ -91,6 +102,7 @@ families <- traits %>%
     distinct()
 
 individuals %>%
+filter(!fish_spp %in% piscivores) %>%
     left_join(families, by = "fish_spp") %>%
     group_by(deployment_id, family, size) %>%
     summarise(count = sum(count)) %>%

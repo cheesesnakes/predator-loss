@@ -58,7 +58,6 @@ individuals <- individuals %>%
 counts <- counts %>%
     mutate(
         deployment_id = as.numeric(factor(deployment_id, levels = deployment_levels)),
-        guild = as.numeric(factor(guild, levels = guild_levels)),
         size = as.numeric(factor(size, levels = size_levels))
     ) %>%
     rename(

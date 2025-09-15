@@ -139,7 +139,7 @@ effect <- posterior_protection %>%
         pivot_wider(names_from = protection, values_from = prop, id_cols = c(site, .draw)) %>%
         rename("Unprotected" = `0`, "Protected" = `1`) %>%
         mutate(
-            effect = Protected - Unprotected
+            effect = log2(Protected) - log2(Unprotected)
         )
 
 ## Across guilds and size classes
