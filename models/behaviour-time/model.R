@@ -37,7 +37,7 @@ for (b in behaviours) {
   model <- ordbetareg(
     formula = formula,
     manual_prior = priors,
-    data = data,
+    data = data_ts,
     chains = 4,
     cores = 4,
     iter = 2000
