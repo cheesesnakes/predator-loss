@@ -1,4 +1,4 @@
-pacman::p_load(brms, here, ordbetareg, tidybayes, ggplot2, marginaleffects)
+pacman::p_load(brms, here, ordbetareg, tidybayes, ggplot2, marginaleffects, flextable)
 
 source(here("analysis", "standardise_behaviour.R"))
 
@@ -14,6 +14,9 @@ theme_set(
         )
 )
 
+dir.create(here("outputs", "behaviour-prob"), showWarnings = FALSE)
+dir.create(here("figures", "behaviour-prob"), showWarnings = FALSE)
+
 # analysis
 
 behaviours <- c("foraging", "vigilance", "move")
@@ -26,7 +29,7 @@ counterfactual_group <- data.frame()
 for (b in behaviours) {
     # load models
 
-    model <- readRDS(here("models", "behaviour-prob", paste0("model_", b, ".rds")))
+    model <- readRDS(here("outputs", "behaviour-prob", paste0("model_", b, ".rds")))
 
     # plot posterior proportions by protection
 
@@ -122,7 +125,33 @@ counterfactual_protection %>%
     geom_pointinterval(aes(ymin = .lower, ymax = .upper)) +
     labs(x = "Behaviour", y = "Difference in proportion")
 
-ggsave(here("models", "behaviour-prob", "effect_plot.png"), plot = last_plot())
+ggsave(here("figures", "behaviour-prob", "effect_plot.png"), plot = last_plot())
+
+## Make table
+
+table1 <- counterfactual_protection %>%
+    filter(guild != "Piscivore", !is.na(guild)) %>%
+    group_by(behaviour) %>%
+    median_qi(effect, .width = c(0.5, 0.9)) %>%
+    ungroup() %>%
+    pivot_wider(names_from = .width, values_from = c(.lower, .upper)) %>%
+    select(behaviour, effect, .lower_0.9, .lower_0.5, .upper_0.5, .upper_0.9) %>%
+    mutate_if(is.numeric, ~ round(., 3)) %>%
+    flextable() %>%
+    set_header_labels(
+        behaviour = "Behaviour",
+        effect = "Median",
+        .lower_0.9 = "90% Lower CI",
+        .lower_0.5 = "50% Lower CI",
+        .upper_0.5 = "50% Upper CI",
+        .upper_0.9 = "90% Upper CI"
+    ) %>%
+    theme_box() %>%
+    set_table_properties(width = 0.5, layout = "fixed") 
+
+print(table1)
+
+save_as_docx(table1, path = here("outputs", "behaviour-prob", paste0("effect_protection.docx")))
 
 ## Across guilds
 
@@ -135,7 +164,35 @@ counterfactual_protection %>%
     geom_pointinterval(aes(ymin = .lower, ymax = .upper), position = position_dodge(width = 0.5)) +
     labs(x = "Behaviour", y = "Difference in proportion", color = "Guild")
 
-ggsave(here("models", "behaviour-prob", "effect_plot_guild.png"), plot = last_plot(), height = 6, width = 8)
+ggsave(here("figures", "behaviour-prob", "effect_plot_guild.png"), plot = last_plot(), height = 6, width = 8)
+
+## Table 
+
+table2 <- counterfactual_protection %>%
+    filter(!is.na(guild), guild != "Piscivore") %>%
+    group_by(behaviour, guild) %>%
+    median_qi(effect, .width = c(0.5, 0.9)) %>%
+    ungroup() %>%
+    pivot_wider(names_from = .width, values_from = c(.lower, .upper)) %>%
+    select(behaviour, guild, effect, .lower_0.9, .lower_0.5, .upper_0.5, .upper_0.9) %>%
+    mutate_if(is.numeric, ~ round(., 3)) %>%
+    flextable() %>%
+    set_header_labels(
+        guild = "Guild",
+        behaviour = "Behaviour",
+        effect = "Median",
+        .lower_0.9 = "90% Lower CI",
+        .lower_0.5 = "50% Lower CI",
+        .upper_0.5 = "50% Upper CI",
+        .upper_0.9 = "90% Upper CI"
+    ) %>%
+    merge_v(~behaviour) %>%
+    theme_box() %>%
+    set_table_properties(width = 0.5, layout = "fixed")
+
+print(table2)
+
+save_as_docx(table2, path = here("outputs", "behaviour-prob", paste0("effect_protection_guild.docx")))
 
 ## Across guilds and size classes
 
@@ -149,8 +206,37 @@ counterfactual_protection %>%
     labs(x = "Size class", y = "Difference in proportion", color = "Guild") +
     facet_wrap(~behaviour)
 
-ggsave(here("models", "behaviour-prob", "effect_plot_guild_size.png"), plot = last_plot(), height = 6, width = 8)
+ggsave(here("figures", "behaviour-prob", "effect_plot_guild_size.png"), plot = last_plot(), height = 6, width = 8)
 
+## Table
+
+table3 <- counterfactual_protection %>%
+    filter(!is.na(guild), guild != "Piscivore") %>%
+    group_by(behaviour, guild, size_class) %>%
+    median_qi(effect, .width = c(0.5, 0.9)) %>%
+    ungroup() %>%
+    pivot_wider(names_from = .width, values_from = c(.lower, .upper)) %>%
+    select(behaviour, guild, size_class, effect, .lower_0.9, .lower_0.5, .upper_0.5, .upper_0.9) %>%
+    mutate_if(is.numeric, ~ round(., 3)) %>%
+    mutate(size_class =size_levels[as.numeric(size_class)]) %>%
+    flextable() %>%
+    set_header_labels(
+        guild = "Guild",
+        size_class = "Size class",
+        behaviour = "Behaviour",
+        effect = "Median",
+        .lower_0.9 = "90% Lower CI",
+        .lower_0.5 = "50% Lower CI",
+        .upper_0.5 = "50% Upper CI",
+        .upper_0.9 = "90% Upper CI"
+    ) %>%
+    merge_v(~behaviour + guild) %>%
+    theme_box() %>%
+    set_table_properties(width = 0.5, layout = "fixed")
+
+print(table3)
+
+save_as_docx(table3, path = here("outputs", "behaviour-prob", paste0("effect_protection_guild_size.docx")))
 # Effect of rugosity
 
 counterfactual_rugosity %>%
@@ -163,7 +249,7 @@ counterfactual_rugosity %>%
     facet_wrap(~behaviour, ncol = 1) +
     theme(legend.position = "none")
 
-ggsave(here("models", "behaviour-prob", "counterfactual_rugosity.png"), plot = last_plot(), height = 12, width = 8)
+ggsave(here("figures", "behaviour-prob", "counterfactual_rugosity.png"), plot = last_plot(), height = 12, width = 8)
 
 # Effect of biomass
 
@@ -176,7 +262,7 @@ counterfactual_biomass %>%
     labs(x = "Biomass Cover (%)", y = "Proportion of time") +
     facet_wrap(~behaviour, ncol = 1)
 
-ggsave(here("models", "behaviour-prob", "counterfactual_biomass.png"), plot = last_plot(), height = 12, width = 8)
+ggsave(here("figures", "behaviour-prob", "counterfactual_biomass.png"), plot = last_plot(), height = 12, width = 8)
 
 # Effect of predator presence
 
@@ -191,8 +277,35 @@ counterfactual_predator %>%
     scale_x_discrete(labels = c("0" = "Absent", "1" = "Present")) +
     theme(legend.position = "none")
 
-ggsave(here("models", "behaviour-prob", "counterfactual_predator.png"), plot = last_plot(), height = 12, width = 8)
+ggsave(here("figures", "behaviour-prob", "counterfactual_predator.png"), plot = last_plot(), height = 12, width = 8)
 
+## Table
+
+table4 <- counterfactual_predator %>%
+    filter(!is.na(guild), guild != "Piscivore") %>%
+    group_by(behaviour, predator) %>%
+    median_qi(prop, .width = c(0.5, 0.9)) %>%
+    ungroup() %>%
+    pivot_wider(names_from = .width, values_from = c(.lower, .upper)) %>%
+    select(behaviour, predator, prop, .lower_0.9, .lower_0.5, .upper_0.5, .upper_0.9) %>%
+    mutate_if(is.numeric, ~ round(., 3)) %>%
+    flextable() %>%
+    set_header_labels(
+        predator = "Predator",
+        behaviour = "Behaviour",
+        prop = "Median",
+        .lower_0.9 = "90% Lower CI",
+        .lower_0.5 = "50% Lower CI",
+        .upper_0.5 = "50% Upper CI",
+        .upper_0.9 = "90% Upper CI"
+    ) %>%
+    merge_v(~behaviour) %>%
+    theme_box() %>%
+    set_table_properties(width = 0.5, layout = "fixed")
+
+print(table4)
+
+save_as_docx(table4, path = here("outputs", "behaviour-prob", paste0("prop_predator.docx")))
 
 # Effect of grouping 
 
@@ -207,4 +320,32 @@ counterfactual_group %>%
     scale_x_discrete(labels = c("0" = "Solitary", "1" = "Grouped")) +
     theme(legend.position = "none")
 
-ggsave(here("models", "behaviour-prob", "counterfactual_group.png"), plot = last_plot(), height = 12, width = 8)
+ggsave(here("figures", "behaviour-prob", "counterfactual_group.png"), plot = last_plot(), height = 12, width = 8)
+
+## Table
+
+table5 <- counterfactual_group %>%
+    filter(!is.na(guild), guild != "Piscivore") %>%
+    group_by(behaviour, group) %>%
+    median_qi(prop, .width = c(0.5, 0.9)) %>%
+    ungroup() %>%
+    pivot_wider(names_from = .width, values_from = c(.lower, .upper)) %>%
+    select(behaviour, group, prop, .lower_0.9, .lower_0.5, .upper_0.5, .upper_0.9) %>%
+    mutate_if(is.numeric, ~ round(., 3)) %>%
+    flextable() %>%
+    set_header_labels(
+        group = "Grouping",
+        behaviour = "Behaviour",
+        prop = "Median",
+        .lower_0.9 = "90% Lower CI",
+        .lower_0.5 = "50% Lower CI",
+        .upper_0.5 = "50% Upper CI",
+        .upper_0.9 = "90% Upper CI"
+    ) %>%
+    merge_v(~behaviour) %>%
+    theme_box() %>%
+    set_table_properties(width = 0.5, layout = "fixed")
+
+print(table5)
+
+save_as_docx(table5, path = here("outputs", "behaviour-prob", paste0("prop_group.docx")))

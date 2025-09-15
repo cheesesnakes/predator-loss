@@ -48,15 +48,15 @@ for (b in behaviours) {
   writeLines(stan_code, con = here("models", "behaviour", paste0("model_", b, ".stan")))
 
   # save model
-  saveRDS(model, here("models", "behaviour", paste0("model_", b, ".rds")))
+  saveRDS(model, here("outputs", "behaviour", paste0("model_", b, ".rds")))
 
   # summarise model
   # p1 <- plot(model)
-  # ggsave(here("models", "behaviour", paste0("model_plot_", b, ".png")), plot = p1)
+  # ggsave(here("figures", "behaviour", paste0("model_plot_", b, ".png")), plot = p1)
 
   # posterior predictive check
   p2 <- pp_check(model)
-  ggsave(here("models", "behaviour", paste0("pp_check_", b, ".png")), plot = p2)
+  ggsave(here("figures", "behaviour", paste0("pp_check_", b, ".png")), plot = p2)
 
   print(summary(model))
 }

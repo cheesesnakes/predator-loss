@@ -2,6 +2,8 @@ pacman::p_load(brms, here, ordbetareg, tidybayes, ggplot2, marginaleffects)
 
 source(here("analysis", "standardise_behaviour.R"))
 
+dir.create(here("outputs", "behaviour-time"), showWarnings = FALSE)
+
 # Set default ggplot theme
 theme_set(
     theme_bw() +
@@ -24,7 +26,7 @@ for (b in behaviours) {
 
     # load models
 
-    model <- readRDS(here("models", "behaviour", paste0("model_", b, ".rds")))
+    model <- readRDS(here("outputs", "behaviour-time", paste0("model_", b, ".rds")))
 
     # summarise model
 
@@ -33,7 +35,25 @@ for (b in behaviours) {
         summarise_draws() %>%
         mutate(type = "Hyperparameter")
 
-    print(hyperparameters)
+    table3 <- hyperparameters %>%
+        select(c(variable, mean, median, q5, q95)) %>%
+        mutate(variable = str_to_title(variable)) %>%
+        mutate_if(is.numeric, ~ round(., 3)) %>%
+        flextable() %>%
+        set_header_labels(
+            variable = "Variable",
+            mean = "Mean",
+            median = "Median",
+            sd = "SD",
+            q5 = "Lower CI",
+            q95 = "Upper CI"
+        ) %>%
+        set_table_properties(width = 0.5, layout = "fixed") %>%
+        theme_box()
+
+    print(table3)
+
+    save_as_docx(table3, path = here("outputs", "behaviour-time", paste0(b, "_hyperparameters", ".docx")))
 
     # Random effects
 
@@ -47,7 +67,29 @@ for (b in behaviours) {
         select(-c(l_s, variable)) %>%
         select(Site,  mean, median, sd, q5, q95)
 
-    print(random_effects)
+    # make table for random intercepts
+
+    table1 <- random_effects %>%
+    select(-c(sd)) %>%
+    mutate(Site = site_levels[as.numeric(Site)])%>%
+    mutate_if(is.numeric, ~ round(., 3)) %>%
+        flextable() %>%
+        set_header_labels(
+            Site = "Site",
+            mean = "Mean",
+            median = "Median",
+            sd = "SD",
+            q5 = "Lower CI",
+            q95 = "Upper CI"
+        ) %>%
+        merge_v(~ Site) %>%
+        set_table_properties(width = 0.5, layout = "fixed") %>%
+        theme_box()
+    
+    print(table1)
+
+    save_as_docx(table1, path = here("outputs", "behaviour-time", paste0(b, "_intercepts", ".docx")))
+
 
     # Parameters
 
@@ -59,5 +101,26 @@ for (b in behaviours) {
             variable = str_replace(variable, "b_", "")
         )
 
-    print(parameters)
+     # make table
+
+    table2 <- parameters %>%
+        select(c(variable, mean, median, q5, q95)) %>%
+        mutate(variable = str_to_title(variable)) %>%
+        mutate_if(is.numeric, ~ round(., 3)) %>%
+        flextable() %>%
+        set_header_labels(
+            variable = "Variable",
+            mean = "Mean",
+            median = "Median",
+            sd = "SD",
+            q5 = "Lower CI",
+            q95 = "Upper CI"
+        ) %>%
+        set_table_properties(width = 0.5, layout = "fixed") %>%
+        theme_box()
+
+    print(table2)
+
+    save_as_docx(table2, path = here("outputs", "behaviour-time", paste0(b, "_parameters", ".docx")))
+
 }
