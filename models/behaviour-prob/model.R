@@ -53,7 +53,7 @@ for (b in behaviours) {
   )
 
   # generate stan code from formula, not fitted model
-  stan_code <- make_stancode(formula, data = data_ts)
+  stan_code <- make_stancode(formula, data = data_ts, prior = priors, family = bernoulli(link = "logit"))
   writeLines(stan_code, con = here("models", "behaviour-prob", paste0("model_", b, ".stan")))
 
   # save model

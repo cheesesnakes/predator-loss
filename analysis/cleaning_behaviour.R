@@ -151,6 +151,18 @@ fish <- fish %>%
 
 colnames(fish) <- str_to_lower(colnames(fish))
 
+# Make plot-level abudance data
+
+plot_abundance <- fish %>%
+  group_by(plot_id, spp) %>%
+  summarise(abundance = n()) %>%
+  ungroup()
+
+plot_size <- fish %>%
+  group_by(plot_id, size) %>%
+  summarise(abundance = n())
+  
+
 # attach foraging guild information
 
 traits <- read.csv(here("data", "fish-traits.csv"))

@@ -7,8 +7,8 @@ source(here("analysis", "cleaning_behaviour.R"))
 dir.create(here("outputs/standardised_data"), showWarnings = FALSE)
 
 # standardise data
-species_levels <- sort(unique(fish$spp))
-size_levels <- sort(unique(fish$size))
+species_levels <- sort(unique(plot_abundance$spp))
+size_levels <- sort(unique(plot_size$size))
 individual_levels <- sort(unique(fish$ind_id))
 plot_levels <- sort(unique(predictors$plot_id))
 location_levels <- sort(unique(predictors$location))
@@ -27,6 +27,9 @@ responses <- responses %>%
     aggression = as.numeric(aggression)
   )
 
+moments_rugosity <- c(mean(predictors$rugosity, na.rm = TRUE), sd(predictors$rugosity, na.rm = TRUE))
+moments_biomass <- c(mean(predictors$resource, na.rm = TRUE), sd(predictors$resource, na.rm = TRUE))
+
 predictors <- predictors %>%
   mutate(
     plot_id = as.numeric(factor(plot_id, levels = plot_levels)),
@@ -39,7 +42,10 @@ predictors <- predictors %>%
     resource = as.numeric(resource),
     substrate = as.numeric(substrate),
     coral = as.numeric(coral),
-    sponge = as.numeric(sponge)
+    sponge = as.numeric(sponge),
+    rugosity = (rugosity - mean(rugosity, na.rm = TRUE))/sd(rugosity, na.rm = TRUE),
+    resource = (resource - mean(resource, na.rm = TRUE))/sd(resource, na.rm = TRUE)
+  
   )
 
 fish <- fish %>%
@@ -48,6 +54,18 @@ fish <- fish %>%
     plot_id = as.numeric(factor(plot_id, levels = plot_levels)),
     spp = as.numeric(factor(spp, levels = species_levels)),
     group = as.numeric(group + 1),
+    size = as.numeric(factor(size, levels = size_levels))
+  )
+
+plot_abundance <- plot_abundance %>%
+  mutate(
+    plot_id = as.numeric(factor(plot_id, levels = plot_levels)),
+    spp = as.numeric(factor(spp, levels = species_levels))
+  )
+
+plot_size <- plot_size %>%
+  mutate(
+    plot_id = as.numeric(factor(plot_id, levels = plot_levels)),
     size = as.numeric(factor(size, levels = size_levels))
   )
 
@@ -66,6 +84,16 @@ fish <- fish %>%
   rename(
     species = spp,
     size_class = size
+  )
+
+plot_abundance <- plot_abundance %>%
+  rename(
+    species = spp
+  )
+
+plot_size <- plot_size %>%
+  rename(
+    species = size
   )
 
 predictors <- predictors %>%
