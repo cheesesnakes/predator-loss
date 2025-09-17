@@ -347,22 +347,12 @@ responses <- responses %>%
   mutate(codingduration = foraging_time + vigilance_time + move_time) %>%
   # fix coding durations longer than 120 s (bug in boris)
   mutate(
-    foraging_time = ifelse(codingduration > 150, (foraging_time * 120 / codingduration), foraging_time),
-    vigilance_time = ifelse(codingduration > 150, (vigilance_time * 120 / codingduration), vigilance_time),
-    move_time = ifelse(codingduration > 150, (move_time * 120 / codingduration), move_time),
+    foraging = ifelse(codingduration > 150, (foraging_time * 120 / codingduration), foraging_time),
+    vigilance = ifelse(codingduration > 150, (vigilance_time * 120 / codingduration), vigilance_time),
+    move = ifelse(codingduration > 150, (move_time * 120 / codingduration), move_time),
     codingduration = ifelse(codingduration > 150, 120, codingduration)
   )
 
-# Calculate proportion of time in each behavioural state
-
-responses <- responses %>%
-  filter(codingduration > 10) %>%
-  mutate(
-    foraging = foraging_time / codingduration,
-    vigilance = vigilance_time / codingduration,
-    move = move_time / codingduration
-  ) %>%
-  select(-c(foraging_time, vigilance_time, move_time))
 
 ## check for errors
 

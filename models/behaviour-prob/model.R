@@ -17,6 +17,7 @@ theme_set(
 # Convert observations to binary outcomes
 
 data <- data %>%
+  filter(codingduration > 10) %>%
   mutate(
     foraging = ifelse(foraging > 0, 1, 0),
     vigilance = ifelse(vigilance > 0, 1, 0),

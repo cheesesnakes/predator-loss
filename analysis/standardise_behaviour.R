@@ -43,9 +43,8 @@ predictors <- predictors %>%
     substrate = as.numeric(substrate),
     coral = as.numeric(coral),
     sponge = as.numeric(sponge),
-    rugosity = (rugosity - mean(rugosity, na.rm = TRUE))/sd(rugosity, na.rm = TRUE),
-    resource = (resource - mean(resource, na.rm = TRUE))/sd(resource, na.rm = TRUE)
-  
+    rugosity = (rugosity - mean(rugosity, na.rm = TRUE)) / sd(rugosity, na.rm = TRUE),
+    resource = (resource - mean(resource, na.rm = TRUE)) / sd(resource, na.rm = TRUE)
   )
 
 fish <- fish %>%
@@ -91,11 +90,6 @@ plot_abundance <- plot_abundance %>%
     species = spp
   )
 
-plot_size <- plot_size %>%
-  rename(
-    species = size
-  )
-
 predictors <- predictors %>%
   rename(
     biomass = resource,
@@ -131,9 +125,4 @@ data <- responses %>%
     group = group - 1,
     size_class = as.factor(size_class)
   ) %>%
-  filter(guild != "Piscivore") 
-
-# Time series data
-
-data_ts <- data %>%
-filter(codingduration > 45)
+  filter(guild != "Piscivore")
