@@ -20,19 +20,21 @@ behaviours <- c("foraging", "vigilance", "move")
 for (b in behaviours) {
   # define model formula
   if (b == "foraging") {
-    formula <- bf(foraging ~ protected + rugosity + biomass + predator + group + guild + size_class + (1 | site))
+    formula <- bf(foraging ~ protected + rugosity + biomass + predator + group + guild + size_class + (1 | site:plot_id) + (1 | species))
   } else if (b == "vigilance") {
-    formula <- bf(vigilance ~ protected + rugosity + biomass + predator + group + guild + size_class + (1 | site))
+    formula <- bf(vigilance ~ protected + rugosity + biomass + predator + group + guild + size_class + (1 | site:plot_id) + (1 | species))
   } else if (b == "move") {
-    formula <- bf(move ~ protected + rugosity + biomass + predator + group + guild + size_class + (1 | site))
+    formula <- bf(move ~ protected + rugosity + biomass + predator + group + guild + size_class + (1 | site:plot_id) + (1 | species))
   }
 
   # priors
 
-  priors <- c(set_prior("normal(0,0.5)", class = "Intercept"),
-            set_prior("normal(0,0.5)", class = "b"),
-            set_prior("exponential(2)", class = "sd"),
-            set_prior("exponential(2)", class = "phi"))
+  priors <- c(
+    set_prior("normal(0,0.5)", class = "Intercept"),
+    set_prior("normal(0,0.5)", class = "b"),
+    set_prior("exponential(2)", class = "sd"),
+    set_prior("exponential(2)", class = "phi")
+  )
 
   # run model
   model <- ordbetareg(
@@ -55,9 +57,9 @@ for (b in behaviours) {
   # p1 <- plot(model)
   # ggsave(here("figures", "behaviour-time", paste0("model_plot_", b, ".png")), plot = p1)
 
+  print(summary(model))
+
   # posterior predictive check
   p2 <- pp_check(model)
   ggsave(here("figures", "behaviour-time", paste0("pp_check_", b, ".png")), plot = p2)
-
-  print(summary(model))
 }
