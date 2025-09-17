@@ -250,7 +250,8 @@ counterfactual_biomass %>%
     ggplot(aes(x = biomass, y = prop)) +
     geom_lineribbon(aes(ymin = .lower, ymax = .upper), alpha = 0.5) +
     labs(x = "Biomass Cover (%)", y = "Proportion of time") +
-    facet_wrap(~behaviour, ncol = 1)
+    facet_wrap(~behaviour, ncol = 1) +
+    theme(legend.position = "none")
 
 ggsave(here("figures", "behaviour-time", "counterfactual_biomass.png"), plot = last_plot(), height = 12, width = 8)
 

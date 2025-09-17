@@ -161,7 +161,7 @@ plot_abundance <- fish %>%
 plot_size <- fish %>%
   group_by(plot_id, size) %>%
   summarise(abundance = n())
-  
+
 
 # attach foraging guild information
 
@@ -344,12 +344,19 @@ responses <- responses %>%
 # Fix coding duration erros from boris
 
 responses <- responses %>%
-  mutate(codingduration = foraging_time + vigilance_time + move_time)
+  mutate(codingduration = foraging_time + vigilance_time + move_time) %>%
+  # fix coding durations longer than 120 s (bug in boris)
+  mutate(
+    foraging_time = ifelse(codingduration > 150, (foraging_time * 120 / codingduration), foraging_time),
+    vigilance_time = ifelse(codingduration > 150, (vigilance_time * 120 / codingduration), vigilance_time),
+    move_time = ifelse(codingduration > 150, (move_time * 120 / codingduration), move_time),
+    codingduration = ifelse(codingduration > 150, 120, codingduration)
+  )
 
 # Calculate proportion of time in each behavioural state
 
 responses <- responses %>%
-filter(codingduration > 10) %>%
+  filter(codingduration > 10) %>%
   mutate(
     foraging = foraging_time / codingduration,
     vigilance = vigilance_time / codingduration,
@@ -373,7 +380,7 @@ fish <- fish %>%
 
 responses <- responses %>%
   # remove individuals with no fish
-  filter(ind_id %in% fish$ind_id)%>%
+  filter(ind_id %in% fish$ind_id) %>%
   filter(!is.na(foraging) & !is.na(vigilance) & !is.na(move))
 
 ## make
@@ -428,17 +435,17 @@ guild <- guild %>%
     Herbivore = ifelse(Herbivore > 0, 1, 0),
     Piscivore = ifelse(Piscivore > 0, 1, 0),
     Invertivore = ifelse(Invertivore == 1, 1, 0),
-  )%>%
+  ) %>%
   pivot_longer(cols = c(Herbivore, Piscivore, Invertivore), names_to = "guild", values_to = "value") %>%
   filter(value > 0) %>%
-  select(-c(value)) 
+  select(-c(value))
 
 # remove temporary objects
 
- rm(
- benthic, boris_point, boris, boris_state, category_names, damsels,
- mean_rugosity, predator, sites, aggression, behaviors, groups, plots, responses_boris, samples
- )
+rm(
+  benthic, boris_point, boris, boris_state, category_names, damsels,
+  mean_rugosity, predator, sites, aggression, behaviors, groups, plots, responses_boris, samples
+)
 
 # final data
 

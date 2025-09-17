@@ -159,13 +159,8 @@ save_as_image(
 
 guild_n <- guild %>%
   ungroup() %>%
-  select(-c(species)) %>%
-  summarise_all(~ sum(. == 1, na.rm = TRUE)) %>%
-  pivot_longer(
-    cols = everything(),
-    names_to = "Trait",
-    values_to = "Count"
-  )
+  group_by(guild) %>%
+  tally()
 
 guild_n <- guild_n %>%
   flextable() %>%
@@ -193,19 +188,10 @@ save_as_image(
 
 # Calculate guild wise abundance
 
-guild_long <- guild %>%
-  pivot_longer(
-    cols = -species,
-    names_to = "Trait",
-    values_to = "Value"
-  ) %>%
-  filter(Value == 1) %>%
-  select(-Value)
-
 fish %>%
-  left_join(guild_long, by = c("spp" = "species")) %>%
+  left_join(guild, by = c("spp" = "species")) %>%
   rename(Species = spp) %>%
-  filter(is.na(Trait)) %>%
+  filter(is.na(guild)) %>%
   select(Species) %>%
   distinct() %>%
   arrange(Species) %>%
@@ -214,26 +200,26 @@ fish %>%
   print(.)
 
 fish %>%
-  left_join(guild_long, by = c("spp" = "species")) %>%
-  group_by(Trait) %>%
+  left_join(guild, by = c("spp" = "species")) %>%
+  group_by(guild) %>%
   summarise(Richness = length(unique(spp)), Abundance = n(), .groups = "drop") %>%
-  mutate(Trait = ifelse(is.na(Trait), "Unknown", Trait)) %>%
+  mutate(guild = ifelse(is.na(guild), "Unknown", guild)) %>%
   print(.)
 
 source(here("analysis", "standardise_behaviour.R"))
 
-# number of observations 
+# number of observations
 
 data %>%
   filter(codingduration > 100) %>%
   group_by(protected) %>%
   tally()
-  
+
 
 data_ts %>%
   select(species) %>%
-mutate(species = species_levels[species])%>%
-group_by(species) %>%
+  mutate(species = species_levels[species]) %>%
+  group_by(species) %>%
   tally() %>%
   arrange(desc(n)) %>%
   flextable() %>%
@@ -249,3 +235,5 @@ group_by(species) %>%
   autofit() %>%
   theme_box() %>%
   print(.)
+
+print(paste0("Total time sampled: ", sum(data_ts$codingduration) / 60))
