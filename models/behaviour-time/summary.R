@@ -4,18 +4,6 @@ source(here("analysis", "standardise_behaviour.R"))
 
 dir.create(here("outputs", "behaviour-time"), showWarnings = FALSE)
 
-# Set default ggplot theme
-theme_set(
-    theme_bw() +
-        theme(
-            legend.position = "top",
-            legend.text = element_text(size = 14),
-            strip.text = element_text(size = 14),
-            axis.title = element_text(size = 14),
-            axis.text = element_text(size = 12)
-        )
-)
-
 # analysis
 
 behaviours <- c("foraging", "vigilance", "move")

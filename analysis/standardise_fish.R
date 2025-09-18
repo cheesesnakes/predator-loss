@@ -87,10 +87,6 @@ summary(guild)
 summary(benthic)
 summary(counts)
 
-# nudge 0 or 1 values in benthic data
-benthic$coral <- pmin(pmax(benthic$coral, 1e-6), 1 - 1e-6)
-benthic$resource <- pmin(pmax(benthic$resource, 1e-6), 1 - 1e-6)
-
 # Save cleaned data
 write.csv(transects, here("outputs/standardised_data/transects.csv"), row.names = FALSE)
 write.csv(fish, here("outputs/standardised_data/fish.csv"), row.names = FALSE)
