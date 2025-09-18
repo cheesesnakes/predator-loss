@@ -32,11 +32,18 @@ behaviours <- c("foraging", "vigilance", "move")
 for (b in behaviours) {
   # define model formula
   if (b == "foraging") {
-    formula <- bf(foraging ~ protected + rugosity + biomass + predator + group + guild + size_class + (1 | site:plot_id) + (1 | species))
+    formula <- bf(foraging ~ protected + me(rugosity_mean, rugosity_se) + biomass + predator + group + guild + size_class + (1 | site:plot_id) + (1 | species),
+    phi ~ 1 + (1|species))
   } else if (b == "vigilance") {
-    formula <- bf(vigilance ~ protected + rugosity + biomass + predator + group + guild + size_class + (1 | site:plot_id) + (1 | species))
+    formula <- bf(
+      vigilance ~ protected + me(rugosity_mean, rugosity_se) + biomass + predator + group + guild + size_class + (1 | site:plot_id) + (1 | species),
+      phi ~ 1 + (1 | species)
+    )
   } else if (b == "move") {
-    formula <- bf(move ~ protected + rugosity + biomass + predator + group + guild + size_class + (1 | site:plot_id) + (1 | species))
+    formula <- bf(
+      move ~ protected + me(rugosity_mean, rugosity_se) + biomass + predator + group + guild + size_class + (1 | site:plot_id) + (1 | species),
+      phi ~ 1 + (1 | species)
+    )
   }
 
   # priors
@@ -44,8 +51,7 @@ for (b in behaviours) {
   priors <- c(
     set_prior("normal(0,0.5)", class = "Intercept"),
     set_prior("normal(0,0.5)", class = "b"),
-    set_prior("exponential(2)", class = "sd"),
-    set_prior("exponential(2)", class = "phi")
+    set_prior("exponential(2)", class = "sd")
   )
 
   # run model
@@ -58,9 +64,6 @@ for (b in behaviours) {
     iter = 2000
   )
 
-  # generate stan code from formula, not fitted model
-  stan_code <- make_stancode(formula, data = data_ts)
-  writeLines(stan_code, con = here("models", "behaviour-time", paste0("model_", b, ".stan")))
 
   # save model
   saveRDS(model, here("outputs", "behaviour-time", paste0("model_", b, ".rds")))

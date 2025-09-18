@@ -62,15 +62,25 @@ rugosity <- rugosity %>%
   # calculate rugosity
   mutate(rugosity = 1 - (d_reef_cm / chain.length.cm))
 
-mean_rugosity <- rugosity %>%
-  group_by(plot_id) %>%
-  summarise(rugosity = mean(rugosity, na.rm = TRUE)) %>%
-  ungroup()
-
 rugosity <- rugosity %>%
   select(plot_id, transect.no, rugosity) %>%
   pivot_wider(names_from = transect.no, values_from = rugosity, names_prefix = "sample_") %>%
   replace(is.na(.), 0)
+
+
+# plot-level rugosity and variation
+
+rugosity <- rugosity %>%
+  mutate(mean = rowMeans(select(., starts_with("sample_")), na.rm = TRUE),
+  se = apply(select(., starts_with("sample_")), 1, sd) / sqrt(3))
+
+moments_rugosity <- c(mean(rugosity$mean, na.rm = TRUE), sd(rugosity$mean, na.rm = TRUE))
+
+rugosity <- rugosity %>%
+  mutate(mean = scale(mean)[,1],
+         se = se / moments_rugosity[2])%>%
+         select(plot_id, mean, se)%>%
+         rename(rugosity_mean = mean, rugosity_se = se)
 
 # predator presence
 
@@ -89,14 +99,13 @@ predictors <- data.frame(plot_id = unique(rugosity$plot_id)) %>%
   mutate(deployment.id = str_remove(plot_id, "[0-9]")) %>%
   left_join(sites, by = "deployment.id") %>%
   left_join(benthic, by = "plot_id") %>%
-  left_join(mean_rugosity, by = "plot_id") %>%
+  left_join(rugosity, by = "plot_id") %>%
   left_join(predator, by = "plot_id") %>%
-  filter(!is.na(rugosity)) %>%
   arrange(deployment.id, plot_id) %>%
   filter(deployment.id != "FBWT-P") %>%
   group_by(deployment.id) %>%
   # impute missing values with mean
-  mutate_at(c("resource", "substrate", "coral", "sponge"), ~ ifelse(is.na(.), mean(., na.rm = TRUE), .)) %>%
+  mutate_at(c("biomass", "substrate", "coral", "sponge"), ~ ifelse(is.na(.), mean(., na.rm = TRUE), .)) %>%
   ungroup() %>%
   left_join(damsels, by = "plot_id") %>%
   replace(is.na(.), 0) %>%
@@ -434,7 +443,7 @@ guild <- guild %>%
 
 rm(
   benthic, boris_point, boris, boris_state, category_names, damsels,
-  mean_rugosity, predator, sites, aggression, behaviors, groups, plots, responses_boris, samples
+  predator, sites, aggression, behaviors, groups, plots, responses_boris, samples
 )
 
 # final data

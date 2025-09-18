@@ -27,8 +27,7 @@ responses <- responses %>%
     aggression = as.numeric(aggression)
   )
 
-moments_rugosity <- c(mean(predictors$rugosity, na.rm = TRUE), sd(predictors$rugosity, na.rm = TRUE))
-moments_biomass <- c(mean(predictors$resource, na.rm = TRUE), sd(predictors$resource, na.rm = TRUE))
+moments_biomass <- c(mean(predictors$biomass, na.rm = TRUE), sd(predictors$biomass, na.rm = TRUE))
 
 predictors <- predictors %>%
   mutate(
@@ -38,13 +37,11 @@ predictors <- predictors %>%
     protection = as.numeric(factor(protection, levels = protection_levels)) - 1,
     damsel = as.numeric(damsel),
     predator = as.numeric(predator + 1),
-    rugosity = as.numeric(rugosity),
-    resource = as.numeric(resource),
+    biomass = as.numeric(biomass),
     substrate = as.numeric(substrate),
     coral = as.numeric(coral),
     sponge = as.numeric(sponge),
-    rugosity = (rugosity - mean(rugosity, na.rm = TRUE)) / sd(rugosity, na.rm = TRUE),
-    resource = (resource - mean(resource, na.rm = TRUE)) / sd(resource, na.rm = TRUE)
+    biomass = (biomass - mean(biomass, na.rm = TRUE)) / sd(biomass, na.rm = TRUE)
   )
 
 fish <- fish %>%
@@ -73,10 +70,6 @@ guild <- guild %>%
   filter(species %in% species_levels) %>%
   mutate(species = as.numeric(factor(species, levels = species_levels)))
 
-rugosity <- rugosity %>%
-  mutate(plot_id = as.numeric(factor(plot_id, levels = plot_levels))) %>%
-  filter(!is.na(plot_id))
-
 # rename columns
 
 fish <- fish %>%
@@ -92,7 +85,7 @@ plot_abundance <- plot_abundance %>%
 
 predictors <- predictors %>%
   rename(
-    biomass = resource,
+    biomass = biomass,
     protected = protection
   )
 
@@ -100,10 +93,7 @@ head(responses)
 head(predictors)
 head(fish)
 head(guild)
-head(rugosity)
 
-rugosity %>%
-  filter(is.na(plot_id))
 # save standardised data
 
 write.csv(responses, here("outputs/standardised_data/behaviour.csv"), row.names = FALSE)
