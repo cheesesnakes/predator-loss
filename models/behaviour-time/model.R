@@ -32,17 +32,17 @@ behaviours <- c("foraging", "vigilance", "move")
 for (b in behaviours) {
   # define model formula
   if (b == "foraging") {
-    formula <- bf(foraging ~ protected + me(rugosity_mean, rugosity_se) + biomass + predator + group + guild + size_class + (1 | site:plot_id) + (1 | species),
-    phi ~ 1 + (1|species))
+    formula <- bf(foraging ~ protected + me(rugosity_mean, rugosity_se) + biomass + predator + group + guild + size_class + (1 | site:plot_id) + (1 | family:species),
+    phi ~ 1 + (1|family:species))
   } else if (b == "vigilance") {
     formula <- bf(
-      vigilance ~ protected + me(rugosity_mean, rugosity_se) + biomass + predator + group + guild + size_class + (1 | site:plot_id) + (1 | species),
-      phi ~ 1 + (1 | species)
+      vigilance ~ protected + me(rugosity_mean, rugosity_se) + biomass + predator + group + guild + size_class + (1 | site:plot_id) + (1 | family:species),
+      phi ~ 1 + (1 | family:species)
     )
   } else if (b == "move") {
     formula <- bf(
-      move ~ protected + me(rugosity_mean, rugosity_se) + biomass + predator + group + guild + size_class + (1 | site:plot_id) + (1 | species),
-      phi ~ 1 + (1 | species)
+      move ~ protected + me(rugosity_mean, rugosity_se) + biomass + predator + group + guild + size_class + (1 | site:plot_id) + (1 | family:species),
+      phi ~ 1 + (1 | family:species)
     )
   }
 

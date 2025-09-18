@@ -158,8 +158,6 @@ fish <- fish %>%
   left_join(samples, by = "sample_id") %>%
   select(-c(sample_id))
 
-colnames(fish) <- str_to_lower(colnames(fish))
-
 # Make plot-level abudance data
 
 plot_abundance <- fish %>%
@@ -242,7 +240,21 @@ fish_traits <- data.frame(species = unique(fish$spp)) %>%
       guild
     ),
     guild = na_if(guild, "NULL") # clean up any residual "NULL"
-  )
+  )%>%
+  mutate(Family = ifelse(species == "Zebrasoma rostratum", "Acanthuridae", Family))
+
+# Get family information
+
+families <- fish_traits %>%
+  select(Family, species) %>%
+  distinct() 
+
+# add to fish data
+
+fish <- fish %>%
+  left_join(families, by = c("spp" = "species"))
+
+colnames(fish) <- str_to_lower(colnames(fish))
 
 # calculate behavioral traits
 

@@ -15,6 +15,7 @@ location_levels <- sort(unique(predictors$location))
 site_levels <- sort(unique(predictors$site))
 protection_levels <- c("Unprotected", "Protected")
 guild_levels <- sort(colnames(guild)[-1]) # Exclude 'species' column
+family_levels <- sort(unique(fish$family))
 
 responses <- responses %>%
   mutate(
@@ -50,7 +51,8 @@ fish <- fish %>%
     plot_id = as.numeric(factor(plot_id, levels = plot_levels)),
     spp = as.numeric(factor(spp, levels = species_levels)),
     group = as.numeric(group + 1),
-    size = as.numeric(factor(size, levels = size_levels))
+    size = as.numeric(factor(size, levels = size_levels)),
+    family = as.numeric(factor(family, levels = family_levels))
   )
 
 plot_abundance <- plot_abundance %>%

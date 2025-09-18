@@ -84,12 +84,16 @@ for (b in behaviours) {
     # random effects across species
 
     random_effects_species <- model %>%
-        spread_draws(`r_species`[l_s, ]) %>%
+        spread_draws(`r_family:species`[l_s, ]) %>%
         summarise_draws() %>%
         ungroup() %>%
-        mutate(Species = species_levels[as.numeric(l_s)]) %>%
+        mutate(Family = str_split(l_s, "_", simplify = TRUE)[, 1],
+               Species = str_split(l_s, "_", simplify = TRUE)[, 2]) %>%
+        mutate(Species = species_levels[as.numeric(Species)], 
+               Family = family_levels[as.numeric(Family)]) %>%
         select(-c(l_s, variable)) %>%
-        select(Species, mean, median, sd, q5, q95)
+        select(Family, Species, mean, median, sd, q5, q95) %>%
+        arrange(Family, Species)
 
     # tables
 
@@ -98,7 +102,6 @@ for (b in behaviours) {
         mutate_if(is.numeric, ~ round(., 3)) %>%
         flextable() %>%
         set_header_labels(
-            Species = "Species",
             mean = "Mean",
             median = "Median",
             sd = "SD",
@@ -106,31 +109,39 @@ for (b in behaviours) {
             q95 = "Upper CI"
         ) %>%
         set_table_properties(width = 0.5, layout = "fixed") %>%
-        italic(j = 1) %>%
+        merge_v(~Family) %>%
+        italic(j = 2) %>%
         theme_box()
 
     print(table4)
 
     save_as_docx(table4, path = here("outputs", "behaviour-time", paste0(b, "_species", ".docx")))
 
-    # random effects across species
+    # random effects across species (phi)
 
-    random_effects_species <- model %>%
-        spread_draws(`r_species__phi`[l_s, ]) %>%
+    random_effects_species_phi <- model %>%
+        spread_draws(`r_family:species__phi`[l_s, ]) %>%
         summarise_draws() %>%
         ungroup() %>%
-        mutate(Species = species_levels[as.numeric(l_s)]) %>%
+        mutate(
+            Family = str_split(l_s, "_", simplify = TRUE)[, 1],
+            Species = str_split(l_s, "_", simplify = TRUE)[, 2]
+        ) %>%
+        mutate(
+            Species = species_levels[as.numeric(Species)],
+            Family = family_levels[as.numeric(Family)]
+        ) %>%
         select(-c(l_s, variable)) %>%
-        select(Species, mean, median, sd, q5, q95)
+        select(Family, Species, mean, median, sd, q5, q95) %>%
+        arrange(Family, Species)
 
     # tables
 
-    table4 <- random_effects_species %>%
+    table4 <- random_effects_species_phi %>%
         select(-c(sd)) %>%
         mutate_if(is.numeric, ~ round(., 3)) %>%
         flextable() %>%
         set_header_labels(
-            Species = "Species",
             mean = "Mean",
             median = "Median",
             sd = "SD",
@@ -138,7 +149,8 @@ for (b in behaviours) {
             q95 = "Upper CI"
         ) %>%
         set_table_properties(width = 0.5, layout = "fixed") %>%
-        italic(j = 1) %>%
+        merge_v(~Family) %>%
+        italic(j = 2) %>%
         theme_box()
 
     print(table4)
