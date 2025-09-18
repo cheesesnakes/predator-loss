@@ -39,7 +39,7 @@ posterior_protection <- data %>%
     ungroup() %>%
     select(plot_id, site, guild) %>%
     distinct() %>%
-    expand_grid(protected = c(0, 1), biomass = 0, rugosity = 0) %>%
+    expand_grid(protected = c(0, 1), biomass = 0, rugosity_mean = 0, rugosity_se = 0.1) %>%
     add_epred_draws(model, value = "prop") %>%
     ungroup()
 
@@ -73,14 +73,14 @@ posterior_rugosity <- data %>%
     ungroup() %>%
     select(plot_id, site, guild, protected, biomass) %>%
     distinct() %>%
-    expand_grid(rugosity = std_var) %>%
+    expand_grid(rugosity_mean = std_var, rugosity_se = 0.1) %>%
     add_epred_draws(model, value = "prop") %>%
     ungroup()
 
 # Effect of rugosity
 
 posterior_rugosity %>%
-    mutate(rugosity = rugosity * moments_rugosity[2] + moments_rugosity[1]) %>%
+    mutate(rugosity = rugosity_mean * moments_rugosity[2] + moments_rugosity[1]) %>%
     group_by(guild, rugosity) %>%
     median_qi(prop, .width = c(0.5)) %>%
     ggplot(aes(x = rugosity, y = prop, color = guild, fill = guild)) +
@@ -95,8 +95,8 @@ ggsave(here("figures", "abundance-plot", "counterfactual_rugosity.png"), plot = 
 # Standard effect of rugosity
 
 effect_rugosity <- posterior_rugosity %>%
-    filter(rugosity == 0 | rugosity == 1) %>%
-    pivot_wider(names_from = rugosity, values_from = prop, id_cols = c(plot_id, .draw, guild)) %>%
+    filter(rugosity_mean == 0 | rugosity_mean == 1) %>%
+    pivot_wider(names_from = rugosity_mean, values_from = prop, id_cols = c(plot_id, .draw, guild)) %>%
     rename("Mean Rugosity" = `0`, "High Rugosity" = `1`) %>%
     mutate(
         effect = `High Rugosity` - `Mean Rugosity`
@@ -128,7 +128,7 @@ std_var <- seq(-2, 2, by = 0.2)
 
 posterior_biomass <- data %>%
     ungroup() %>%
-    select(plot_id, site, guild, protected, rugosity) %>%
+    select(plot_id, site, guild, protected, rugosity_mean, rugosity_se) %>%
     distinct() %>%
     expand_grid(biomass = std_var) %>%
     add_epred_draws(model, value = "prop") %>%

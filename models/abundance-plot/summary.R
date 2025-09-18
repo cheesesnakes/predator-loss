@@ -58,12 +58,14 @@ save_as_docx(table1, path = here("outputs", "abundance-plot", "intercepts.docx")
 get_variables(model)
 
 parameters <- model %>%
-    spread_draws(b_Intercept, b_protected, b_rugosity, b_biomass, b_guildInvertivore, `b_guildInvertivore:rugosity`, `b_guildInvertivore:biomass`, shape) %>%
+    spread_draws(b_Intercept, b_protected, bsp_merugosity_meanrugosity_se, b_biomass, b_guildInvertivore, `bsp_merugosity_meanrugosity_se:guildInvertivore`, `b_guildInvertivore:biomass`, shape) %>%
     summarise_draws() %>%
     mutate(
         type = "Parameter",
         variable = str_replace(variable, "b_", "")
-    )
+    )%>%
+    mutate(variable = str_replace(variable, "bsp_merugosity_meanrugosity_se", "Rugosity"),
+    variable = str_replace(variable, "guildInvertivore", "Guild (Invertivore)"))
 
 # make table
 
