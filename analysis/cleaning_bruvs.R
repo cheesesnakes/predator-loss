@@ -65,7 +65,7 @@ filter(guild == "Piscivore") %>%
 # predictors data
 
 predictors <- metadata %>%
-    select(deployment_id, location, site, protection)
+    select(deployment_id, location, site, protection, aspect)
 
 # Keep only piscivorous fish
 

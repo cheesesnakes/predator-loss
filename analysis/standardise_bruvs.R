@@ -17,13 +17,13 @@ site_levels <- sort(unique(predictors$site))
 species_levels <- sort(unique(guild$fish_spp))
 guild_levels <- sort(unique(counts$guild))
 family_levels <- sort(unique(family_counts$family))
+aspect_levels <- sort(unique(predictors$aspect))
 
 # fix size
 
 size_levels <- sort(unique(individuals$size))
 starts <- as.numeric(sub("-.*", "", size_levels))
 size_levels <- size_levels[order(starts)]
-
 
 # make colnames lower case
 colnames(predictors) <- tolower(colnames(predictors))
@@ -38,7 +38,8 @@ predictors <- predictors %>%
         deployment_id = as.numeric(factor(deployment_id, levels = deployment_levels)),
         location = as.numeric(factor(location, levels = location_levels)),
         protection = as.numeric(factor(protection, levels = protection_levels)),
-        site = as.numeric(factor(site, levels = site_levels))
+        site = as.numeric(factor(site, levels = site_levels)),
+        aspect = as.numeric(factor(aspect, levels = aspect_levels)) - 1
     )
 
 # standardise individuals
