@@ -84,6 +84,23 @@ Variable = str_to_title(str_remove_all(Variable, "[()]"))
 arrange(Response) %>%
 select(c(Response, Variable, estimate, conf.low, conf.high))
 
+P <- as_draws_df(model)%>%
+select(starts_with("b_"), ".draw")%>%
+group_by(.draw) %>%
+pivot_longer(cols = everything(), names_to = "term", values_to = "value") %>%
+group_by(term) %>%
+summarise(P = mean(value > 0)) %>%
+mutate(Response = str_split(term, "_", simplify = TRUE)[,2],
+Variable = str_split(term, "_", simplify = TRUE)[,3],
+Response = str_to_title(str_remove(Response, "mu")),
+Variable = str_to_title(str_remove_all(Variable, "[()]"))
+)%>%
+filter(!Variable %in% c(".draw", ""))%>%
+select(Variable, Response, P)
+
+parameters <- parameters %>%
+left_join(P, by = c("Response", "Variable"))
+
 # make table
 
 table2 <- parameters %>%
