@@ -71,16 +71,20 @@ rugosity <- rugosity %>%
 # plot-level rugosity and variation
 
 rugosity <- rugosity %>%
-  mutate(mean = rowMeans(select(., starts_with("sample_")), na.rm = TRUE),
-  se = apply(select(., starts_with("sample_")), 1, sd) / sqrt(3))
+  mutate(
+    mean = rowMeans(select(., starts_with("sample_")), na.rm = TRUE),
+    se = apply(select(., starts_with("sample_")), 1, sd) / sqrt(3)
+  )
 
 moments_rugosity <- c(mean(rugosity$mean, na.rm = TRUE), sd(rugosity$mean, na.rm = TRUE))
 
 rugosity <- rugosity %>%
-  mutate(mean = scale(mean)[,1],
-         se = se / moments_rugosity[2])%>%
-         select(plot_id, mean, se)%>%
-         rename(rugosity_mean = mean, rugosity_se = se)
+  mutate(
+    mean = scale(mean)[, 1],
+    se = se / moments_rugosity[2]
+  ) %>%
+  select(plot_id, mean, se) %>%
+  rename(rugosity_mean = mean, rugosity_se = se)
 
 # predator presence
 
@@ -240,14 +244,14 @@ fish_traits <- data.frame(species = unique(fish$spp)) %>%
       guild
     ),
     guild = na_if(guild, "NULL") # clean up any residual "NULL"
-  )%>%
+  ) %>%
   mutate(Family = ifelse(species == "Zebrasoma rostratum", "Acanthuridae", Family))
 
 # Get family information
 
 families <- fish_traits %>%
   select(Family, species) %>%
-  distinct() 
+  distinct()
 
 # add to fish data
 
@@ -257,6 +261,8 @@ fish <- fish %>%
 colnames(fish) <- str_to_lower(colnames(fish))
 
 # calculate behavioral traits
+
+# make time series data
 
 responses <- behaviors %>%
   # make all columns numeric except ind_id
@@ -394,7 +400,47 @@ responses <- responses %>%
   filter(ind_id %in% fish$ind_id) %>%
   filter(!is.na(foraging) & !is.na(vigilance) & !is.na(move))
 
-## make
+## make instantaeneous scans
+
+scans <- behaviors %>%
+  select(ind_id, obs_id, forage_start, forage_end, vigil_start, vigil_end, move_start, move_end) %>%
+  group_by(ind_id, obs_id) %>%
+  pivot_longer(cols = c(forage_start, forage_end, vigil_start, vigil_end, move_start, move_end), names_to = "behavior", values_to = "time") %>%
+  filter(!is.na(time)) %>%
+  mutate(
+    pos = str_split(behavior, "_", simplify = TRUE)[, 2],
+    behavior = str_split(behavior, "_", simplify = TRUE)[, 1]
+  ) %>%
+  pivot_wider(names_from = pos, values_from = time) %>%
+  mutate(scan = ifelse(start <= 30 & !(end <= 10), 1, 0)) %>%
+  filter(scan == 1) %>%
+  ungroup() %>%
+  select(ind_id, behavior, scan) %>%
+  pivot_wider(names_from = behavior, values_from = scan, values_fill = list(scan = 0))
+
+scans_boris <- boris %>%
+  filter(behaviortype == "STATE") %>%
+  select(observationid, behavior, starts, stops) %>%
+  group_by(observationid) %>%
+  mutate(duration = stops - starts) %>%
+  arrange(observationid, starts) %>%
+  # make duration cumulative
+  mutate(cum_duration = cumsum(duration)) %>%
+  mutate(starts = ifelse(cum_duration == min(cum_duration), 0, cum_duration - duration),
+         stops = cum_duration,
+         scan = ifelse(starts <= 30 & !(stops <= 10), 1, 0)) %>%
+  filter(scan == 1) %>%
+  select(observationid, behavior, duration, scan) %>%
+  mutate(scan = ifelse(duration < max(duration), 0, scan)) %>%
+         filter(scan == 1) %>%
+         select(-c(duration)) %>%
+         pivot_wider(names_from = behavior, values_from = scan, values_fill = list(scan = 0))
+
+colnames(scans) <- c("ind_id", "vigilance", "foraging", "moving")
+colnames(scans_boris) <- c("ind_id", "foraging", "moving", "vigilance")
+
+scans <- rbind(scans, scans_boris)
+
 # Guild membership
 
 guild <- fish_traits %>%
@@ -454,8 +500,8 @@ guild <- guild %>%
 # remove temporary objects
 
 rm(
-  benthic, boris_point, boris, boris_state, category_names, damsels,
-  predator, sites, aggression, behaviors, groups, plots, responses_boris, samples
+ benthic, boris_point, boris, boris_state, category_names, damsels,
+ predator, sites, aggression, behaviors, groups, plots, responses_boris, samples, scans_boris
 )
 
 # final data

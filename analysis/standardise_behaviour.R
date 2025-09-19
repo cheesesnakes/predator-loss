@@ -72,6 +72,10 @@ guild <- guild %>%
   filter(species %in% species_levels) %>%
   mutate(species = as.numeric(factor(species, levels = species_levels)))
 
+scans <- scans %>%
+  ungroup() %>%
+  mutate(ind_id = as.numeric(factor(ind_id, levels = individual_levels)))
+
 # rename columns
 
 fish <- fish %>%
@@ -111,7 +115,7 @@ data <- responses %>%
   left_join(fish, by = c("ind_id" = "ind_id")) %>%
   left_join(predictors, by = c("plot_id" = "plot_id")) %>%
   left_join(guild, by = c("species" = "species")) %>%
-  select(-c(sponge, damsel)) %>%
+  select(-c(sponge)) %>%
   mutate(
     predator = predator - 1,
     group = group - 1,

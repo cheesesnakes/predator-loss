@@ -16,24 +16,29 @@ theme_set(
 
 # Convert observations to binary outcomes
 
-data <- data %>%
-  filter(codingduration > 10) %>%
+data <- scans %>%
+  left_join(fish, by = "ind_id") %>%
+  left_join(predictors, by = "plot_id") %>%
+  left_join(guild, by = "species") %>%
+  select(-c(sponge)) %>%
   mutate(
-    foraging = ifelse(foraging > 0, 1, 0),
-    vigilance = ifelse(vigilance > 0, 1, 0),
-    move = ifelse(move > 0, 1, 0)
-  )
+    predator = predator - 1,
+    group = group - 1,
+    size_class = as.factor(size_class)
+  ) %>%
+  filter(guild != "Piscivore") %>%
+  rename(move = moving)
 
 behaviours <- c("foraging", "vigilance", "move")
 
 for (b in behaviours) {
   # define model formula
   if (b == "foraging") {
-    formula <- bf(foraging ~ protected + rugosity + biomass + predator + group + guild + size_class + (1 | site:plot_id) + (1 | species))
+    formula <- bf(foraging ~ protected + me(rugosity_mean, rugosity_se) + biomass + predator + group + guild + size_class + (1 | site:plot_id) + (1 | family:species))
   } else if (b == "vigilance") {
-    formula <- bf(vigilance ~ protected + rugosity + biomass + predator + group + guild + size_class + (1 | site:plot_id) + (1 | species))
+    formula <- bf(vigilance ~ protected + me(rugosity_mean, rugosity_se) + biomass + predator + group + guild + size_class + (1 | site:plot_id) + (1 | family:species))
   } else if (b == "move") {
-    formula <- bf(move ~ protected + rugosity + biomass + predator + group + guild + size_class + (1 | site:plot_id) + (1 | species))
+    formula <- bf(move ~ protected + me(rugosity_mean, rugosity_se) + biomass + predator + group + guild + size_class + (1 | site:plot_id) + (1 | family:species))
   }
 
   # priors
