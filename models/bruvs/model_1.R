@@ -1,6 +1,7 @@
 pacman::p_load(brms, here, ordbetareg, tidybayes, ggplot2, marginaleffects, flextable)
 
 source(here("analysis", "standardise_bruvs.R"))
+source(here("functions", "summaries.R"))
 
 dir.create(here("outputs", "bruvs"), showWarnings = FALSE)
 dir.create(here("figures", "bruvs"), showWarnings = FALSE)
@@ -72,58 +73,15 @@ random_effects <- model %>%
 
 # make table for random intercepts
 
-table1 <- random_effects %>%
-select(-c(sd)) %>%
-mutate_if(is.numeric, ~ round(., 3)) %>%
-    flextable() %>%
-    set_header_labels(
-        Site = "Site",
-        mean = "Mean",
-        median = "Median",
-        sd = "SD",
-        q5 = "Lower CI",
-        q95 = "Upper CI"
-    ) %>%
-    merge_v(~ Site) %>%
-    set_table_properties(width = 0.5, layout = "fixed") %>%
-    theme_box()
-
-print(table1)
-
-save_as_docx(table1, path = here("outputs", "bruvs", "model_1_intercepts.docx"))
-
+table_re(random_effects, var_names = "Site", path = here("outputs", "bruvs", "model_1_intercepts.docx"))
 
 # Parameters
 
-parameters <- model %>%
-    spread_draws(b_Intercept, b_protection) %>%
-    summarise_draws() %>%
-    mutate(
-        type = "Parameter",
-        variable = str_replace(variable, "b_", "")
-    )
+summarise_params(model, type = "Parameter", vars = c("b_Intercept", "b_protection"), path = here("outputs", "bruvs", "model_1_parameters.docx"))
 
-# make table
+# Goodness of fit
 
-table2 <- parameters %>%
-    select(c(variable, mean, median, q5, q95)) %>%
-    mutate(variable = str_to_title(variable)) %>%
-    mutate_if(is.numeric, ~ round(., 3)) %>%
-    flextable() %>%
-    set_header_labels(
-        variable = "Variable",
-        mean = "Mean",
-        median = "Median",
-        sd = "SD",
-        q5 = "Lower CI",
-        q95 = "Upper CI"
-    ) %>%
-    set_table_properties(width = 0.5, layout = "fixed") %>%
-    theme_box()
-
-print(table2)
-
-save_as_docx(table2, path = here("outputs", "bruvs", "model_1_parameters.docx"))
+summarise_r2(model, path = here("outputs", "bruvs", "model_1_R2.docx"))
 
 # plot posterior proportions by protection
 

@@ -83,6 +83,7 @@ Variable = str_to_title(str_remove_all(Variable, "[()]"))
 )%>%
 arrange(Response) %>%
 select(c(Response, Variable, estimate, conf.low, conf.high))
+
 # make table
 
 table2 <- parameters %>%
