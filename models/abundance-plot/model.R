@@ -1,4 +1,4 @@
-pacman::p_load(brms, here, ordbetareg, tidybayes, ggplot2, marginaleffects)
+pacman::p_load(brms, here, tidybayes, ggplot2, marginaleffects)
 
 source(here("analysis", "standardise_behaviour.R"))
 

@@ -111,7 +111,7 @@ write.csv(rugosity, here("outputs/standardised_data/rugosity.csv"), row.names = 
 # make data frame
 
 data <- responses %>%
-  select(ind_id, foraging, vigilance, move, codingduration) %>%
+  select(ind_id, foraging, vigilance, move, bites, codingduration) %>%
   left_join(fish, by = c("ind_id" = "ind_id")) %>%
   left_join(predictors, by = c("plot_id" = "plot_id")) %>%
   left_join(guild, by = c("species" = "species")) %>%
@@ -128,7 +128,9 @@ data <- responses %>%
 data_ts <- data %>%
   filter(codingduration > 45) %>%
   mutate(
+    bite_rate = bites/foraging,
     foraging = foraging / codingduration,
     vigilance = vigilance / codingduration,
     move = move / codingduration
-  )
+  )%>%
+  select(-c(bites, codingduration))
