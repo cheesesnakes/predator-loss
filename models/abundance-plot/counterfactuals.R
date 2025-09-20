@@ -1,4 +1,4 @@
-pacman::p_load(brms, here, ordbetareg, tidybayes, ggplot2, marginaleffects, flextable)
+pacman::p_load(brms, here, ordbetareg, tidybayes, ggplot2, marginaleffects, flextable, patchwork)
 
 source(here("analysis", "standardise_behaviour.R"))
 source(here("functions", "summaries.R"))
@@ -75,7 +75,7 @@ posterior_rugosity <- data %>%
 
 # Effect of rugosity
 
-posterior_rugosity %>%
+p1 <- posterior_rugosity %>%
     mutate(rugosity = rugosity_mean * moments_rugosity[2] + moments_rugosity[1]) %>%
     group_by(guild, rugosity) %>%
     median_qi(prop, .width = c(0.5)) %>%
@@ -86,7 +86,7 @@ posterior_rugosity %>%
     scale_fill_brewer(palette = "Set1") +
     labs(x = "Rugosity", y = "Count", col = "Guild", fill = "Guild") 
 
-ggsave(here("figures", "abundance-plot", "counterfactual_rugosity.png"), plot = last_plot(), height = 6, width = 8)
+ggsave(here("figures", "abundance-plot", "counterfactual_rugosity.png"), plot = p1, height = 6, width = 8)
 
 # Standard effect of rugosity
 
@@ -105,19 +105,18 @@ posterior_biomass <- data %>%
 
 # plot
 
-posterior_biomass %>%
+p2 <- posterior_biomass %>%
     mutate(biomass = (biomass * moments_biomass[2] + moments_biomass[1])*100) %>%
-    group_by(guild, damsel, biomass) %>%
+    group_by(guild, biomass) %>%
     median_qi(prop, .width = c(0.5)) %>%
     ggplot(aes(x = biomass, y = prop, color = guild, fill = guild)) +
     geom_lineribbon(aes(ymin = .lower, ymax = .upper), alpha = 0.5) +
     scale_y_continuous(limits = c(0, NA)) +
     scale_color_brewer(palette = "Set1") +
     scale_fill_brewer(palette = "Set1") +
-    labs(x = "Biomass (%)", y = "Count", col = "Guild", fill = "Guild") +
-    facet_wrap(~damsel, labeller = as_labeller(c(`0` = "Damselfish Absent", `1` = "Damselfish Present")))   
+    labs(x = "Biomass (%)", y = "Count", col = "Guild", fill = "Guild") 
 
-ggsave(here("figures", "abundance-plot", "counterfactual_biomass.png"), plot = last_plot(), height = 6, width = 12)
+ggsave(here("figures", "abundance-plot", "counterfactual_biomass.png"), plot = p2, height = 6, width = 8)
 
 # effect of biomass
 
@@ -126,3 +125,9 @@ effect <- summarise_cf(posterior = posterior_biomass, do = "biomass", confound =
 # Effect of damsels
 
 effect <- summarise_cf(posterior = posterior_biomass, do = "damsel", confound = "guild", groups = c("plot_id", "guild", "biomass"), path = "abundance-plot", file = paste0("counterfactual_damsel.docx"))
+
+# Make plots
+
+p <- p1 + p2 + plot_layout(guides = "collect") & theme(legend.position = "top")
+
+ggsave(here("figures", "figure2.png"), plot = p, height = 6, width = 12)

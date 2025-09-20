@@ -155,6 +155,26 @@ save_as_image(
   height = 8
 )
 
+assemblage <- fish %>%
+  group_by(spp) %>%
+  summarise(Abundance = n()) %>%
+  mutate(Species = str_to_sentence(spp)) %>%
+  left_join(traits, by = c("Species" = "species")) %>%
+  arrange(desc(Abundance)) %>%
+  distinct() %>%
+  select(Order, Family, Species, guild, column, habitat, Abundance)
+
+colnames(assemblage) <- c("Order", "Family", "Species", "Guild", "Column", "Habitat", "Abundance")
+
+assemblage <- flextable(assemblage, col_keys = colnames(assemblage)) %>%
+  italic(j = 3) %>%
+  set_table_properties(layout = "fixed", align = "center", width = 0.95) %>%
+  theme_box()
+
+print(assemblage)
+
+save_as_docx(assemblage, path = here("outputs/behaviour_assemblage_summary.docx"))
+
 # traits
 
 guild_n <- guild %>%

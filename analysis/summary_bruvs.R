@@ -29,12 +29,12 @@ print(paste0("Size classes: ", paste(unique(individuals$size), collapse = ", "))
 assemblage <- individuals %>%
   group_by(fish_spp) %>%
   summarise(Abundance = sum(count)) %>%
-  mutate(Species = str_to_sentence(fish_spp)) %>%
+  left_join(traits, by = c("fish_spp")) %>%
   arrange(desc(Abundance)) %>%
   distinct() %>%
-  select(Species, Abundance)
+  select(order, family, fish_spp, feeding.guild, water.column, habitat, Abundance)
 
-colnames(assemblage) <- c("Species", "Abundance")
+colnames(assemblage) <- c("Order", "Family", "Species", "Guild", "Column", "Habitat", "Abundance")
 
 assemblage <- flextable(assemblage, col_keys = colnames(assemblage)) %>%
   italic(j = 1) %>%

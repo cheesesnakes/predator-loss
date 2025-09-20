@@ -190,7 +190,7 @@ phylo <- traits %>%
   distinct()
 
 traits <- traits %>%
-  select(c(Family, Genus, Species, Length..cm., Height, Feeding.Guild, Habitat, Water.Column)) %>%
+  select(c(Order,Family, Genus, Species, Length..cm., Height, Feeding.Guild, Habitat, Water.Column)) %>%
   mutate(species = paste(Genus, Species)) %>%
   rename(
     length = Length..cm.,

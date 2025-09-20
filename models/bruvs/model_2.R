@@ -103,8 +103,10 @@ effect <- posterior_prediction %>%
 P <- effect %>%
 group_by(.category) %>%
 rename(size = .category) %>%
-summarise(P = mean(effect > 0))
-    
+summarise(P = mean(effect > 0)) %>%
+mutate(size = size_levels[as.numeric(size)],) %>%
+    ungroup()
+
 ## Across guilds and size classes
 
 posterior_prediction%>%
