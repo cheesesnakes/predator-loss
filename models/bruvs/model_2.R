@@ -21,18 +21,13 @@ theme_set(
 # standardise fish data
 
 data <- counts %>%
-  uncount(abundance)%>%
-  mutate(l = str_split(size, "-", simplify = T)[,1],
-         u = str_split(size, "-", simplify = T)[,2],
-         l = as.numeric(l),
-         u = as.numeric(u),
-         size = (l + u)/2) %>%
-select(-c(l,u)) %>%
-left_join(predictors, by = c("deployment_id"))
+uncount(abundance) %>%
+left_join(predictors, by = c("deployment_id"))%>%
+mutate(size = as.numeric(size))
 
 # define formula
 
-formula <- bf(size ~ protection + (1|site))
+formula <- bf(size ~ protection + aspect + (1|site))
 
 # priors
 
@@ -42,7 +37,8 @@ priors <- c(set_prior("normal(0,0.5)", class = "Intercept"),
 
 # fit model
 
-model <- brm(formula, data = data, family = "gaussian", chains = 4, cores =4, iter = 2000, file = here("outputs", "bruvs", "model_2"))
+model <- brm(formula, data = data,
+              family = sratio(), chains = 4, cores =4, iter = 2000, file = here("outputs", "bruvs", "model_2"))
 
 # generate stan code from formula, not fitted model
 stan_code <- make_stancode(formula, data = data)
@@ -79,8 +75,9 @@ random_effects <- model %>%
 table_re(random_effects, var_names = "Site", path = here("outputs", "bruvs", "model_2_intercepts.docx"))
 
 # Parameters
+get_variables(model)
 
-summarise_params(model, type = "Parameter", vars = c("b_Intercept", "b_protection"), path = here("outputs", "bruvs", "model_2_parameters.docx"))
+summarise_params(model, type = "Parameter", vars = c("b_protection", "b_aspect"), path = here("outputs", "bruvs", "model_2_parameters.docx"))
 
 # Goodness of fit
 
@@ -88,51 +85,62 @@ summarise_r2(model, path = here("outputs", "bruvs", "model_2_R2.docx"))
 
 # plot posterior proportions by protection
 
-posterior_protection <- data %>%
+posterior_prediction <- data %>%
     ungroup() %>%
-    select(site) %>%
+    select(site, aspect) %>%
     distinct() %>%
     expand_grid(protection = c(0, 1)) %>%
     add_epred_draws(model, value = "prop") %>%
     ungroup()
 
-effect <- posterior_protection %>%
-        pivot_wider(names_from = protection, values_from = prop, id_cols = c(site, .draw)) %>%
+effect <- posterior_prediction %>%
+        pivot_wider(names_from = protection, values_from = prop, id_cols = c(site, aspect, .category, .draw)) %>%
         rename("Unprotected" = `0`, "Protected" = `1`) %>%
         mutate(
             effect = Protected - Unprotected
         )
 
 P <- effect %>%
+group_by(.category) %>%
+rename(size = .category) %>%
 summarise(P = mean(effect > 0))
-
+    
 ## Across guilds and size classes
 
-effect %>%
-ggplot(aes(x = effect)) +
-    geom_vline(xintercept = 0, linetype = "dashed", color = "black", linewidth = 1) +
-    geom_vline(xintercept = median(effect$effect), linetype = "dashed", color = "red", linewidth = 1) +
-    geom_density(fill = "lightblue", alpha = 0.5) +
+posterior_prediction%>%
+rename(size = .category) %>%
+group_by(protection, size)%>%
+median_qi(prop, .width = c(0.5, 0.9)) %>%
+mutate(size = size_levels[as.numeric(size)],
+protection = case_when(protection == 0 ~ "Outside PA",
+TRUE ~ "Inside PA")) %>%
+ggplot(aes(x = size, y = prop, col = protection)) +
+    geom_pointinterval(aes(ymin = .lower, ymax = .upper), width = 0.2, position = position_dodge(width = 0.5)) +
     labs(
-        x = "Effect of Protection",
-        y = "Density"
-    )
+        x = "Size",
+        y = "Expected Proportion",
+        col = ""
+    )+
+    scale_color_brewer(palette = "Set1")
 
 ggsave(here("figures", "bruvs", "effect_model_2.png"), plot = last_plot(), height = 6, width = 8)
 
 ## Table
 effect_summary <- effect %>%
-    cross_join(P) %>%
+    rename(size = .category) %>%
+    group_by(size) %>%
     median_qi(effect, .width = c(0.5, 0.9)) %>%
     ungroup() %>%
+    mutate(size = size_levels[as.numeric(size)],) %>%
     pivot_wider(names_from = .width, values_from = c(.lower, .upper)) %>%
-    select(effect, .lower_0.9, .lower_0.5, .upper_0.5, .upper_0.9) %>%
-    cross_join(P)
+    select(size, effect, .lower_0.9, .lower_0.5, .upper_0.5, .upper_0.9) %>%
+    left_join(P, by = "size") 
 
 table3 <- effect_summary %>%
     mutate_if(is.numeric, ~ round(., 3)) %>%
     flextable() %>%
     set_header_labels(
+        size = "Size",
         effect = "Median",
         .lower_0.9 = "90% Lower CI",
         .lower_0.5 = "50% Lower CI",

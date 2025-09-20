@@ -35,11 +35,11 @@ transformed parameters {
   // prior contributions to the log posterior
   real lprior = 0;
   r_1_1 = (sd_1[1] * (z_1[1]));
-  lprior += student_t_lpdf(Intercept | 3, 22.5, 7.4);
-  lprior += student_t_lpdf(sigma | 3, 0, 7.4)
-    - 1 * student_t_lccdf(0 | 3, 0, 7.4);
-  lprior += student_t_lpdf(sd_1 | 3, 0, 7.4)
-    - 1 * student_t_lccdf(0 | 3, 0, 7.4);
+  lprior += student_t_lpdf(Intercept | 3, 3, 2.5);
+  lprior += student_t_lpdf(sigma | 3, 0, 2.5)
+    - 1 * student_t_lccdf(0 | 3, 0, 2.5);
+  lprior += student_t_lpdf(sd_1 | 3, 0, 2.5)
+    - 1 * student_t_lccdf(0 | 3, 0, 2.5);
 }
 model {
   // likelihood including constants

@@ -59,6 +59,7 @@ individuals <- individuals %>%
 counts <- counts %>%
     mutate(
         deployment_id = as.numeric(factor(deployment_id, levels = deployment_levels)),
+        size = as.numeric(factor(size, levels = size_levels))
     ) %>%
     rename(
         abundance = count,
