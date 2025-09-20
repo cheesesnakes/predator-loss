@@ -29,7 +29,7 @@ data <- plot_abundance %>%
 
 # define formula
 
-formula <- bf(abundance ~ protected + guild + me(rugosity_mean, rugosity_se) + biomass + me(rugosity_mean, rugosity_se):guild + biomass:guild + (1 | site))
+formula <- bf(abundance ~ protected + guild + me(rugosity_mean, rugosity_se) + damsel + biomass + me(rugosity_mean, rugosity_se):guild + biomass:guild + (1 | site))
 
 # priors
 

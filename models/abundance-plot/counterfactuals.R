@@ -38,7 +38,7 @@ model <- readRDS(here("outputs", "abundance-plot", paste0("model.rds")))
 
 posterior_protection <- data %>%
     ungroup() %>%
-    select(plot_id, site, guild) %>%
+    select(plot_id, site, guild, damsel) %>%
     distinct() %>%
     expand_grid(protected = c(0, 1), biomass = 0, rugosity_mean = 0, rugosity_se = 0.1) %>%
     add_epred_draws(model, value = "prop") %>%
@@ -67,7 +67,7 @@ std_var <- seq(-2, 2, by = 0.2)
 
 posterior_rugosity <- data %>%
     ungroup() %>%
-    select(plot_id, site, guild, protected, biomass) %>%
+    select(plot_id, site, guild, protected, biomass, damsel) %>%
     distinct() %>%
     expand_grid(rugosity_mean = std_var, rugosity_se = 0.1) %>%
     add_epred_draws(model, value = "prop") %>%
@@ -99,7 +99,7 @@ posterior_biomass <- data %>%
     ungroup() %>%
     select(plot_id, site, guild, protected, rugosity_mean, rugosity_se) %>%
     distinct() %>%
-    expand_grid(biomass = std_var) %>%
+    expand_grid(biomass = std_var, damsel = c(0,1)) %>%
     add_epred_draws(model, value = "prop") %>%
     ungroup()
 
@@ -107,17 +107,22 @@ posterior_biomass <- data %>%
 
 posterior_biomass %>%
     mutate(biomass = (biomass * moments_biomass[2] + moments_biomass[1])*100) %>%
-    group_by(guild, biomass) %>%
+    group_by(guild, damsel, biomass) %>%
     median_qi(prop, .width = c(0.5)) %>%
     ggplot(aes(x = biomass, y = prop, color = guild, fill = guild)) +
     geom_lineribbon(aes(ymin = .lower, ymax = .upper), alpha = 0.5) +
     scale_y_continuous(limits = c(0, NA)) +
     scale_color_brewer(palette = "Set1") +
     scale_fill_brewer(palette = "Set1") +
-    labs(x = "Biomass (%)", y = "Count", col = "Guild", fill = "Guild")
+    labs(x = "Biomass (%)", y = "Count", col = "Guild", fill = "Guild") +
+    facet_wrap(~damsel, labeller = as_labeller(c(`0` = "Damselfish Absent", `1` = "Damselfish Present")))   
 
-ggsave(here("figures", "abundance-plot", "counterfactual_biomass.png"), plot = last_plot(), height = 6, width = 8)
+ggsave(here("figures", "abundance-plot", "counterfactual_biomass.png"), plot = last_plot(), height = 6, width = 12)
 
 # effect of biomass
 
-effect <- summarise_cf(posterior = posterior_biomass, do = "biomass", confound = "guild", groups = c("plot_id", "guild"), path = "abundance-plot", file = paste0("counterfactual_biomass.docx"))
+effect <- summarise_cf(posterior = posterior_biomass, do = "biomass", confound = "guild", groups = c("plot_id", "guild", "damsel"), path = "abundance-plot", file = paste0("counterfactual_biomass.docx"))
+
+# Effect of damsels
+
+effect <- summarise_cf(posterior = posterior_biomass, do = "damsel", confound = "guild", groups = c("plot_id", "guild", "biomass"), path = "abundance-plot", file = paste0("counterfactual_damsel.docx"))
