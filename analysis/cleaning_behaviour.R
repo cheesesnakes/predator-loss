@@ -29,6 +29,11 @@ sites <- sites %>%
 
 # plot metadata
 
+resident_damsels <- plots %>%
+  select(resident_damsels) %>%
+  distinct() %>%
+  pull()
+
 damsels <- plots %>%
   select(plot_id, damsel_n) %>%
   # damsel presence
@@ -167,7 +172,8 @@ fish <- fish %>%
 plot_abundance <- fish %>%
   group_by(plot_id, spp) %>%
   summarise(abundance = n()) %>%
-  ungroup()
+  ungroup() %>%
+  mutate(resident = ifelse(spp %in% resident_damsels, 1, 0))
 
 plot_size <- fish %>%
   group_by(plot_id, size) %>%
@@ -259,6 +265,11 @@ fish <- fish %>%
   left_join(families, by = c("spp" = "species"))
 
 colnames(fish) <- str_to_lower(colnames(fish))
+
+# Mark residents
+
+fish <- fish %>%
+  mutate(resident = ifelse(spp %in% resident_damsels, 1, 0))
 
 # calculate behavioral traits
 
