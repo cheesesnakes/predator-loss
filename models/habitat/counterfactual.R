@@ -43,6 +43,45 @@ effect <- posterior_protection %>%
         effect = Protected - Unprotected
     )
 
+P <- effect %>%
+    group_by(.category) %>%
+    summarise(prob = mean(effect > 0))
+
+# Summary table
+
+effect_summary <- effect %>%
+group_by(.category) %>%
+median_qi(effect, .width = c(0.5, 0.9)) %>%
+pivot_wider(names_from = .width, values_from = c(.lower, .upper)) %>%
+left_join(P, by = ".category") %>%
+select(.category, effect, .lower_0.9, .lower_0.5, .upper_0.5, .upper_0.9, prob) %>%
+mutate(across(where(is.numeric), ~ round(.x, 3)))
+
+table3 <- effect_summary %>%
+    mutate(.category = str_to_title(.category),
+           effect= effect * 100,
+           .lower_0.9 = .lower_0.9 * 100,
+           .lower_0.5 = .lower_0.5 * 100,
+           .upper_0.5 = .upper_0.5 * 100,
+           .upper_0.9 = .upper_0.9 * 100) %>%
+    flextable() %>%
+    set_header_labels(
+        .category = "Substrate Type",
+        effect = "Median (%)",
+        .lower_0.9 = "90% Lower CI",
+        .lower_0.5 = "50% Lower CI",
+        .upper_0.5 = "50% Upper CI",
+        .upper_0.9 = "90% Upper CI",
+        prob = "P(effect > 0)"
+    ) %>%
+    theme_box() %>%
+    set_table_properties(width = 0.5, layout = "fixed")
+
+print(table3)
+
+save_as_docx(table3, path = here("outputs", "habitat", paste0("effect_protection.docx")))
+
+
 # plot effect of protection on habitat composition
 
 effect %>%
@@ -77,6 +116,44 @@ effect <- posterior_aspect %>%
     mutate(
         effect = Slope - Flat
     )
+
+P <- effect %>%
+    group_by(.category) %>%
+    summarise(prob = mean(effect > 0))
+
+# Summary table
+
+effect_summary <- effect %>%
+group_by(.category) %>%
+median_qi(effect, .width = c(0.5, 0.9)) %>%
+pivot_wider(names_from = .width, values_from = c(.lower, .upper)) %>%
+left_join(P, by = ".category") %>%
+select(.category, effect, .lower_0.9, .lower_0.5, .upper_0.5, .upper_0.9, prob) %>%
+mutate(across(where(is.numeric), ~ round(.x, 3)))
+
+table3 <- effect_summary %>%
+    mutate(.category = str_to_title(.category),
+           effect= effect * 100,
+           .lower_0.9 = .lower_0.9 * 100,
+           .lower_0.5 = .lower_0.5 * 100,
+           .upper_0.5 = .upper_0.5 * 100,
+           .upper_0.9 = .upper_0.9 * 100) %>%
+    flextable() %>%
+    set_header_labels(
+        .category = "Substrate Type",
+        effect = "Median (%)",
+        .lower_0.9 = "90% Lower CI",
+        .lower_0.5 = "50% Lower CI",
+        .upper_0.5 = "50% Upper CI",
+        .upper_0.9 = "90% Upper CI",
+        prob = "P(effect > 0)"
+    ) %>%
+    theme_box() %>%
+    set_table_properties(width = 0.5, layout = "fixed")
+
+print(table3)
+
+save_as_docx(table3, path = here("outputs", "habitat", paste0("effect_aspect.docx")))
 
 # Plot effect of aspect on habitat composition
 

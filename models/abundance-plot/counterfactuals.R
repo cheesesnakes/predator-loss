@@ -1,6 +1,7 @@
 pacman::p_load(brms, here, ordbetareg, tidybayes, ggplot2, marginaleffects, flextable)
 
 source(here("analysis", "standardise_behaviour.R"))
+source(here("functions", "summaries.R"))
 
 # make data frame
 
@@ -43,14 +44,9 @@ posterior_protection <- data %>%
     add_epred_draws(model, value = "prop") %>%
     ungroup()
 
+# Calculate and summarise effect
 
-effect <- posterior_protection %>%
-    pivot_wider(names_from = protected, values_from = prop, id_cols = c(plot_id, .draw, guild)) %>%
-    rename("Unprotected" = `0`, "Protected" = `1`) %>%
-    mutate(
-        effect = Protected - Unprotected
-    )
-
+effect <- summarise_cf(posterior = posterior_protection, do = "protected", confound = "guild", groups = c("plot_id", "guild"), path = "abundance-plot", file = paste0("counterfactual_protection.docx"))
 
 # Counterfactual effect of protection on number individuals in plot
 
@@ -60,7 +56,7 @@ effect %>%
     ggplot(aes(x = guild, y = effect)) +
     geom_hline(yintercept = 0, linetype = "dashed", color = "black") +
     geom_pointinterval(aes(ymin = .lower, ymax = .upper)) +
-    labs(x = "Foraging Guild", y = expression(Delta ~ "Expected Count"))
+    labs(x = "Foraging Guild", y = expression(Delta ~ " E(Count)"))
 
 ggsave(here("figures", "abundance-plot", "effect_plot.png"), plot = last_plot())
 
@@ -94,34 +90,7 @@ ggsave(here("figures", "abundance-plot", "counterfactual_rugosity.png"), plot = 
 
 # Standard effect of rugosity
 
-effect_rugosity <- posterior_rugosity %>%
-    filter(rugosity_mean == 0 | rugosity_mean == 1) %>%
-    pivot_wider(names_from = rugosity_mean, values_from = prop, id_cols = c(plot_id, .draw, guild)) %>%
-    rename("Mean Rugosity" = `0`, "High Rugosity" = `1`) %>%
-    mutate(
-        effect = `High Rugosity` - `Mean Rugosity`
-    ) %>%
-    group_by(guild) %>%
-    median_qi(effect, .width = c(0.5, 0.9)) %>%
-    pivot_wider(names_from = .width, values_from = c(.lower, .upper)) %>%
-    select(guild, effect, .lower_0.9, .lower_0.5, .upper_0.5, .upper_0.9)
-
-table6 <- effect_rugosity %>%
-    flextable() %>%
-    set_header_labels(
-        guild = "Foraging Guild",
-        effect = "Median",
-        .lower_0.9 = "90% Lower CI",
-        .lower_0.5 = "50% Lower CI",
-        .upper_0.5 = "50% Upper CI",
-        .upper_0.9 = "90% Upper CI"
-    ) %>%
-    theme_box() %>%
-    set_table_properties(width = 0.5, layout = "fixed")
-
-print(table6)
-
-save_as_docx(table6, path = here("outputs", "abundance-plot", paste0("effect_rugosity.docx")))
+effect <- summarise_cf(posterior = posterior_rugosity, do = "rugosity_mean", confound = "guild", groups = c("plot_id", "guild"), path = "abundance-plot", file = paste0("counterfactual_rugosity.docx"))
 
 # counterfactual biomass
 std_var <- seq(-2, 2, by = 0.2)
@@ -151,31 +120,4 @@ ggsave(here("figures", "abundance-plot", "counterfactual_biomass.png"), plot = l
 
 # effect of biomass
 
-effect_biomass <- posterior_biomass %>%
-    filter(biomass == 0 | biomass == 1) %>%
-    pivot_wider(names_from = biomass, values_from = prop, id_cols = c(plot_id, .draw, guild)) %>%
-    rename("Mean Biomass" = `0`, "High Biomass" = `1`) %>%
-    mutate(
-        effect = `High Biomass` - `Mean Biomass`
-    ) %>%
-    group_by(guild) %>%
-    median_qi(effect, .width = c(0.5, 0.9)) %>%
-    pivot_wider(names_from = .width, values_from = c(.lower, .upper)) %>%
-    select(guild, effect, .lower_0.9, .lower_0.5, .upper_0.5, .upper_0.9)
-
-table5 <- effect_biomass %>%
-    flextable() %>%
-    set_header_labels(
-        guild = "Foraging Guild",
-        effect = "Median",
-        .lower_0.9 = "90% Lower CI",
-        .lower_0.5 = "50% Lower CI",
-        .upper_0.5 = "50% Upper CI",
-        .upper_0.9 = "90% Upper CI"
-    ) %>%
-    theme_box() %>%
-    set_table_properties(width = 0.5, layout = "fixed")
-
-print(table5)
-
-save_as_docx(table5, path = here("outputs", "abundance-plot", paste0("effect_biomass.docx")))
+effect <- summarise_cf(posterior = posterior_biomass, do = "biomass", confound = "guild", groups = c("plot_id", "guild"), path = "abundance-plot", file = paste0("counterfactual_biomass.docx"))

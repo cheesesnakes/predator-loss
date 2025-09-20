@@ -86,6 +86,7 @@ summarise_r2 <- function(model, path) {
     R2 <- rbind(conditional_r2, marginal_r2)
 
     table3 <- R2 %>%
+    mutate(across(where(is.numeric), ~ round(., 3))) %>%
         flextable() %>%
         set_header_labels(
             type = "Type",
@@ -96,4 +97,54 @@ summarise_r2 <- function(model, path) {
     print(table3)
 
     save_as_docx(table3, path = path)
+}
+
+# summaries of counterfactuals
+
+summarise_cf <- function(posterior, do, confound = NULL, groups, path, file){
+
+    if (do  %in% c("rugosity_mean", "biomass")){
+        posterior <- posterior %>%
+            filter(!!sym(do) == 0 | !!sym(do) == 1)
+    } 
+    
+    effect <- posterior %>%
+        ungroup() %>%
+        pivot_wider(names_from = !!sym(do), values_from = prop, id_cols = c(!!!syms(c(".draw", groups)))) %>%
+        rename("Control" = `0`, "Treatment" = `1`) %>%
+        mutate(effect = Treatment - Control)
+        
+    P <- effect %>%
+        group_by(!!!syms(confound)) %>%
+        summarise(P = mean(effect > 0), .groups = "drop")
+    
+    effect_summary <- effect %>%
+        group_by(!!!syms(confound)) %>%
+        median_qi(effect, .width = c(0.5, 0.9)) %>%
+        pivot_wider(names_from = .width, values_from = c(.lower, .upper)) %>%
+        left_join(P) %>%
+        select(!!!syms(confound), effect, .lower_0.9, .lower_0.5, .upper_0.5, .upper_0.9, P)
+
+    table <- effect_summary %>%
+    mutate(across(where(is.numeric), ~ round(., 3))) %>%
+        flextable() %>%
+        set_header_labels(
+            behaviour = "Behaviour",
+            guild = "Foraging Guild",
+            effect = "Median",
+            .lower_0.9 = "90% Lower CI",
+            .lower_0.5 = "50% Lower CI",
+            .upper_0.5 = "50% Upper CI",
+            .upper_0.9 = "90% Upper CI",
+            P = "P(>0)"
+        ) %>%
+        merge_v(j = confound) %>%
+        theme_box() %>%
+        set_table_properties(width = 0.5, layout = "fixed")
+
+    print(table)
+
+    save_as_docx(table, path = here("outputs", path, file))
+
+    return(effect)
 }

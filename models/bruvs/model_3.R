@@ -1,6 +1,7 @@
 pacman::p_load(brms, here, ordbetareg, tidybayes, ggplot2, marginaleffects, flextable)
 
 source(here("analysis", "standardise_bruvs.R"))
+source(here("functions", "summaries.R"))
 
 dir.create(here("outputs", "bruvs"), showWarnings = FALSE)
 dir.create(here("figures", "bruvs"), showWarnings = FALSE)
@@ -40,7 +41,7 @@ priors <- c(set_prior("normal(0,0.5)", class = "Intercept"),
 
 # fit model
 
-model <- brm(formula, data = data, family = "poisson", chains = 4, cores =4, iter = 2000)
+model <- brm(formula, data = data, family = "poisson", chains = 4, cores =4, iter = 2000, file = here("outputs", "bruvs", "model_3"))
 
 # generate stan code from formula, not fitted model
 stan_code <- make_stancode(formula, data = data)
@@ -111,15 +112,22 @@ ggsave(here("figures", "bruvs", "effect_model_3.png"), plot = last_plot(), heigh
 
 ## Table
 
+effect <- posterior_prediction %>%
+    group_by(family) %>%
+    median_qi(prop, .width = c(0.5, 0.9)) %>%
+    mutate(family = family_levels[as.numeric(family)]) %>%
+    arrange(desc(prop)) %>%
+    pivot_wider(names_from = .width, values_from = c(.lower, .upper))
+
+effect
+
 table3 <- effect %>%
-    median_qi(effect, .width = c(0.5, 0.9)) %>%
-    ungroup() %>%
-    pivot_wider(names_from = .width, values_from = c(.lower, .upper)) %>%
-    select(effect, .lower_0.9, .lower_0.5, .upper_0.5, .upper_0.9) %>%
+    select(family, prop, .lower_0.9, .lower_0.5, .upper_0.5, .upper_0.9) %>%
     mutate_if(is.numeric, ~ round(., 3)) %>%
     flextable() %>%
     set_header_labels(
-        effect = "Median",
+        family = "Family",
+        prop = "Median",
         .lower_0.9 = "90% Lower CI",
         .lower_0.5 = "50% Lower CI",
         .upper_0.5 = "50% Upper CI",
@@ -130,4 +138,4 @@ table3 <- effect %>%
 
 print(table3)
 
-save_as_docx(table3, path = here("outputs", "bruvs", paste0("effect_protection_guild_size.docx")))
+save_as_docx(table3, path = here("outputs", "bruvs", paste0("posterior_family.docx")))

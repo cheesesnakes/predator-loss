@@ -1,6 +1,7 @@
 pacman::p_load(brms, here, ordbetareg, tidybayes, ggplot2, marginaleffects)
 
 source(here("analysis", "standardise_behaviour.R"))
+source(here("functions", "summaries.R"))
 
 # Set default ggplot theme
 theme_set(
@@ -40,19 +41,11 @@ for (b in behaviours) {
         distinct() %>%
         expand_grid(protected = c(0, 1)) %>%
         add_epred_draws(model, value = "prop") %>%
-        ungroup()
+        ungroup() %>%
+        mutate(behaviour = str_to_title(b))
 
 
-    effect <- posterior_protection %>%
-        pivot_wider(names_from = protected, values_from = prop, id_cols = c(ind_id, .draw, guild, size_class)) %>%
-        rename("Unprotected" = `0`, "Protected" = `1`) %>%
-        mutate(
-            effect = Protected - Unprotected,
-            behaviour = str_to_title(b)
-        )
-
-    counterfactual_protection <- rbind(counterfactual_protection, effect)
-
+    counterfactual_protection <- rbind(counterfactual_protection, posterior_protection)
 
     # counterfactual rugosity
 
@@ -63,7 +56,7 @@ for (b in behaviours) {
         mutate(size_class = factor(size_class, levels = c(1,2,3,4))) %>%
         select(ind_id, plot_id, site, family, species, guild, size_class, protected, predator, group, biomass) %>%
         distinct() %>%
-        expand_grid(rugosity_mean = std_var, rugosity_se = 1) %>%
+        expand_grid(rugosity_mean = std_var, rugosity_se = 0.1) %>%
         add_epred_draws(model, value = "prop") %>%
         ungroup() %>%
         mutate(behaviour = str_to_title(b))
@@ -116,8 +109,9 @@ for (b in behaviours) {
 }
 
 # Counterfactual effect of protection on time budget
+effect_protection <- summarise_cf(posterior = counterfactual_protection, do = "protected", confound = c("behaviour"), groups = c("ind_id", "guild", "behaviour", "size_class"), path = "behaviour-time", file = paste0("counterfactual_protection.docx"))
 
-counterfactual_protection %>%
+effect_protection %>%
     group_by(behaviour) %>%
     median_qi(effect, .width = c(0.5, 0.9)) %>%
     ggplot(aes(x = behaviour, y = effect)) +
@@ -127,34 +121,10 @@ counterfactual_protection %>%
 
 ggsave(here("figures", "behaviour-time", "effect_plot.png"), plot = last_plot())
 
-## Make table
-
-table1 <- counterfactual_protection %>%
-    group_by(behaviour) %>%
-    median_qi(effect, .width = c(0.5, 0.9)) %>%
-    ungroup() %>%
-    pivot_wider(names_from = .width, values_from = c(.lower, .upper)) %>%
-    select(behaviour, effect, .lower_0.9, .lower_0.5, .upper_0.5, .upper_0.9) %>%
-    mutate_if(is.numeric, ~ round(., 3)) %>%
-    flextable() %>%
-    set_header_labels(
-        behaviour = "Behaviour",
-        effect = "Median",
-        .lower_0.9 = "90% Lower CI",
-        .lower_0.5 = "50% Lower CI",
-        .upper_0.5 = "50% Upper CI",
-        .upper_0.9 = "90% Upper CI"
-    ) %>%
-    theme_box() %>%
-    set_table_properties(width = 0.5, layout = "fixed")
-
-print(table1)
-
-save_as_docx(table1, path = here("outputs", "behaviour-time", paste0("effect_protection.docx")))
-
 ## Across guilds
+effect_protection <- summarise_cf(posterior = counterfactual_protection, do = "protected", confound = c("behaviour", "guild"), groups = c("ind_id", "guild", "behaviour", "size_class"), path = "behaviour-time", file = paste0("counterfactual_protection_guild.docx"))
 
-counterfactual_protection %>%
+effect_protection %>%
     group_by(behaviour, guild) %>%
     median_qi(effect, .width = c(0.5, 0.9)) %>%
     ggplot(aes(x = behaviour, y = effect, color = guild)) +
@@ -164,36 +134,10 @@ counterfactual_protection %>%
 
 ggsave(here("figures", "behaviour-time", "effect_plot_guild.png"), plot = last_plot(), height = 6, width = 8)
 
-## Table
-
-table2 <- counterfactual_protection %>%
-    group_by(behaviour, guild) %>%
-    median_qi(effect, .width = c(0.5, 0.9)) %>%
-    ungroup() %>%
-    pivot_wider(names_from = .width, values_from = c(.lower, .upper)) %>%
-    select(behaviour, guild, effect, .lower_0.9, .lower_0.5, .upper_0.5, .upper_0.9) %>%
-    mutate_if(is.numeric, ~ round(., 3)) %>%
-    flextable() %>%
-    set_header_labels(
-        guild = "Guild",
-        behaviour = "Behaviour",
-        effect = "Median",
-        .lower_0.9 = "90% Lower CI",
-        .lower_0.5 = "50% Lower CI",
-        .upper_0.5 = "50% Upper CI",
-        .upper_0.9 = "90% Upper CI"
-    ) %>%
-    merge_v(~behaviour) %>%
-    theme_box() %>%
-    set_table_properties(width = 0.5, layout = "fixed")
-
-print(table2)
-
-save_as_docx(table2, path = here("outputs", "behaviour-time", paste0("effect_protection_guild.docx")))
-
 ## Across guilds and size classes
+effect_protection <- summarise_cf(posterior = counterfactual_protection, do = "protected", confound = c("behaviour", "guild", "size_class"), groups = c("ind_id", "guild", "behaviour", "size_class"), path = "behaviour-time", file = paste0("counterfactual_protection.docx"))
 
-counterfactual_protection %>%
+effect_protection %>%
     group_by(behaviour, guild, size_class) %>%
     median_qi(effect, .width = c(0.5, 0.9)) %>%
     ggplot(aes(x = size_class, y = effect, color = guild)) +
@@ -204,34 +148,6 @@ counterfactual_protection %>%
 
 ggsave(here("figures", "behaviour-time", "effect_plot_guild_size.png"), plot = last_plot(), height = 6, width = 8)
 
-## Table
-
-table3 <- counterfactual_protection %>%
-    group_by(behaviour, guild, size_class) %>%
-    median_qi(effect, .width = c(0.5, 0.9)) %>%
-    ungroup() %>%
-    pivot_wider(names_from = .width, values_from = c(.lower, .upper)) %>%
-    select(behaviour, guild, size_class, effect, .lower_0.9, .lower_0.5, .upper_0.5, .upper_0.9) %>%
-    mutate_if(is.numeric, ~ round(., 3)) %>%
-    mutate(size_class = size_levels[as.numeric(size_class)]) %>%
-    flextable() %>%
-    set_header_labels(
-        guild = "Guild",
-        size_class = "Size class",
-        behaviour = "Behaviour",
-        effect = "Median",
-        .lower_0.9 = "90% Lower CI",
-        .lower_0.5 = "50% Lower CI",
-        .upper_0.5 = "50% Upper CI",
-        .upper_0.9 = "90% Upper CI"
-    ) %>%
-    merge_v(~ behaviour + guild) %>%
-    theme_box() %>%
-    set_table_properties(width = 0.5, layout = "fixed")
-
-print(table3)
-
-save_as_docx(table3, path = here("outputs", "behaviour-time", paste0("effect_protection_guild_size.docx")))
 # Effect of rugosity
 
 counterfactual_rugosity %>%
@@ -245,6 +161,8 @@ counterfactual_rugosity %>%
     theme(legend.position = "none")
 
 ggsave(here("figures", "behaviour-time", "counterfactual_rugosity.png"), plot = last_plot(), height = 12, width = 8)
+
+effect_rugosity <- summarise_cf(posterior = counterfactual_rugosity, do = "rugosity_mean", confound = c("behaviour", "guild"), groups = c("ind_id", "guild", "behaviour", "size_class"), path = "behaviour-time", file = paste0("counterfactual_rugosity.docx"))
 
 # Effect of biomass
 
@@ -260,84 +178,34 @@ counterfactual_biomass %>%
 
 ggsave(here("figures", "behaviour-time", "counterfactual_biomass.png"), plot = last_plot(), height = 12, width = 8)
 
-# Effect of predator presence
+effect_biomass <- summarise_cf(posterior = counterfactual_biomass, do = "biomass", confound = c("behaviour", "guild"), groups = c("ind_id", "guild", "behaviour", "size_class"), path = "behaviour-time", file = paste0("counterfactual_biomass.docx"))
 
-counterfactual_predator %>%
-    group_by(behaviour, predator) %>%
-    median_qi(prop, .width = c(0.5, 0.9)) %>%
-    ggplot(aes(x = as.factor(predator), y = prop)) +
+# Effect of predator presence
+effect_predator <- summarise_cf(posterior = counterfactual_predator, do = "predator", confound = c("behaviour"), groups = c("ind_id", "guild", "behaviour", "size_class"), path = "behaviour-time", file = paste0("counterfactual_predator.docx"))
+
+effect_predator %>%
+    group_by(behaviour) %>%
+    median_qi(effect, .width = c(0.5, 0.9)) %>%
+    ggplot(aes(x = behaviour, y = effect, col = behaviour)) +
     geom_pointinterval(aes(ymin = .lower, ymax = .upper)) +
-    labs(x = "Predator presence", y = "Proportion of time") +
-    facet_wrap(~behaviour, ncol = 1) +
-    scale_x_discrete(labels = c("0" = "Absent", "1" = "Present")) +
+    geom_hline(yintercept = 0, linetype = "dashed", color = "black") +
+    labs(x = "Behaviour", y = expression(Delta ~ " P(time)")) +
+    scale_color_brewer(palette = "Dark2") +
     theme(legend.position = "none")
 
 ggsave(here("figures", "behaviour-time", "counterfactual_predator.png"), plot = last_plot(), height = 12, width = 8)
 
-## Table
-
-table4 <- counterfactual_predator %>%
-    group_by(behaviour, predator) %>%
-    median_qi(prop, .width = c(0.5, 0.9)) %>%
-    ungroup() %>%
-    pivot_wider(names_from = .width, values_from = c(.lower, .upper)) %>%
-    select(behaviour, predator, prop, .lower_0.9, .lower_0.5, .upper_0.5, .upper_0.9) %>%
-    mutate_if(is.numeric, ~ round(., 3)) %>%
-    flextable() %>%
-    set_header_labels(
-        predator = "Predator",
-        behaviour = "Behaviour",
-        prop = "Median",
-        .lower_0.9 = "90% Lower CI",
-        .lower_0.5 = "50% Lower CI",
-        .upper_0.5 = "50% Upper CI",
-        .upper_0.9 = "90% Upper CI"
-    ) %>%
-    merge_v(~behaviour) %>%
-    theme_box() %>%
-    set_table_properties(width = 0.5, layout = "fixed")
-
-print(table4)
-
-save_as_docx(table4, path = here("outputs", "behaviour-time", paste0("prop_predator.docx")))
-
 # Effect of grouping
+effect_group <- summarise_cf(posterior = counterfactual_group, do = "group", confound = c("behaviour"), groups = c("ind_id", "guild", "behaviour", "size_class"), path = "behaviour-time", file = paste0("counterfactual_group.docx"))
 
-counterfactual_group %>%
-    group_by(behaviour, group) %>%
-    median_qi(prop, .width = c(0.5, 0.9)) %>%
-    ggplot(aes(x = as.factor(group), y = prop)) +
+effect_group %>%
+    group_by(behaviour) %>%
+    median_qi(effect, .width = c(0.5, 0.9)) %>%
+    ggplot(aes(x = behaviour, y = effect, col = behaviour)) +
     geom_pointinterval(aes(ymin = .lower, ymax = .upper)) +
-    labs(x = "Grouping", y = "Proportion of time") +
-    facet_wrap(~behaviour, ncol = 1) +
-    scale_x_discrete(labels = c("0" = "Solitary", "1" = "Grouped")) +
+    geom_hline(yintercept = 0, linetype = "dashed", color = "black") +
+    labs(x = "Behaviour", y = expression(Delta ~ " P(time)")) +
+    scale_color_brewer(palette = "Dark2") +
     theme(legend.position = "none")
 
 ggsave(here("figures", "behaviour-time", "counterfactual_group.png"), plot = last_plot(), height = 12, width = 8)
-
-## Table
-
-table5 <- counterfactual_group %>%
-    group_by(behaviour, group) %>%
-    median_qi(prop, .width = c(0.5, 0.9)) %>%
-    ungroup() %>%
-    pivot_wider(names_from = .width, values_from = c(.lower, .upper)) %>%
-    select(behaviour, group, prop, .lower_0.9, .lower_0.5, .upper_0.5, .upper_0.9) %>%
-    mutate_if(is.numeric, ~ round(., 3)) %>%
-    flextable() %>%
-    set_header_labels(
-        group = "Grouping",
-        behaviour = "Behaviour",
-        prop = "Median",
-        .lower_0.9 = "90% Lower CI",
-        .lower_0.5 = "50% Lower CI",
-        .upper_0.5 = "50% Upper CI",
-        .upper_0.9 = "90% Upper CI"
-    ) %>%
-    merge_v(~behaviour) %>%
-    theme_box() %>%
-    set_table_properties(width = 0.5, layout = "fixed")
-
-print(table5)
-
-save_as_docx(table5, path = here("outputs", "behaviour-time", paste0("prop_group.docx")))

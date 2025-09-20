@@ -17,16 +17,6 @@ theme_set(
 
 # make data
 
-# Calculate proportion of time in each behavioural state
-
-data_ts <- data %>%
-  filter(codingduration > 45) %>%
-  mutate(
-    foraging = foraging / codingduration,
-    vigilance = vigilance / codingduration,
-    move = move / codingduration
-  )
-
 behaviours <- c("foraging", "vigilance", "move")
 
 for (b in behaviours) {

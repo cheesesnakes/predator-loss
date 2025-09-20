@@ -122,3 +122,13 @@ data <- responses %>%
     size_class = as.factor(size_class)
   ) %>%
   filter(guild != "Piscivore")
+
+# Calculate proportion of time in each behavioural state
+
+data_ts <- data %>%
+  filter(codingduration > 45) %>%
+  mutate(
+    foraging = foraging / codingduration,
+    vigilance = vigilance / codingduration,
+    move = move / codingduration
+  )

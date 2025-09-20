@@ -40,7 +40,7 @@ priors <- c(set_prior("normal(0,0.5)", class = "Intercept"),
 
 # fit model
 
-model <- brm(formula, data = data, family = "poisson", chains = 4, cores =4, iter = 2000)
+model <- brm(formula, data = data, family = "poisson", chains = 4, cores =4, iter = 2000, file = here("outputs", "bruvs", "model_1"))
 
 # generate stan code from formula, not fitted model
 stan_code <- make_stancode(formula, data = data)
@@ -69,7 +69,8 @@ random_effects <- model %>%
         Site = l_s
     ) %>%
     select(-c(l_s, variable)) %>%
-    select(Site,  mean, median, sd, q5, q95)
+    select(Site,  mean, median, sd, q5, q95) %>%
+    mutate(Site = str_to_title(site_levels[Site]))
 
 # make table for random intercepts
 
@@ -100,6 +101,9 @@ effect <- posterior_protection %>%
             effect = log2(Protected) - log2(Unprotected)
         )
 
+P <- effect %>%
+summarise(P = mean(effect > 0))
+
 ## Across guilds and size classes
 
 effect %>%
@@ -116,11 +120,15 @@ ggsave(here("figures", "bruvs", "effect_model_1.png"), plot = last_plot(), heigh
 
 ## Table
 
-table3 <- effect %>%
+effect_summary <- effect %>%
+    cross_join(P) %>%
     median_qi(effect, .width = c(0.5, 0.9)) %>%
     ungroup() %>%
     pivot_wider(names_from = .width, values_from = c(.lower, .upper)) %>%
     select(effect, .lower_0.9, .lower_0.5, .upper_0.5, .upper_0.9) %>%
+    cross_join(P)
+
+table3 <- effect_summary %>%
     mutate_if(is.numeric, ~ round(., 3)) %>%
     flextable() %>%
     set_header_labels(
@@ -128,11 +136,12 @@ table3 <- effect %>%
         .lower_0.9 = "90% Lower CI",
         .lower_0.5 = "50% Lower CI",
         .upper_0.5 = "50% Upper CI",
-        .upper_0.9 = "90% Upper CI"
+        .upper_0.9 = "90% Upper CI",
+        P = "P(effect > 0)"
     ) %>%
     theme_box() %>%
     set_table_properties(width = 0.5, layout = "fixed")
 
 print(table3)
 
-save_as_docx(table3, path = here("outputs", "bruvs", paste0("effect_protection_guild_size.docx")))
+save_as_docx(table3, path = here("outputs", "bruvs", paste0("effect_protection.docx")))
