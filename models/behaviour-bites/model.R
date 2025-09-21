@@ -18,12 +18,12 @@ theme_set(
 # make data
 
 data <- data_ts %>%
-filter(foraging > 0, bite_rate < 20)%>%
-ungroup()
+  filter(foraging > 0, bite_rate < 20) %>%
+  ungroup()
 
 print(paste0("N = ", length(unique(data$ind_id)), " individuals"))
 
-formula <- bf(bite_rate ~ protected + me(rugosity_mean, rugosity_se) + biomass + predator + group + guild + size_class + (1 | site:plot_id) + (1 | family:species))
+formula <- bf(bite_rate ~ protected + rugosity_mean + biomass + predator + group + guild + rugosity_mean:guild + biomass:guild + protected:guild + size_class + (1 | site:plot_id) + (1 | family:species))
 
 # priors
 
@@ -42,7 +42,8 @@ model <- brm(
   chains = 4,
   cores = 4,
   iter = 2000,
-  family = Gamma(link = "log"))
+  family = Gamma(link = "log")
+)
 
 
 # save model

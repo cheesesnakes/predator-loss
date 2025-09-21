@@ -131,13 +131,12 @@ ggsave(here("figures", "behaviour-bites", "effect_plot_guild_size.png"), plot = 
 # Effect of rugosity
 
 counterfactual_rugosity %>%
-    group_by(behaviour, rugosity_mean) %>%
+    group_by(behaviour, guild, rugosity_mean) %>%
     median_qi(prop, .width = c(0.5)) %>%
     mutate(rugosity_mean = moments_rugosity[2] * rugosity_mean + moments_rugosity[1]) %>%
-    ggplot(aes(x = rugosity_mean, y = prop)) +
+    ggplot(aes(x = rugosity_mean, y = prop, col = guild, fill = guild)) +
     geom_lineribbon(aes(ymin = .lower, ymax = .upper), alpha = 0.5) +
-    labs(x = "Rugosity", y = "Bite Rate") +
-    theme(legend.position = "none")
+    labs(x = "Rugosity", y = "Bite Rate") 
 
 ggsave(here("figures", "behaviour-bites", "counterfactual_rugosity.png"), plot = last_plot(), height = 6, width = 8)
 
@@ -146,13 +145,12 @@ effect_rugosity <- summarise_cf(posterior = counterfactual_rugosity, do = "rugos
 # Effect of biomass
 
 counterfactual_biomass %>%
-    group_by(behaviour, biomass) %>%
+    group_by(behaviour, guild, biomass) %>%
     median_qi(prop, .width = c(0.5)) %>%
     mutate(biomass = (moments_biomass[2] * biomass + moments_biomass[1]) * 100) %>%
-    ggplot(aes(x = biomass, y = prop)) +
+    ggplot(aes(x = biomass, y = prop, col = guild, fill = guild)) +
     geom_lineribbon(aes(ymin = .lower, ymax = .upper), alpha = 0.5) +
-    labs(x = "Biomass Cover (%)", y = "Bite Rate") +
-    theme(legend.position = "none")
+    labs(x = "Biomass Cover (%)", y = "Bite Rate") 
 
 ggsave(here("figures", "behaviour-bites", "counterfactual_biomass.png"), plot = last_plot(), height = 6, width = 8)
 
