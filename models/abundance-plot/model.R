@@ -25,37 +25,43 @@ data <- plot_abundance %>%
   group_by(plot_id, guild) %>%
   summarise(abundance = sum(abundance)) %>%
   left_join(predictors, by = "plot_id") %>%
-  ungroup() 
+  ungroup()
 
 print(paste0("N = ", length(unique(data$plot_id)), " plots"))
 
 # define formula
 
-formula <- bf(abundance ~ protected + guild + rugosity_mean + damsel + biomass + rugosity_mean:guild + biomass:guild + (1 | site))
+formula <- bf(abundance ~ protected + guild + rugosity_mean + damsel + biomass + protected:guild + rugosity_mean:guild + biomass:guild + (1 | site))
 
 # priors
 
-priors <- c(set_prior("normal(0,0.5)", class = "Intercept"),
-            set_prior("normal(0,0.5)", class = "b"),
-            set_prior("exponential(2)", class = "sd"),
-            set_prior("exponential(2)", class = "shape"))
+priors <- c(
+  set_prior("normal(0,0.5)", class = "Intercept"),
+  set_prior("normal(0,0.5)", class = "b"),
+  set_prior("exponential(2)", class = "sd"),
+  set_prior("exponential(2)", class = "shape")
+)
 
-# run the model 
+# run the model
 
-model <-  brm(formula = formula,
-              prior = priors,
-              data = data,
-              chains = 4,
-              cores = 4,
-              iter = 2000,
-              family = negbinomial(link = "log"))
+model <- brm(
+  formula = formula,
+  prior = priors,
+  data = data,
+  chains = 4,
+  cores = 4,
+  iter = 2000,
+  family = negbinomial(link = "log")
+)
 
 # generate stan code
 
-stand_code <- make_stancode(formula = formula,
-                             data = data,
-                             family = negbinomial(link = "log"),
-                             prior = priors)
+stand_code <- make_stancode(
+  formula = formula,
+  data = data,
+  family = negbinomial(link = "log"),
+  prior = priors
+)
 
 writeLines(stand_code, con = here("models", "abundance-plot", "model.stan"))
 

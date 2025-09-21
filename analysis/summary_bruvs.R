@@ -11,7 +11,7 @@ print(paste0("Number of locations: ", n_distinct(predictors$location)))
 print(paste0("Locations", ": ", paste(unique(predictors$location), collapse = ", ")))
 print(paste0("Number of sites: ", n_distinct(predictors$site)))
 print(paste0("Sites", ": ", paste(str_to_sentence(unique(predictors$site)), collapse = ", ")))
-
+print(paste0("Number of BRUVs: ", n_distinct(fish$Deployment_id)))
 print(paste0("Number of deployments: ", n_distinct(predictors$deployment_id)))
 
 # treatment

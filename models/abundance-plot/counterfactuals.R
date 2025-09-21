@@ -6,12 +6,12 @@ source(here("functions", "summaries.R"))
 # make data frame
 
 data <- plot_abundance %>%
-  left_join(guild, by = "species") %>%
-  filter(!is.na(guild)) %>%
-  group_by(plot_id, guild) %>%
-  summarise(abundance = sum(abundance)) %>%
-  left_join(predictors, by = "plot_id") %>%
-  ungroup() 
+    left_join(guild, by = "species") %>%
+    filter(!is.na(guild)) %>%
+    group_by(plot_id, guild) %>%
+    summarise(abundance = sum(abundance)) %>%
+    left_join(predictors, by = "plot_id") %>%
+    ungroup()
 
 # Set default ggplot theme
 theme_set(
@@ -84,9 +84,12 @@ p1 <- posterior_rugosity %>%
     scale_y_continuous(limits = c(0, NA)) +
     scale_color_brewer(palette = "Set1") +
     scale_fill_brewer(palette = "Set1") +
-    labs(x = "Rugosity", y = "Count", col = "Guild", fill = "Guild") 
+    labs(x = "Rugosity", y = "Count", col = "Guild", fill = "Guild") +
+    facet_wrap(~guild, ncol = 3) +
+    theme(legend.position = "none")
 
-ggsave(here("figures", "abundance-plot", "counterfactual_rugosity.png"), plot = p1, height = 6, width = 8)
+
+ggsave(here("figures", "abundance-plot", "counterfactual_rugosity.png"), plot = p1, height = 6, width = 14)
 
 # Standard effect of rugosity
 
@@ -99,14 +102,14 @@ posterior_biomass <- data %>%
     ungroup() %>%
     select(plot_id, site, guild, protected, rugosity_mean, rugosity_se) %>%
     distinct() %>%
-    expand_grid(biomass = std_var, damsel = c(0,1)) %>%
+    expand_grid(biomass = std_var, damsel = c(0, 1)) %>%
     add_epred_draws(model, value = "prop") %>%
     ungroup()
 
 # plot
 
 p2 <- posterior_biomass %>%
-    mutate(biomass = (biomass * moments_biomass[2] + moments_biomass[1])*100) %>%
+    mutate(biomass = (biomass * moments_biomass[2] + moments_biomass[1]) * 100) %>%
     group_by(guild, biomass) %>%
     median_qi(prop, .width = c(0.5)) %>%
     ggplot(aes(x = biomass, y = prop, color = guild, fill = guild)) +
@@ -114,9 +117,11 @@ p2 <- posterior_biomass %>%
     scale_y_continuous(limits = c(0, NA)) +
     scale_color_brewer(palette = "Set1") +
     scale_fill_brewer(palette = "Set1") +
-    labs(x = "Biomass (%)", y = "Count", col = "Guild", fill = "Guild") 
+    labs(x = "Biomass (%)", y = "Count", col = "Guild", fill = "Guild") +
+    facet_wrap(~guild, ncol = 3) +
+    theme(legend.position = "none")
 
-ggsave(here("figures", "abundance-plot", "counterfactual_biomass.png"), plot = p2, height = 6, width = 8)
+ggsave(here("figures", "abundance-plot", "counterfactual_biomass.png"), plot = p2, height = 6, width = 14)
 
 # effect of biomass
 
@@ -128,6 +133,6 @@ effect <- summarise_cf(posterior = posterior_biomass, do = "damsel", confound = 
 
 # Make plots
 
-p <- p1 + p2 + plot_layout(guides = "collect") & theme(legend.position = "top")
+p <- p1 / p2
 
-ggsave(here("figures", "figure2.png"), plot = p, height = 6, width = 12)
+ggsave(here("figures", "figure2.png"), plot = p, height = 12, width = 14)
