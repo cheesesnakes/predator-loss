@@ -23,14 +23,14 @@ theme_set(
 data <- fish %>%
 mutate(deployment_id = as.numeric(factor(deployment_id, levels = deployment_levels))) %>%
 left_join(predictors, by = c("deployment_id"))%>%
-group_by(protection, location, site, deployment_id) %>%
+group_by(protection, location, site, deployment_id, aspect) %>%
 summarise(abundance = sum(max_n))%>%
 ungroup()%>%
 mutate(protection = protection - 1)
 
 # define formula
 
-formula <- bf(abundance ~ protection + (1|site))
+formula <- bf(abundance ~ protection + aspect + (1|site))
 
 # priors
 
@@ -78,7 +78,7 @@ table_re(random_effects, var_names = "Site", path = here("outputs", "bruvs", "mo
 
 # Parameters
 
-summarise_params(model, type = "Parameter", vars = c("b_Intercept", "b_protection"), path = here("outputs", "bruvs", "model_1_parameters.docx"))
+summarise_params(model, type = "Parameter", vars = c("b_Intercept", "b_protection", "b_aspect"), path = here("outputs", "bruvs", "model_1_parameters.docx"))
 
 # Goodness of fit
 
@@ -88,7 +88,7 @@ summarise_r2(model, path = here("outputs", "bruvs", "model_1_R2.docx"))
 
 posterior_protection <- data %>%
     ungroup() %>%
-    select(site) %>%
+    select(site, aspect) %>%
     distinct() %>%
     expand_grid(protection = c(0, 1)) %>%
     add_epred_draws(model, value = "prop") %>%
