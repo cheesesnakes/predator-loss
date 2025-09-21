@@ -32,8 +32,8 @@ for (b in behaviours) {
             Plot = str_split(l_s, "_", simplify = TRUE)[, 2]
         ) %>%
         select(-c(l_s, variable)) %>%
-        select(Site, Plot, mean, median, sd, q5, q95)%>%
-        mutate(Site = site_levels[as.numeric(Site)])%>%
+        select(Site, Plot, mean, median, sd, q5, q95) %>%
+        mutate(Site = site_levels[as.numeric(Site)]) %>%
         arrange(as.numeric(Plot))
 
     # make table for random intercepts
@@ -86,10 +86,9 @@ for (b in behaviours) {
 
     # Parameters
 
-    summarise_params(model = model, type = "Parameter", vars = c("b_Intercept", "b_protected", "bsp_merugosity_meanrugosity_se", "b_biomass", "b_predator", "b_group"), path = here("outputs", "behaviour-time", paste0(b, "_parameters", ".docx")))
+    summarise_params(model = model, type = "Parameter", vars = c("b_Intercept", "b_protected", "b_rugosity_mean", "b_biomass", "b_predator", "b_group", "b_rugosity_mean:guildInvertivore", "b_biomass:guildInvertivore", "b_protected:guildInvertivore"), path = here("outputs", "behaviour-prob", paste0(b, "_parameters", ".docx")))
 
     # Make tables for conditional and marginal R2
 
     summarise_r2(model = model, path = here("outputs", "behaviour-time", paste0(b, "_R2", ".docx")))
 }
-

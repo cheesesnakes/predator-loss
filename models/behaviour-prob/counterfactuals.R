@@ -159,8 +159,7 @@ counterfactual_rugosity %>%
     ggplot(aes(x = rugosity_mean, y = prop, col = guild, fill = guild)) +
     geom_lineribbon(aes(ymin = .lower, ymax = .upper), alpha = 0.5) +
     labs(x = "Rugosity", y = "Proportion of time") +
-    facet_wrap(~behaviour, ncol = 1) +
-    theme(legend.position = "none")
+    facet_wrap(~behaviour, ncol = 1)
 
 ggsave(here("figures", "behaviour-prob", "counterfactual_rugosity.png"), plot = last_plot(), height = 12, width = 8)
 
@@ -175,8 +174,7 @@ counterfactual_biomass %>%
     ggplot(aes(x = biomass, y = prop, col = guild, fill = guild)) +
     geom_lineribbon(aes(ymin = .lower, ymax = .upper), alpha = 0.5) +
     labs(x = "Biomass Cover (%)", y = "Proportion of time") +
-    facet_wrap(~behaviour, ncol = 1) +
-    theme(legend.position = "none")
+    facet_wrap(~behaviour, ncol = 1)
 
 ggsave(here("figures", "behaviour-prob", "counterfactual_biomass.png"), plot = last_plot(), height = 12, width = 8)
 

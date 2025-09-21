@@ -36,7 +36,7 @@ for (b in behaviours) {
 
     posterior_protection <- data_ts %>%
         ungroup() %>%
-        mutate(size_class = factor(size_class, levels = c(1,2,3,4))) %>%
+        mutate(size_class = factor(size_class, levels = c(1, 2, 3, 4))) %>%
         select(ind_id, plot_id, site, family, species, guild, size_class, predator, group, rugosity_mean, rugosity_se, biomass) %>%
         distinct() %>%
         expand_grid(protected = c(0, 1)) %>%
@@ -53,7 +53,7 @@ for (b in behaviours) {
 
     posterior_rugosity <- data_ts %>%
         ungroup() %>%
-        mutate(size_class = factor(size_class, levels = c(1,2,3,4))) %>%
+        mutate(size_class = factor(size_class, levels = c(1, 2, 3, 4))) %>%
         select(ind_id, plot_id, site, family, species, guild, size_class, protected, predator, group, biomass) %>%
         distinct() %>%
         expand_grid(rugosity_mean = std_var, rugosity_se = 0.1) %>%
@@ -69,7 +69,7 @@ for (b in behaviours) {
 
     posterior_biomass <- data_ts %>%
         ungroup() %>%
-        mutate(size_class = factor(size_class, levels = c(1,2,3,4))) %>%
+        mutate(size_class = factor(size_class, levels = c(1, 2, 3, 4))) %>%
         select(ind_id, plot_id, site, family, species, guild, size_class, protected, predator, group, rugosity_mean, rugosity_se) %>%
         distinct() %>%
         expand_grid(biomass = std_var) %>%
@@ -83,7 +83,7 @@ for (b in behaviours) {
 
     posterior_predator <- data_ts %>%
         ungroup() %>%
-        mutate(size_class = factor(size_class, levels = c(1,2,3,4))) %>%
+        mutate(size_class = factor(size_class, levels = c(1, 2, 3, 4))) %>%
         select(ind_id, plot_id, family, species, site, guild, size_class, protected, group, rugosity_mean, rugosity_se, biomass) %>%
         distinct() %>%
         expand_grid(predator = c(0, 1)) %>%
@@ -97,7 +97,7 @@ for (b in behaviours) {
 
     posterior_group <- data_ts %>%
         ungroup() %>%
-        mutate(size_class = factor(size_class, levels = c(1,2,3,4))) %>%
+        mutate(size_class = factor(size_class, levels = c(1, 2, 3, 4))) %>%
         select(ind_id, plot_id, site, family, species, guild, size_class, protected, predator, rugosity_mean, rugosity_se, biomass) %>%
         distinct() %>%
         expand_grid(group = c(0, 1)) %>%
@@ -151,14 +151,13 @@ ggsave(here("figures", "behaviour-time", "effect_plot_guild_size.png"), plot = l
 # Effect of rugosity
 
 counterfactual_rugosity %>%
-    group_by(behaviour, rugosity_mean) %>%
+    group_by(behaviour, guild, rugosity_mean) %>%
     median_qi(prop, .width = c(0.5)) %>%
     mutate(rugosity_mean = moments_rugosity[2] * rugosity_mean + moments_rugosity[1]) %>%
-    ggplot(aes(x = rugosity_mean, y = prop)) +
+    ggplot(aes(x = rugosity_mean, y = prop, col = guild, fill = guild)) +
     geom_lineribbon(aes(ymin = .lower, ymax = .upper), alpha = 0.5) +
     labs(x = "Rugosity", y = "Proportion of time") +
-    facet_wrap(~behaviour, ncol = 1) +
-    theme(legend.position = "none")
+    facet_wrap(~behaviour, ncol = 1)
 
 ggsave(here("figures", "behaviour-time", "counterfactual_rugosity.png"), plot = last_plot(), height = 12, width = 8)
 
@@ -167,14 +166,13 @@ effect_rugosity <- summarise_cf(posterior = counterfactual_rugosity, do = "rugos
 # Effect of biomass
 
 counterfactual_biomass %>%
-    group_by(behaviour, biomass) %>%
+    group_by(behaviour, guild, biomass) %>%
     median_qi(prop, .width = c(0.5)) %>%
     mutate(biomass = (moments_biomass[2] * biomass + moments_biomass[1]) * 100) %>%
-    ggplot(aes(x = biomass, y = prop)) +
+    ggplot(aes(x = biomass, y = prop, col = guild, fill = guild)) +
     geom_lineribbon(aes(ymin = .lower, ymax = .upper), alpha = 0.5) +
     labs(x = "Biomass Cover (%)", y = "Proportion of time") +
-    facet_wrap(~behaviour, ncol = 1) +
-    theme(legend.position = "none")
+    facet_wrap(~behaviour, ncol = 1)
 
 ggsave(here("figures", "behaviour-time", "counterfactual_biomass.png"), plot = last_plot(), height = 12, width = 8)
 
