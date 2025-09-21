@@ -14,7 +14,7 @@ plot_levels <- sort(unique(predictors$plot_id))
 location_levels <- sort(unique(predictors$location))
 site_levels <- sort(unique(predictors$site))
 protection_levels <- c("Unprotected", "Protected")
-guild_levels <- sort(colnames(guild)[-1]) # Exclude 'species' column
+guild_levels <- sort(unique(guild$guild)) # Exclude 'species' column
 family_levels <- sort(unique(fish$family))
 
 responses <- responses %>%

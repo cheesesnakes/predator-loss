@@ -38,7 +38,9 @@ table_re(df = random_effects, var_names = "Site", path = here("outputs", "abunda
 
 # Parameters
 
-summarise_params(model, type = "Fixed", vars = c("b_Intercept", "b_protected", "b_damsel", "bsp_merugosity_meanrugosity_se", "b_biomass", "b_guildInvertivore", "bsp_merugosity_meanrugosity_se:guildInvertivore", "b_guildInvertivore:biomass", "shape"), path = here("outputs", "abundance-plot", "fixed_effects.docx"))
+get_variables(model)
+
+summarise_params(model, type = "Fixed", vars = c("b_Intercept", "b_protected", "b_damsel", "b_rugosity_mean", "b_biomass", "b_guildInvertivore", "b_guildPiscivore", "b_guildInvertivore:rugosity_mean", "b_guildPiscivore:rugosity_mean", "b_guildInvertivore:biomass", "b_guildPiscivore:biomass", "shape"), path = here("outputs", "abundance-plot", "fixed_effects.docx"))
 
 # Make tables for conditional and marginal R2
 

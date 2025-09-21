@@ -20,18 +20,18 @@ theme_set(
 # make data frame
 
 data <- plot_abundance %>%
-  left_join(guild, by = "species")%>%
-  filter(guild != "Piscivore") %>%
+  left_join(guild, by = "species") %>%
+  filter(!is.na(guild)) %>%
   group_by(plot_id, guild) %>%
   summarise(abundance = sum(abundance)) %>%
-  left_join(predictors, by = "plot_id")%>%
+  left_join(predictors, by = "plot_id") %>%
   ungroup() 
 
 print(paste0("N = ", length(unique(data$plot_id)), " plots"))
 
 # define formula
 
-formula <- bf(abundance ~ protected + guild + me(rugosity_mean, rugosity_se) + damsel + biomass + me(rugosity_mean, rugosity_se):guild + biomass:guild + (1 | site))
+formula <- bf(abundance ~ protected + guild + rugosity_mean + damsel + biomass + rugosity_mean:guild + biomass:guild + (1 | site))
 
 # priors
 

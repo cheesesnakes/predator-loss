@@ -6,11 +6,11 @@ source(here("functions", "summaries.R"))
 # make data frame
 
 data <- plot_abundance %>%
-  left_join(guild, by = "species")%>%
-  filter(guild != "Piscivore") %>%
+  left_join(guild, by = "species") %>%
+  filter(!is.na(guild)) %>%
   group_by(plot_id, guild) %>%
   summarise(abundance = sum(abundance)) %>%
-  left_join(predictors, by = "plot_id")%>%
+  left_join(predictors, by = "plot_id") %>%
   ungroup() 
 
 # Set default ggplot theme
@@ -38,9 +38,9 @@ model <- readRDS(here("outputs", "abundance-plot", paste0("model.rds")))
 
 posterior_protection <- data %>%
     ungroup() %>%
-    select(plot_id, site, guild, damsel) %>%
+    select(plot_id, site, guild, damsel, rugosity_mean, biomass) %>%
     distinct() %>%
-    expand_grid(protected = c(0, 1), biomass = 0, rugosity_mean = 0, rugosity_se = 0.1) %>%
+    expand_grid(protected = c(0, 1)) %>%
     add_epred_draws(model, value = "prop") %>%
     ungroup()
 
