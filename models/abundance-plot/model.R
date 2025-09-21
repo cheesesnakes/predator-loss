@@ -27,6 +27,8 @@ data <- plot_abundance %>%
   left_join(predictors, by = "plot_id")%>%
   ungroup() 
 
+print(paste0("N = ", length(unique(data$plot_id)), " plots"))
+
 # define formula
 
 formula <- bf(abundance ~ protected + guild + me(rugosity_mean, rugosity_se) + damsel + biomass + me(rugosity_mean, rugosity_se):guild + biomass:guild + (1 | site))

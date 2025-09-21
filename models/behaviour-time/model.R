@@ -15,6 +15,9 @@ theme_set(
     )
 )
 
+
+print(paste0("N = ", length(unique(data_ts$ind_id)), " individuals"))
+
 # make data
 
 behaviours <- c("foraging", "vigilance", "move")

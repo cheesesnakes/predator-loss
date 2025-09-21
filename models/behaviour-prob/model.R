@@ -29,6 +29,8 @@ data <- scans %>%
   filter(guild != "Piscivore") %>%
   rename(move = moving)
 
+print(paste0("N = ", length(unique(data$ind_id)), " individuals"))
+
 behaviours <- c("foraging", "vigilance", "move")
 
 for (b in behaviours) {
