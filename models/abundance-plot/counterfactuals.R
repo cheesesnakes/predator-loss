@@ -46,7 +46,7 @@ posterior_protection <- data %>%
 
 # Calculate and summarise effect
 
-effect <- summarise_cf(posterior = posterior_protection, do = "protected", confound = "guild", groups = c("plot_id", "guild"), path = "abundance-plot", file = paste0("counterfactual_protection.docx"))
+effect <- summarise_cf(posterior = posterior_protection, do = "protected", dist = "Abundance", confound = "guild", groups = c("plot_id", "guild"), path = "abundance-plot", file = paste0("counterfactual_protection.docx"))
 
 # Counterfactual effect of protection on number individuals in plot
 
@@ -56,7 +56,7 @@ effect %>%
     ggplot(aes(x = guild, y = effect)) +
     geom_hline(yintercept = 0, linetype = "dashed", color = "black") +
     geom_pointinterval(aes(ymin = .lower, ymax = .upper)) +
-    labs(x = "Foraging Guild", y = expression(Delta ~ " E(Count)"))
+    labs(x = "Foraging Guild", y = "Log response ratio")
 
 ggsave(here("figures", "abundance-plot", "effect_plot.png"), plot = last_plot())
 
@@ -93,7 +93,7 @@ ggsave(here("figures", "abundance-plot", "counterfactual_rugosity.png"), plot = 
 
 # Standard effect of rugosity
 
-effect <- summarise_cf(posterior = posterior_rugosity, do = "rugosity_mean", confound = "guild", groups = c("plot_id", "guild"), path = "abundance-plot", file = paste0("counterfactual_rugosity.docx"))
+effect <- summarise_cf(posterior = posterior_rugosity, do = "rugosity_mean", dist = "Abundance", confound = "guild", groups = c("plot_id", "guild"), path = "abundance-plot", file = paste0("counterfactual_rugosity.docx"))
 
 # counterfactual biomass
 std_var <- seq(-2, 2, by = 0.2)
@@ -125,11 +125,11 @@ ggsave(here("figures", "abundance-plot", "counterfactual_biomass.png"), plot = p
 
 # effect of biomass
 
-effect <- summarise_cf(posterior = posterior_biomass, do = "biomass", confound = "guild", groups = c("plot_id", "guild", "damsel"), path = "abundance-plot", file = paste0("counterfactual_biomass.docx"))
+effect <- summarise_cf(posterior = posterior_biomass, do = "biomass", confound = "guild", dist = "Abundance", groups = c("plot_id", "guild", "damsel"), path = "abundance-plot", file = paste0("counterfactual_biomass.docx"))
 
 # Effect of damsels
 
-effect <- summarise_cf(posterior = posterior_biomass, do = "damsel", confound = "guild", groups = c("plot_id", "guild", "biomass"), path = "abundance-plot", file = paste0("counterfactual_damsel.docx"))
+effect <- summarise_cf(posterior = posterior_biomass, do = "damsel", confound = "guild", dist = "Abundance", groups = c("plot_id", "guild", "biomass"), path = "abundance-plot", file = paste0("counterfactual_damsel.docx"))
 
 # Make plots
 

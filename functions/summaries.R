@@ -101,7 +101,7 @@ summarise_r2 <- function(model, path) {
 
 # summaries of counterfactuals
 
-summarise_cf <- function(posterior, do, confound = NULL, groups, path, file){
+summarise_cf <- function(posterior, do, confound = NULL, groups, path, file, dist = "proportion"){
 
     if (do  %in% c("rugosity_mean", "biomass")){
         posterior <- posterior %>%
@@ -111,9 +111,16 @@ summarise_cf <- function(posterior, do, confound = NULL, groups, path, file){
     effect <- posterior %>%
         ungroup() %>%
         pivot_wider(names_from = !!sym(do), values_from = prop, id_cols = c(!!!syms(c(".draw", groups)))) %>%
-        rename("Control" = `0`, "Treatment" = `1`) %>%
-        mutate(effect = Treatment - Control)
-        
+        rename("Control" = `0`, "Treatment" = `1`) 
+
+    if (dist == "Abundance") {
+        effect <- effect %>%
+            mutate(effect = log2(Treatment) - log2(Control))
+    } else {
+        effect <- effect %>%
+            mutate(effect = log2(Treatment / (1 - Treatment)) - log2(Control / (1 - Control)))
+    }
+
     P <- effect %>%
         group_by(!!!syms(confound)) %>%
         summarise(P = mean(effect > 0), .groups = "drop")

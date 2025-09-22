@@ -90,20 +90,19 @@ counterfactual_group <- data_ts %>%
 
 # Counterfactual effect of protection on time budget
 
-effect_protection <- summarise_cf(posterior = counterfactual_protection, do = "protected", confound = c("behaviour"), groups = c("ind_id", "guild", "behaviour", "size_class"), path = "behaviour-bites", file = paste0("counterfactual_protection.docx"))
+effect_protection <- summarise_cf(posterior = counterfactual_protection, dist = "Abundance", do = "protected", confound = c("behaviour"), groups = c("ind_id", "guild", "behaviour", "size_class"), path = "behaviour-bites", file = paste0("counterfactual_protection.docx"))
 
 effect_protection %>%
     ggplot(aes(x = effect)) +
     geom_density(fill = "blue", alpha = 0.5, col = "black") +
     geom_vline(xintercept = 0, linetype = "dashed", color = "black") +
     geom_vline(xintercept = median(effect_protection$effect), color = "red") +
-    scale_x_continuous(limits = c(-0.5, 0.5)) +
-    labs(x = "Difference in rate", y = "Density")
+    labs(x = "Log response ratio", y = "Density")
 
 ggsave(here("figures", "behaviour-bites", "effect_plot.png"), plot = last_plot())
 
 ## Across guilds
-effect_protection <- summarise_cf(posterior = counterfactual_protection, do = "protected", confound = c("behaviour", "guild"), groups = c("ind_id", "guild", "behaviour", "size_class"), path = "behaviour-bites", file = paste0("counterfactual_protection_guild.docx"))
+effect_protection <- summarise_cf(posterior = counterfactual_protection, dist = "Abundance", do = "protected", confound = c("behaviour", "guild"), groups = c("ind_id", "guild", "behaviour", "size_class"), path = "behaviour-bites", file = paste0("counterfactual_protection_guild.docx"))
 
 effect_protection %>%
     group_by(behaviour, guild) %>%
@@ -111,12 +110,12 @@ effect_protection %>%
     ggplot(aes(x = guild, y = effect, color = guild)) +
     geom_hline(yintercept = 0, linetype = "dashed", color = "black") +
     geom_pointinterval(aes(ymin = .lower, ymax = .upper), position = position_dodge(width = 0.5)) +
-    labs(x = "Foraging", y = "Difference in rate", color = "Guild")
+    labs(x = "Foraging", y = "Log response ratio", color = "Guild")
 
 ggsave(here("figures", "behaviour-bites", "effect_plot_guild.png"), plot = last_plot(), height = 6, width = 8)
 
 ## Across guilds and size classes
-effect_protection <- summarise_cf(posterior = counterfactual_protection, do = "protected", confound = c("behaviour", "guild", "size_class"), groups = c("ind_id", "guild", "behaviour", "size_class"), path = "behaviour-bites", file = paste0("counterfactual_protection.docx"))
+effect_protection <- summarise_cf(posterior = counterfactual_protection, dist = "Abundance", do = "protected", confound = c("behaviour", "guild", "size_class"), groups = c("ind_id", "guild", "behaviour", "size_class"), path = "behaviour-bites", file = paste0("counterfactual_protection.docx"))
 
 effect_protection %>%
     group_by(behaviour, guild, size_class) %>%
@@ -124,7 +123,7 @@ effect_protection %>%
     ggplot(aes(x = size_class, y = effect, color = guild)) +
     geom_hline(yintercept = 0, linetype = "dashed", color = "black") +
     geom_pointinterval(aes(ymin = .lower, ymax = .upper), position = position_dodge(width = 0.5)) +
-    labs(x = "Size class", y = "Difference in proportion", color = "Guild") 
+    labs(x = "Size class", y = "Log response ratio", color = "Guild") 
 
 ggsave(here("figures", "behaviour-bites", "effect_plot_guild_size.png"), plot = last_plot(), height = 6, width = 8)
 
@@ -140,7 +139,7 @@ counterfactual_rugosity %>%
 
 ggsave(here("figures", "behaviour-bites", "counterfactual_rugosity.png"), plot = last_plot(), height = 6, width = 8)
 
-effect_rugosity <- summarise_cf(posterior = counterfactual_rugosity, do = "rugosity_mean", confound = c("behaviour", "guild"), groups = c("ind_id", "guild", "behaviour", "size_class"), path = "behaviour-bites", file = paste0("counterfactual_rugosity.docx"))
+effect_rugosity <- summarise_cf(posterior = counterfactual_rugosity, dist = "Abundance", do = "rugosity_mean", confound = c("behaviour", "guild"), groups = c("ind_id", "guild", "behaviour", "size_class"), path = "behaviour-bites", file = paste0("counterfactual_rugosity.docx"))
 
 # Effect of biomass
 
@@ -154,30 +153,28 @@ counterfactual_biomass %>%
 
 ggsave(here("figures", "behaviour-bites", "counterfactual_biomass.png"), plot = last_plot(), height = 6, width = 8)
 
-effect_biomass <- summarise_cf(posterior = counterfactual_biomass, do = "biomass", confound = c("behaviour", "guild"), groups = c("ind_id", "guild", "behaviour", "size_class"), path = "behaviour-bites", file = paste0("counterfactual_biomass.docx"))
+effect_biomass <- summarise_cf(posterior = counterfactual_biomass, dist = "Abundance", do = "biomass", confound = c("behaviour", "guild"), groups = c("ind_id", "guild", "behaviour", "size_class"), path = "behaviour-bites", file = paste0("counterfactual_biomass.docx"))
 
 # Effect of predator presence
-effect_predator <- summarise_cf(posterior = counterfactual_predator, do = "predator", confound = c("behaviour"), groups = c("ind_id", "guild", "behaviour", "size_class"), path = "behaviour-bites", file = paste0("counterfactual_predator.docx"))
+effect_predator <- summarise_cf(posterior = counterfactual_predator, dist = "Abundance", do = "predator", confound = c("behaviour"), groups = c("ind_id", "guild", "behaviour", "size_class"), path = "behaviour-bites", file = paste0("counterfactual_predator.docx"))
 
 effect_predator %>%
     ggplot(aes(x = effect)) +
     geom_density(fill = "blue", alpha = 0.5, col = "black") +
     geom_vline(xintercept = 0, linetype = "dashed", color = "black") +
     geom_vline(xintercept = median(effect_predator$effect), color = "red") +
-    scale_x_continuous(limits = c(-0.5, 0.5)) +
-    labs(x = "Difference in rate", y = "Density")
+    labs(x = "Log response ratio", y = "Density")
 
 ggsave(here("figures", "behaviour-bites", "counterfactual_predator.png"), plot = last_plot(), height = 12, width = 8)
 
 # Effect of grouping
-effect_group <- summarise_cf(posterior = counterfactual_group, do = "group", confound = c("behaviour"), groups = c("ind_id", "guild", "behaviour", "size_class"), path = "behaviour-bites", file = paste0("counterfactual_group.docx"))
+effect_group <- summarise_cf(posterior = counterfactual_group, dist = "Abundance", do = "group", confound = c("behaviour"), groups = c("ind_id", "guild", "behaviour", "size_class"), path = "behaviour-bites", file = paste0("counterfactual_group.docx"))
 
 effect_group %>%
     ggplot(aes(x = effect)) +
     geom_density(fill = "blue", alpha = 0.5, col = "black") +
     geom_vline(xintercept = 0, linetype = "dashed", color = "black") +
     geom_vline(xintercept = median(effect_group$effect), color = "red") +
-    scale_x_continuous(limits = c(-0.5, 0.5)) +
-    labs(x = "Difference in rate", y = "Density")
+    labs(x = "Log response ratio", y = "Density")
 
 ggsave(here("figures", "behaviour-bites", "counterfactual_group.png"), plot = last_plot(), height = 12, width = 8)
