@@ -126,7 +126,7 @@ ggsave(here("figures", "behaviour-prob", "effect_plot.png"), plot = last_plot())
 
 effect_protection <- summarise_cf(posterior = counterfactual_protection, do = "protected", confound = c("behaviour", "guild"), groups = c("ind_id", "guild", "behaviour", "size_class"), path = "behaviour-prob", file = paste0("counterfactual_protection_guild.docx"))
 
-effect_protection %>%
+p1 <- effect_protection %>%
     group_by(behaviour, guild) %>%
     median_qi(effect, .width = c(0.5, 0.9)) %>%
     ggplot(aes(x = behaviour, y = effect, color = guild)) +
@@ -134,7 +134,7 @@ effect_protection %>%
     geom_pointinterval(aes(ymin = .lower, ymax = .upper), position = position_dodge(width = 0.5)) +
     labs(x = "Behaviour", y = "Log odds ratio", color = "Guild")
 
-ggsave(here("figures", "behaviour-prob", "effect_plot_guild.png"), plot = last_plot(), height = 6, width = 8)
+ggsave(here("figures", "behaviour-prob", "effect_plot_guild.png"), plot = p, height = 6, width = 8)
 
 ## Across guilds and size classes
 effect_protection <- summarise_cf(posterior = counterfactual_protection, do = "protected", confound = c("behaviour", "guild", "size_class"), groups = c("ind_id", "guild", "behaviour", "size_class"), path = "behaviour-prob", file = paste0("counterfactual_protection_size.docx"))
@@ -152,31 +152,37 @@ ggsave(here("figures", "behaviour-prob", "effect_plot_guild_size.png"), plot = l
 
 # Effect of rugosity
 
-counterfactual_rugosity %>%
+p2 <- counterfactual_rugosity %>%
     group_by(behaviour, guild, rugosity_mean) %>%
     median_qi(prop, .width = c(0.5)) %>%
     mutate(rugosity_mean = moments_rugosity[2] * rugosity_mean + moments_rugosity[1]) %>%
     ggplot(aes(x = rugosity_mean, y = prop, col = guild, fill = guild)) +
     geom_lineribbon(aes(ymin = .lower, ymax = .upper), alpha = 0.5) +
-    labs(x = "Rugosity", y = "Proportion of time") +
-    facet_wrap(~behaviour, ncol = 1)
+    scale_color_brewer(palette = "Set1") +
+    scale_fill_brewer(palette = "Set1") +
+    labs(x = "Rugosity", y = "Probability") +
+    facet_grid(guild ~ behaviour) +
+    theme(legend.position = "none")
 
-ggsave(here("figures", "behaviour-prob", "counterfactual_rugosity.png"), plot = last_plot(), height = 12, width = 8)
+ggsave(here("figures", "behaviour-prob", "counterfactual_rugosity.png"), plot = p2, height = 8, width = 12)
 
 effect_rugosity <- summarise_cf(posterior = counterfactual_rugosity, do = "rugosity_mean", confound = c("behaviour", "guild"), groups = c("ind_id", "guild", "behaviour", "size_class"), path = "behaviour-prob", file = paste0("counterfactual_rugosity.docx"))
 
 # Effect of biomass
 
-counterfactual_biomass %>%
+p3 <- counterfactual_biomass %>%
     group_by(behaviour, guild, biomass) %>%
     median_qi(prop, .width = c(0.5)) %>%
     mutate(biomass = (moments_biomass[2] * biomass + moments_biomass[1]) * 100) %>%
     ggplot(aes(x = biomass, y = prop, col = guild, fill = guild)) +
     geom_lineribbon(aes(ymin = .lower, ymax = .upper), alpha = 0.5) +
-    labs(x = "Biomass Cover (%)", y = "Proportion of time") +
-    facet_wrap(~behaviour, ncol = 1)
+    scale_color_brewer(palette = "Set1") +
+    scale_fill_brewer(palette = "Set1") +
+    labs(x = "Biomass Cover (%)", y = "Probability") +
+    facet_grid(guild ~ behaviour) +
+    theme(legend.position = "none")
 
-ggsave(here("figures", "behaviour-prob", "counterfactual_biomass.png"), plot = last_plot(), height = 12, width = 8)
+ggsave(here("figures", "behaviour-prob", "counterfactual_biomass.png"), plot = p3, height = 8, width = 12)
 
 effect_biomass <- summarise_cf(posterior = counterfactual_biomass, do = "biomass", confound = c("behaviour", "guild"), groups = c("ind_id", "guild", "behaviour", "size_class"), path = "behaviour-prob", file = paste0("counterfactual_biomass.docx"))
 

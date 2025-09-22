@@ -28,7 +28,7 @@ model <- readRDS(here("outputs", "behaviour-bites", "model.rds"))
 
 counterfactual_protection <- data_ts %>%
     ungroup() %>%
-    mutate(size_class = factor(size_class, levels = c(1,2,3,4))) %>%
+    mutate(size_class = factor(size_class, levels = c(1, 2, 3, 4))) %>%
     select(ind_id, plot_id, site, family, species, guild, size_class, predator, group, rugosity_mean, rugosity_se, biomass) %>%
     distinct() %>%
     expand_grid(protected = c(0, 1)) %>%
@@ -42,7 +42,7 @@ std_var <- seq(-2, 2, by = 0.2)
 
 counterfactual_rugosity <- data_ts %>%
     ungroup() %>%
-    mutate(size_class = factor(size_class, levels = c(1,2,3,4))) %>%
+    mutate(size_class = factor(size_class, levels = c(1, 2, 3, 4))) %>%
     select(ind_id, plot_id, site, family, species, guild, size_class, protected, predator, group, biomass) %>%
     distinct() %>%
     expand_grid(rugosity_mean = std_var, rugosity_se = 0.1) %>%
@@ -56,7 +56,7 @@ std_var <- seq(-2, 2, by = 0.2)
 
 counterfactual_biomass <- data_ts %>%
     ungroup() %>%
-    mutate(size_class = factor(size_class, levels = c(1,2,3,4))) %>%
+    mutate(size_class = factor(size_class, levels = c(1, 2, 3, 4))) %>%
     select(ind_id, plot_id, site, family, species, guild, size_class, protected, predator, group, rugosity_mean, rugosity_se) %>%
     distinct() %>%
     expand_grid(biomass = std_var) %>%
@@ -68,7 +68,7 @@ counterfactual_biomass <- data_ts %>%
 
 counterfactual_predator <- data_ts %>%
     ungroup() %>%
-    mutate(size_class = factor(size_class, levels = c(1,2,3,4))) %>%
+    mutate(size_class = factor(size_class, levels = c(1, 2, 3, 4))) %>%
     select(ind_id, plot_id, family, species, site, guild, size_class, protected, group, rugosity_mean, rugosity_se, biomass) %>%
     distinct() %>%
     expand_grid(predator = c(0, 1)) %>%
@@ -80,7 +80,7 @@ counterfactual_predator <- data_ts %>%
 
 counterfactual_group <- data_ts %>%
     ungroup() %>%
-    mutate(size_class = factor(size_class, levels = c(1,2,3,4))) %>%
+    mutate(size_class = factor(size_class, levels = c(1, 2, 3, 4))) %>%
     select(ind_id, plot_id, site, family, species, guild, size_class, protected, predator, rugosity_mean, rugosity_se, biomass) %>%
     distinct() %>%
     expand_grid(group = c(0, 1)) %>%
@@ -115,7 +115,7 @@ effect_protection %>%
 ggsave(here("figures", "behaviour-bites", "effect_plot_guild.png"), plot = last_plot(), height = 6, width = 8)
 
 ## Across guilds and size classes
-effect_protection <- summarise_cf(posterior = counterfactual_protection, dist = "Abundance", do = "protected", confound = c("behaviour", "guild", "size_class"), groups = c("ind_id", "guild", "behaviour", "size_class"), path = "behaviour-bites", file = paste0("counterfactual_protection.docx"))
+effect_protection <- summarise_cf(posterior = counterfactual_protection, dist = "Abundance", do = "protected", confound = c("behaviour", "guild", "size_class"), groups = c("ind_id", "guild", "behaviour", "size_class"), path = "behaviour-bites", file = paste0("counterfactual_protection_size.docx"))
 
 effect_protection %>%
     group_by(behaviour, guild, size_class) %>%
@@ -123,7 +123,7 @@ effect_protection %>%
     ggplot(aes(x = size_class, y = effect, color = guild)) +
     geom_hline(yintercept = 0, linetype = "dashed", color = "black") +
     geom_pointinterval(aes(ymin = .lower, ymax = .upper), position = position_dodge(width = 0.5)) +
-    labs(x = "Size class", y = "Log response ratio", color = "Guild") 
+    labs(x = "Size class", y = "Log response ratio", color = "Guild")
 
 ggsave(here("figures", "behaviour-bites", "effect_plot_guild_size.png"), plot = last_plot(), height = 6, width = 8)
 
@@ -135,9 +135,13 @@ counterfactual_rugosity %>%
     mutate(rugosity_mean = moments_rugosity[2] * rugosity_mean + moments_rugosity[1]) %>%
     ggplot(aes(x = rugosity_mean, y = prop, col = guild, fill = guild)) +
     geom_lineribbon(aes(ymin = .lower, ymax = .upper), alpha = 0.5) +
-    labs(x = "Rugosity", y = "Bite Rate") 
+    scale_color_brewer(palette = "Set1") +
+    scale_fill_brewer(palette = "Set1") +
+    labs(x = "Rugosity", y = "Bite Rate") +
+    facet_wrap(~guild, ncol = 2) +
+    theme(legend.position = "none")
 
-ggsave(here("figures", "behaviour-bites", "counterfactual_rugosity.png"), plot = last_plot(), height = 6, width = 8)
+ggsave(here("figures", "behaviour-bites", "counterfactual_rugosity.png"), plot = last_plot(), height = 6, width = 12)
 
 effect_rugosity <- summarise_cf(posterior = counterfactual_rugosity, dist = "Abundance", do = "rugosity_mean", confound = c("behaviour", "guild"), groups = c("ind_id", "guild", "behaviour", "size_class"), path = "behaviour-bites", file = paste0("counterfactual_rugosity.docx"))
 
@@ -149,9 +153,13 @@ counterfactual_biomass %>%
     mutate(biomass = (moments_biomass[2] * biomass + moments_biomass[1]) * 100) %>%
     ggplot(aes(x = biomass, y = prop, col = guild, fill = guild)) +
     geom_lineribbon(aes(ymin = .lower, ymax = .upper), alpha = 0.5) +
-    labs(x = "Biomass Cover (%)", y = "Bite Rate") 
+    scale_color_brewer(palette = "Set1") +
+    scale_fill_brewer(palette = "Set1") +
+    labs(x = "Biomass Cover (%)", y = "Bite Rate") +
+    facet_wrap(~guild, ncol = 2) +
+    theme(legend.position = "none")
 
-ggsave(here("figures", "behaviour-bites", "counterfactual_biomass.png"), plot = last_plot(), height = 6, width = 8)
+ggsave(here("figures", "behaviour-bites", "counterfactual_biomass.png"), plot = last_plot(), height = 6, width = 12)
 
 effect_biomass <- summarise_cf(posterior = counterfactual_biomass, dist = "Abundance", do = "biomass", confound = c("behaviour", "guild"), groups = c("ind_id", "guild", "behaviour", "size_class"), path = "behaviour-bites", file = paste0("counterfactual_biomass.docx"))
 
@@ -168,7 +176,7 @@ effect_predator %>%
 ggsave(here("figures", "behaviour-bites", "counterfactual_predator.png"), plot = last_plot(), height = 12, width = 8)
 
 # Effect of grouping
-effect_group <- summarise_cf(posterior = counterfactual_group, dist = "Abundance", do = "group", confound = c("behaviour"), groups = c("ind_id", "guild", "behaviour", "size_class"), path = "behaviour-bites", file = paste0("counterfactual_group.docx"))
+effect_group <- summ a rise_cf(posterior = counterfactual_group, dist = "Abundance", do = "group", confound = c("behaviour"), groups = c("ind_id", "guild", "behaviour", "size_class"), path = "behaviour-bites", file = paste0("counterfactual_group.docx"))
 
 effect_group %>%
     ggplot(aes(x = effect)) +
