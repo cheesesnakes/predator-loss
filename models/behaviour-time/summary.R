@@ -86,7 +86,7 @@ for (b in behaviours) {
 
     # Parameters
 
-    summarise_params(model = model, type = "Parameter", vars = c("b_Intercept", "b_protected", "b_rugosity_mean", "b_biomass", "b_predator", "b_group", "b_rugosity_mean:guildInvertivore", "b_biomass:guildInvertivore", "b_protected:guildInvertivore"), path = here("outputs", "behaviour-prob", paste0(b, "_parameters", ".docx")))
+    summarise_params(model = model, type = "Parameter", vars = c("b_Intercept", "b_protected", "b_rugosity_mean", "b_biomass", "b_predator", "b_group", "b_rugosity_mean:guildInvertivore", "b_biomass:guildInvertivore", "b_protected:guildInvertivore"), path = here("outputs", "behaviour-time", paste0(b, "_parameters", ".docx")))
 
     # Make tables for conditional and marginal R2
 
