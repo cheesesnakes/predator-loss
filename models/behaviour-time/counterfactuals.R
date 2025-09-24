@@ -166,6 +166,18 @@ ggsave(here("figures", "behaviour-time", "counterfactual_rugosity.png"), plot = 
 
 effect_rugosity <- summarise_cf(posterior = counterfactual_rugosity, do = "rugosity_mean", confound = c("behaviour", "guild"), groups = c("ind_id", "guild", "behaviour", "size_class"), path = "behaviour-time", file = paste0("counterfactual_rugosity.docx"))
 
+p43 <- effect_rugosity %>%
+    group_by(behaviour, guild) %>%
+    median_qi(effect, .width = c(0.5, 0.9)) %>%
+    ggplot(aes(x = behaviour, y = effect, col = guild)) +
+    geom_pointinterval(aes(ymin = .lower, ymax = .upper), position = position_dodge(width = 0.5)) +
+    geom_hline(yintercept = 0, linetype = "dashed", color = "black") +
+    labs(x = "Behaviour", y = "Log odds ratio", col = "Foraging Guild") +
+    scale_color_brewer(palette = "Set1") +
+    theme(legend.position = "top")
+
+ggsave(here("figures", "behaviour-time", "effect_rugosity.png"), plot = p43, height = 6, width = 8)
+
 # Effect of biomass
 
 p7 <- counterfactual_biomass %>%
@@ -183,6 +195,18 @@ p7 <- counterfactual_biomass %>%
 ggsave(here("figures", "behaviour-time", "counterfactual_biomass.png"), plot = p7, height = 8, width = 12)
 
 effect_biomass <- summarise_cf(posterior = counterfactual_biomass, do = "biomass", confound = c("behaviour", "guild"), groups = c("ind_id", "guild", "behaviour", "size_class"), path = "behaviour-time", file = paste0("counterfactual_biomass.docx"))
+
+p44 <- effect_biomass %>%
+    group_by(behaviour, guild) %>%
+    median_qi(effect, .width = c(0.5, 0.9)) %>%
+    ggplot(aes(x = behaviour, y = effect, col = guild)) +
+    geom_pointinterval(aes(ymin = .lower, ymax = .upper), position = position_dodge(width = 0.5)) +
+    geom_hline(yintercept = 0, linetype = "dashed", color = "black") +
+    labs(x = "Behaviour", y = "Log odds ratio", col = "Foraging Guild") +
+    scale_color_brewer(palette = "Set1") +
+    theme(legend.position = "top")
+
+ggsave(here("figures", "behaviour-time", "effect_biomass.png"), plot = p44, height = 6, width = 8)
 
 # Effect of predator presence
 effect_predator <- summarise_cf(posterior = counterfactual_predator, do = "predator", confound = c("behaviour"), groups = c("ind_id", "guild", "behaviour", "size_class"), path = "behaviour-time", file = paste0("counterfactual_predator.docx"))

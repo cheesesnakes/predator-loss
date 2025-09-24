@@ -134,7 +134,7 @@ p1 <- effect_protection %>%
     geom_pointinterval(aes(ymin = .lower, ymax = .upper), position = position_dodge(width = 0.5)) +
     labs(x = "Behaviour", y = "Log odds ratio", color = "Guild")
 
-ggsave(here("figures", "behaviour-prob", "effect_plot_guild.png"), plot = p, height = 6, width = 8)
+ggsave(here("figures", "behaviour-prob", "effect_plot_guild.png"), plot = p1, height = 6, width = 8)
 
 ## Across guilds and size classes
 effect_protection <- summarise_cf(posterior = counterfactual_protection, do = "protected", confound = c("behaviour", "guild", "size_class"), groups = c("ind_id", "guild", "behaviour", "size_class"), path = "behaviour-prob", file = paste0("counterfactual_protection_size.docx"))
@@ -168,6 +168,18 @@ ggsave(here("figures", "behaviour-prob", "counterfactual_rugosity.png"), plot = 
 
 effect_rugosity <- summarise_cf(posterior = counterfactual_rugosity, do = "rugosity_mean", confound = c("behaviour", "guild"), groups = c("ind_id", "guild", "behaviour", "size_class"), path = "behaviour-prob", file = paste0("counterfactual_rugosity.docx"))
 
+p41 <- effect_rugosity %>%
+    group_by(behaviour, guild) %>%
+    median_qi(effect, .width = c(0.5, 0.9)) %>%
+    ggplot(aes(x = behaviour, y = effect, col = guild)) +
+    geom_pointinterval(aes(ymin = .lower, ymax = .upper), position = position_dodge(width = 0.5)) +
+    geom_hline(yintercept = 0, linetype = "dashed", color = "black") +
+    labs(x = "Behaviour", y = "Log odds ratio", col = "Foraging Guild") +
+    scale_color_brewer(palette = "Set1") +
+    theme(legend.position = "top")
+
+ggsave(here("figures", "behaviour-prob", "effect_rugosity.png"), plot = p41, height = 6, width = 8)
+
 # Effect of biomass
 
 p3 <- counterfactual_biomass %>%
@@ -186,6 +198,17 @@ ggsave(here("figures", "behaviour-prob", "counterfactual_biomass.png"), plot = p
 
 effect_biomass <- summarise_cf(posterior = counterfactual_biomass, do = "biomass", confound = c("behaviour", "guild"), groups = c("ind_id", "guild", "behaviour", "size_class"), path = "behaviour-prob", file = paste0("counterfactual_biomass.docx"))
 
+p42 <- effect_biomass %>%
+    group_by(behaviour, guild) %>%
+    median_qi(effect, .width = c(0.5, 0.9)) %>%
+    ggplot(aes(x = behaviour, y = effect, col = guild)) +
+    geom_pointinterval(aes(ymin = .lower, ymax = .upper), position = position_dodge(width = 0.5)) +
+    geom_hline(yintercept = 0, linetype = "dashed", color = "black") +
+    labs(x = "Behaviour", y = "Log odds ratio", col = "Foraging Guild") +
+    scale_color_brewer(palette = "Set1") +
+    theme(legend.position = "top")
+
+ggsave(here("figures", "behaviour-prob", "effect_biomass.png"), plot = p42, height = 6, width = 8)
 # Effect of predator presence
 
 effect_predator <- summarise_cf(posterior = counterfactual_predator, do = "predator", confound = c("behaviour"), groups = c("ind_id", "guild", "behaviour", "size_class"), path = "behaviour-prob", file = paste0("counterfactual_predator.docx"))
@@ -196,7 +219,7 @@ effect_predator %>%
     ggplot(aes(x = behaviour, y = effect, col = behaviour)) +
     geom_pointinterval(aes(ymin = .lower, ymax = .upper)) +
     geom_hline(yintercept = 0, linetype = "dashed", color = "black") +
-    labs(x = "Behaviour", y = expression(Delta ~ " P(time)")) +
+    labs(x = "Behaviour", y = "Log odds ratio") +
     scale_color_brewer(palette = "Dark2") +
     theme(legend.position = "none")
 

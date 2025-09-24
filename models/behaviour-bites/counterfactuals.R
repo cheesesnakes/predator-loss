@@ -131,7 +131,7 @@ ggsave(here("figures", "behaviour-bites", "effect_plot_guild_size.png"), plot = 
 
 counterfactual_rugosity %>%
     group_by(behaviour, guild, rugosity_mean) %>%
-    median_qi(prop, .width = c(0.5)) %>%
+    median_qi(prop, .width = c(0.9)) %>%
     mutate(rugosity_mean = moments_rugosity[2] * rugosity_mean + moments_rugosity[1]) %>%
     ggplot(aes(x = rugosity_mean, y = prop, col = guild, fill = guild)) +
     geom_lineribbon(aes(ymin = .lower, ymax = .upper), alpha = 0.5) +
@@ -149,7 +149,7 @@ effect_rugosity <- summarise_cf(posterior = counterfactual_rugosity, dist = "Abu
 
 counterfactual_biomass %>%
     group_by(behaviour, guild, biomass) %>%
-    median_qi(prop, .width = c(0.5)) %>%
+    median_qi(prop, .width = c(0.9)) %>%
     mutate(biomass = (moments_biomass[2] * biomass + moments_biomass[1]) * 100) %>%
     ggplot(aes(x = biomass, y = prop, col = guild, fill = guild)) +
     geom_lineribbon(aes(ymin = .lower, ymax = .upper), alpha = 0.5) +
@@ -176,7 +176,7 @@ effect_predator %>%
 ggsave(here("figures", "behaviour-bites", "counterfactual_predator.png"), plot = last_plot(), height = 12, width = 8)
 
 # Effect of grouping
-effect_group <- summ a rise_cf(posterior = counterfactual_group, dist = "Abundance", do = "group", confound = c("behaviour"), groups = c("ind_id", "guild", "behaviour", "size_class"), path = "behaviour-bites", file = paste0("counterfactual_group.docx"))
+effect_group <- summarise_cf(posterior = counterfactual_group, dist = "Abundance", do = "group", confound = c("behaviour"), groups = c("ind_id", "guild", "behaviour", "size_class"), path = "behaviour-bites", file = paste0("counterfactual_group.docx"))
 
 effect_group %>%
     ggplot(aes(x = effect)) +
