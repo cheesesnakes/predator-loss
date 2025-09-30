@@ -118,6 +118,7 @@ effect_protection %>%
     ggplot(aes(x = behaviour, y = effect)) +
     geom_hline(yintercept = 0, linetype = "dashed", color = "black") +
     geom_pointinterval(aes(ymin = .lower, ymax = .upper)) +
+    scale_color_brewer(palette = "Set1") +
     labs(x = "Behaviour", y = "Log odds ratio")
 
 ggsave(here("figures", "behaviour-prob", "effect_plot.png"), plot = last_plot())
@@ -129,9 +130,12 @@ effect_protection <- summarise_cf(posterior = counterfactual_protection, do = "p
 p1 <- effect_protection %>%
     group_by(behaviour, guild) %>%
     median_qi(effect, .width = c(0.5, 0.9)) %>%
+    mutate(behaviour = case_when(behaviour == "Move" ~ "Movement",
+    TRUE ~ behaviour)) %>%
     ggplot(aes(x = behaviour, y = effect, color = guild)) +
     geom_hline(yintercept = 0, linetype = "dashed", color = "black") +
     geom_pointinterval(aes(ymin = .lower, ymax = .upper), position = position_dodge(width = 0.5)) +
+    scale_color_brewer(palette = "Set1") +
     labs(x = "Behaviour", y = "Log odds ratio", color = "Guild")
 
 ggsave(here("figures", "behaviour-prob", "effect_plot_guild.png"), plot = p1, height = 6, width = 8)
@@ -171,6 +175,8 @@ effect_rugosity <- summarise_cf(posterior = counterfactual_rugosity, do = "rugos
 p41 <- effect_rugosity %>%
     group_by(behaviour, guild) %>%
     median_qi(effect, .width = c(0.5, 0.9)) %>%
+    mutate(behaviour = case_when(behaviour == "Move" ~ "Movement",
+    TRUE ~ behaviour)) %>%
     ggplot(aes(x = behaviour, y = effect, col = guild)) +
     geom_pointinterval(aes(ymin = .lower, ymax = .upper), position = position_dodge(width = 0.5)) +
     geom_hline(yintercept = 0, linetype = "dashed", color = "black") +
@@ -201,6 +207,8 @@ effect_biomass <- summarise_cf(posterior = counterfactual_biomass, do = "biomass
 p42 <- effect_biomass %>%
     group_by(behaviour, guild) %>%
     median_qi(effect, .width = c(0.5, 0.9)) %>%
+    mutate(behaviour = case_when(behaviour == "Move" ~ "Movement",
+    TRUE ~ behaviour)) %>%
     ggplot(aes(x = behaviour, y = effect, col = guild)) +
     geom_pointinterval(aes(ymin = .lower, ymax = .upper), position = position_dodge(width = 0.5)) +
     geom_hline(yintercept = 0, linetype = "dashed", color = "black") +

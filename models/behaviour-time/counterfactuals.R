@@ -169,6 +169,8 @@ effect_rugosity <- summarise_cf(posterior = counterfactual_rugosity, do = "rugos
 p43 <- effect_rugosity %>%
     group_by(behaviour, guild) %>%
     median_qi(effect, .width = c(0.5, 0.9)) %>%
+    mutate(behaviour = case_when(behaviour == "Move" ~ "Movement",
+    TRUE ~ behaviour)) %>%
     ggplot(aes(x = behaviour, y = effect, col = guild)) +
     geom_pointinterval(aes(ymin = .lower, ymax = .upper), position = position_dodge(width = 0.5)) +
     geom_hline(yintercept = 0, linetype = "dashed", color = "black") +
@@ -199,6 +201,8 @@ effect_biomass <- summarise_cf(posterior = counterfactual_biomass, do = "biomass
 p44 <- effect_biomass %>%
     group_by(behaviour, guild) %>%
     median_qi(effect, .width = c(0.5, 0.9)) %>%
+    mutate(behaviour = case_when(behaviour == "Move" ~ "Movement",
+    TRUE ~ behaviour)) %>%
     ggplot(aes(x = behaviour, y = effect, col = guild)) +
     geom_pointinterval(aes(ymin = .lower, ymax = .upper), position = position_dodge(width = 0.5)) +
     geom_hline(yintercept = 0, linetype = "dashed", color = "black") +
