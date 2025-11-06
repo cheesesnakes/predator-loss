@@ -257,3 +257,27 @@ data_ts %>%
   print(.)
 
 print(paste0("Total time sampled: ", sum(data_ts$codingduration) / 60))
+
+## Size class wise abundance across guilds
+
+size_dist <- fish %>%
+  left_join(guild) %>%
+  group_by(transect, guild, size) %>%
+  summarise(Abundance = sum(count), .groups = "drop") %>%
+  mutate(guild = ifelse(is.na(guild), "Unknown", guild)) %>%
+  arrange(guild, size)
+
+ggplot(size_dist, aes(x = size, y = Abundance, fill = guild)) +
+  geom_boxplot() +
+  labs(
+    x = "Size Class (cm)",
+    y = "Abundance",
+    fill = "Feeding Guild"
+  )+
+  scale_fill_brewer(palette = "Set1") +
+  theme_bw() +
+  theme(text = element_text(size = 16),
+  legend.position = "none")+
+  facet_wrap(~guild, ncol = 2, scales = "free_y")
+
+ggsave(here("figures", "transect_fish_size.png"), plot = last_plot(), height = 6, width = 8)

@@ -1,4 +1,4 @@
-pacman::p_load(here, flextable)
+pacman::p_load(here, flextable, ggplot2)
 
 source(here("analysis", "cleaning_fish.R"))
 
@@ -111,3 +111,27 @@ fish %>%
   summarise(Richness = length(unique(species)), Abundance = sum(count), .groups = "drop") %>%
   mutate(guild = ifelse(is.na(guild), "Unknown", guild)) %>%
   print(.)
+
+## Size class wise abundance across guilds
+
+size_dist <- fish %>%
+  left_join(guild, by = c("spp" = "species")) %>%
+  group_by(plot_id, guild, size) %>%
+  summarise(Abundance = n(), .groups = "drop") %>%
+  mutate(guild = ifelse(is.na(guild), "Unknown", guild)) %>%
+  arrange(guild, size)
+
+ggplot(size_dist, aes(x = size, y = Abundance, fill = guild)) +
+  geom_boxplot() +
+  labs(
+    x = "Size Class (cm)",
+    y = "Abundance",
+    fill = "Feeding Guild"
+  )+
+  scale_fill_brewer(palette = "Set1") +
+  theme_bw() +
+  theme(text = element_text(size = 16),
+  legend.position = "none")+
+  facet_wrap(~guild, ncol = 2, scales = "free_y")
+
+ggsave(here("figures", "plot_fish_size.png"), plot = last_plot(), height = 6, width = 8)
