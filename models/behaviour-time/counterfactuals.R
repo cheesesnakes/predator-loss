@@ -130,7 +130,9 @@ p5 <- effect_protection %>%
     ggplot(aes(x = behaviour, y = effect, color = guild)) +
     geom_hline(yintercept = 0, linetype = "dashed", color = "black") +
     geom_pointinterval(aes(ymin = .lower, ymax = .upper), position = position_dodge(width = 0.5)) +
-    labs(x = "Behaviour", y = "Log odds ratio", color = "Guild")
+    scale_color_brewer(palette = "Set1") +
+        scale_fill_brewer(palette = "Set1") +
+        labs(x = "Behaviour", y = "Log odds ratio", color = "Guild")
 
 ggsave(here("figures", "behaviour-time", "effect_plot_guild.png"), plot = p5, height = 6, width = 8)
 
@@ -143,6 +145,8 @@ effect_protection %>%
     ggplot(aes(x = size_class, y = effect, color = guild)) +
     geom_hline(yintercept = 0, linetype = "dashed", color = "black") +
     geom_pointinterval(aes(ymin = .lower, ymax = .upper), position = position_dodge(width = 0.5)) +
+    scale_color_brewer(palette = "Set1") +
+    scale_fill_brewer(palette = "Set1") +
     labs(x = "Size class", y = "Log odds ratio", color = "Guild") +
     facet_wrap(~behaviour)
 
