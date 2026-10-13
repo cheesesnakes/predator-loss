@@ -127,14 +127,29 @@ effect_protection <- summarise_cf(posterior = counterfactual_protection, do = "p
 p5 <- effect_protection %>%
     group_by(behaviour, guild) %>%
     median_qi(effect, .width = c(0.5, 0.9)) %>%
-    ggplot(aes(x = behaviour, y = effect, color = guild)) +
+    ggplot(aes(x = behaviour, y = effect, color = guild, shape = guild)) +
     geom_hline(yintercept = 0, linetype = "dashed", color = "black") +
-    geom_pointinterval(aes(ymin = .lower, ymax = .upper), position = position_dodge(width = 0.5)) +
+    geom_pointinterval(aes(ymin = .lower, ymax = .upper),
+        position = position_dodge(width = 0.5),
+        interval_size_domain = c(1, 6),
+        interval_size_range = c(1, 3)
+    ) +
     scale_color_brewer(palette = "Set1") +
-        scale_fill_brewer(palette = "Set1") +
-        labs(x = "Behaviour", y = "Log odds ratio", color = "Guild")
+    scale_fill_brewer(palette = "Set1") +
+    labs(x = "Behaviour", y = "Log odds ratio", color = "Guild", shape = "Guild") +
+    theme(
+        legend.position = "top",
+        text = element_text(size = 20),
+        # increase text size
+        axis.title.x = element_text(size = 18),
+        axis.title.y = element_text(size = 18),
+        axis.text.x = element_text(size = 16),
+        axis.text.y = element_text(size = 16),
+        strip.text = element_text(size = 18),
+        legend.text = element_text(size = 16)
+    )
 
-ggsave(here("figures", "behaviour-time", "effect_plot_guild.png"), plot = p5, height = 6, width = 8)
+ggsave(here("figures", "behaviour-time", "effect_plot_guild.png"), plot = p5, height = 10, width = 10)
 
 ## Across guilds and size classes
 effect_protection <- summarise_cf(posterior = counterfactual_protection, do = "protected", confound = c("behaviour", "guild", "size_class"), groups = c("ind_id", "guild", "behaviour", "size_class"), path = "behaviour-time", file = paste0("counterfactual_protection_size.docx"))
@@ -173,8 +188,10 @@ effect_rugosity <- summarise_cf(posterior = counterfactual_rugosity, do = "rugos
 p43 <- effect_rugosity %>%
     group_by(behaviour, guild) %>%
     median_qi(effect, .width = c(0.5, 0.9)) %>%
-    mutate(behaviour = case_when(behaviour == "Move" ~ "Movement",
-    TRUE ~ behaviour)) %>%
+    mutate(behaviour = case_when(
+        behaviour == "Move" ~ "Movement",
+        TRUE ~ behaviour
+    )) %>%
     ggplot(aes(x = behaviour, y = effect, col = guild)) +
     geom_pointinterval(aes(ymin = .lower, ymax = .upper), position = position_dodge(width = 0.5)) +
     geom_hline(yintercept = 0, linetype = "dashed", color = "black") +
@@ -205,8 +222,10 @@ effect_biomass <- summarise_cf(posterior = counterfactual_biomass, do = "biomass
 p44 <- effect_biomass %>%
     group_by(behaviour, guild) %>%
     median_qi(effect, .width = c(0.5, 0.9)) %>%
-    mutate(behaviour = case_when(behaviour == "Move" ~ "Movement",
-    TRUE ~ behaviour)) %>%
+    mutate(behaviour = case_when(
+        behaviour == "Move" ~ "Movement",
+        TRUE ~ behaviour
+    )) %>%
     ggplot(aes(x = behaviour, y = effect, col = guild)) +
     geom_pointinterval(aes(ymin = .lower, ymax = .upper), position = position_dodge(width = 0.5)) +
     geom_hline(yintercept = 0, linetype = "dashed", color = "black") +
